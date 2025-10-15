@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+---
+# Rules for Shell and Git Operations
+
+Defines how to create Git branches following project naming patterns, integrated with Notion artifacts (Epics, Stories, Tasks).
+
+## Branch Creation Triggers
+
+**Activate when user requests:**
+- "create a branch for SPWS-X" (Story)
+- "create branch for SPWT-X" (Task)
+- "create branch for task SPWT-X"
+
+## Branch Patterns
+
+| Artifact Type | Branch Pattern | Example |
+|---|---|---|
+| User Story (SPWS-X) | `feature/develop/SPWS-X` | `feature/develop/SPWS-1` |
+| Feature Task (SPWT-X) | `feature/[parent-story]/SPWT-X` | `feature/SPWS-1/SPWT-5` |
+| Tech Task (SPWT-X) | `tech/[parent-story]/SPWT-X` | `tech/SPWS-2/SPWT-8` |
+| Bug Task (SPWT-X) | `bug/[parent-story]/SPWT-X` | `bug/SPWS-1/SPWT-12` |
+
+## Workflow
+
+### For User Stories (SPWS-X)
+
+1. Identify: `SPWS-X` = Story (no Notion lookup needed)
+2. Pattern: `feature/develop/SPWS-X`
+3. Execute:
+   - `git checkout develop`
+   - `git pull origin develop`
+   - `git checkout -b feature/develop/SPWS-X`
+4. Confirm branch created to user
+
+### For Tasks (SPWT-X)
+
+1. **Fetch from Notion:**
+   - Use `notion-search` with `query_type: "internal"` and query: "SPWT-X"
+   - Use `notion-fetch` to get:
+     * Task type: Feature, Tech, or Bug
+     * Parent Story: SPWS-X
+
+2. **Apply pattern by type:**
+   - Feature → `feature/[parent-story]/SPWT-X`
+   - Tech → `tech/[parent-story]/SPWT-X`
+   - Bug → `bug/[parent-story]/SPWT-X`
+
+3. **Execute:**
+   - `git checkout feature/develop/[parent-story]`
+   - `git pull origin feature/develop/[parent-story]`
+   - `git checkout -b [type]/[parent-story]/SPWT-X`
+
+4. **Confirm branch created to user**
+
+### If Notion Lookup Fails
+
+1. Ask user for task type (Feature/Tech/Bug)
+2. Ask for parent story (SPWS-X)
+3. Apply pattern and create branch
+
+## Important Notes
+
+- Stories (SPWS-X): Always use `feature/develop/` prefix
+- Tasks (SPWT-X): Always fetch type and parent from Notion first
+- Before creating: Always checkout and update base branch
+- After creating: Confirm branch name and report executed commands
+- Validate ID format (SPWS-X or SPWT-X) before proceeding

@@ -1,0 +1,59 @@
+---
+alwaysApply: true
+---
+# Activation Rules for GitHub (Repository Management)
+
+**GitHub MCP** enables complete integration with GitHub for reading, analyzing, creating, and managing Pull Requests, Issues, Branches, and semantic code search.
+
+## Activation Triggers
+
+**Repository Reading & Analysis:**
+- Verbs: "check", "summarize", "analyze", "read", "show", "what's the status of"
+- Combined with: "pull request", "PR", "issue", "branch", "commit", "code"
+
+**Repository Writing:**
+- "create an issue", "open a ticket", "log this bug"
+- "turn this into an issue" (with code selection)
+
+**Pull Request Management:**
+- "create a PR", "open a pull request", "update the PR"
+- "review the code", "merge", "request Copilot review"
+- "add comments to PR"
+
+**Code Search:**
+- "find where [function/class] is used"
+- "search for implementations of [pattern]"
+- "look for [code] on GitHub"
+- "how other projects implement [functionality]"
+
+## Actions by Category
+
+### Reading & Analysis
+- **Pull Request:** `pull_request_read` with method (get, get_diff, get_files, get_review_comments, get_reviews, get_status)
+- **Issue:** `get_issue`, `get_issue_comments`
+- **Commits:** `list_commits`
+- **Branches:** `list_branches`
+
+### Writing & Creation
+- **Issue:** `create_issue` (confirm title/description first)
+- **PR:** `create_pull_request` (confirm head/base branches)
+
+### Pull Request Management
+- **Update:** `update_pull_request` (title, description, reviewers, draft, state)
+- **Merge:** `merge_pull_request` (confirm first, supports merge/squash/rebase)
+- **Copilot Review:** `request_copilot_review`
+- **Manual Review:**
+  * Simple: `create_and_submit_pull_request_review`
+  * Detailed: `create_pending_pull_request_review` → `add_comment_to_pending_review` → `submit_pending_pull_request_review`
+
+### Code Search
+- Use `search_code` with GitHub syntax
+- Apply filters: `language:`, `repo:`, `org:`, `path:`, `extension:`, `NOT`
+- Limit initial results to 5-10 most relevant
+
+## Important Notes
+
+- Always confirm destructive actions (merge, delete) with user
+- For reviews, confirm: APPROVE, REQUEST_CHANGES, or COMMENT
+- Use contextual filters for precise code searches
+- Use `request_copilot_review` for automated feedback before human review

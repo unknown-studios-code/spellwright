@@ -1,0 +1,172 @@
+# User Story Template
+
+Copy this template structure when creating a User Story. Remove all INSTRUCTION/FORMAT/EXAMPLE labels and replace examples with real content.
+
+---
+
+```markdown
+# [Story Title - Clear, Action-Oriented]
+
+### 👤 User Story
+
+**INSTRUCTION:** Define WHO needs this, WHAT they want to do, and WHY it matters. Use the standard user story format.
+
+**FORMAT:** As a [user type] / I want to [action] / So that [benefit]
+
+**EXAMPLE:**
+- **As a** Game Designer
+- **I want to** spawn spell entities from natural language descriptions
+- **So that** I can rapidly prototype and test spell mechanics without writing code
+
+---
+
+### ✅ Acceptance Criteria
+
+**INSTRUCTION:** Define observable, testable behaviors that prove this story is complete. Focus on OUTCOMES, not implementation details.
+
+**FORMAT:** Use numbered list with specific, measurable criteria. Can use Gherkin (Given/When/Then) for complex scenarios.
+
+**EXAMPLE - Standard Format:**
+1. The system generates a valid spell entity from a JSON spell definition
+2. Spawned spell entities move according to their velocity component
+3. Spells automatically destroy after their configured lifetime expires
+4. Unity Entities Hierarchy displays all spell components correctly
+5. No memory leaks occur after spawning/destroying 100+ spell entities
+
+**EXAMPLE - Gherkin Format (for complex scenarios):**
+- **Given** a SpellDefinition with projectile generator and 5-second lifetime
+- **When** the spell is spawned at player position
+- **Then** the projectile moves forward at configured speed
+- **And** the entity is destroyed exactly 5 seconds after spawn
+- **And** no orphaned entities remain in the scene
+
+---
+
+### ⚙️ Technical Refinement
+
+**INSTRUCTION:** Describe WHAT components and systems need to exist and WHY, NOT HOW to implement them. This is high-level architecture, not code.
+
+**Components Needed:** (name and purpose only)
+
+**FORMAT:** ComponentName (purpose: what data it represents)
+
+**EXAMPLE:**
+- `SpellLifetime` (purpose: tracks spawn timestamp and duration for automatic cleanup)
+- `ProjectileTag` (purpose: identifies entities as projectile-type spells for filtering)
+- `Velocity` (purpose: stores 3D movement vector for spell motion)
+- `DamageAmount` (purpose: stores damage value to apply on collision)
+
+**Systems Needed:** (name and responsibility only)
+
+**FORMAT:** SystemName (responsibility: what it does, not how)
+
+**EXAMPLE:**
+- `SpellMovementSystem` (responsibility: updates position of all moving spell entities each frame)
+- `SpellLifecycleSystem` (responsibility: monitors lifetime and destroys expired spells)
+- `SpellCollisionSystem` (responsibility: detects spell impacts and triggers payload resolution)
+- `PayloadResolutionSystem` (responsibility: applies damage/effects when spells hit targets)
+
+**Data Flow:** (conceptual diagram using text/ASCII)
+
+**FORMAT:** Use arrows to show data movement between systems
+
+**EXAMPLE:**
+```
+SpellDefinition (JSON) 
+  ↓ 
+SpellBakingSystem (converts JSON to components)
+  ↓
+Spell Entity (with components: Velocity, Lifetime, Payloads)
+  ↓
+SpellMovementSystem (updates position) → SpellCollisionSystem (detects hits)
+  ↓
+PayloadResolutionSystem (applies effects) → SpellLifecycleSystem (cleanup)
+```
+
+**Key Architectural Decisions:**
+
+**FORMAT:** Decision with rationale (why this approach)
+
+**EXAMPLE:**
+- **Decision 1:** Use `EntityCommandBuffer` for all structural changes (create/destroy)
+  - **Rationale:** Prevents race conditions in parallel jobs and maintains ECS best practices
+- **Decision 2:** Use `ElapsedTime` instead of `DeltaTime` for lifetime tracking
+  - **Rationale:** Absolute timestamps are more reliable and avoid accumulation errors
+- **Decision 3:** Apply Burst compilation to all simulation systems
+  - **Rationale:** Ensures consistent high performance for 100+ concurrent spells
+- **Decision 4:** Separate baking (SystemBase) from simulation (ISystem)
+  - **Rationale:** Clear separation between authoring-time and runtime concerns
+
+**Integration Points:**
+
+**FORMAT:** How this story connects to other systems/stories
+
+**EXAMPLE:**
+- Depends on **SPWS-1** (Spell Authoring) for SpellDefinition Baker infrastructure
+- Provides spell entities for **SPWS-3** (Payload System) to apply effects
+- Uses Unity DOTS packages: `Unity.Entities`, `Unity.Transforms`, `Unity.Burst`
+- Interfaces with traditional Unity for initial spawn triggering (MonoBehaviour bridge)
+
+---
+
+### ⚠️ Potential Risks
+
+**INSTRUCTION:** Identify architectural, dependency, and business risks that could block this story. Focus on high-level risks, not code bugs.
+
+**FORMAT:** Brief risk description with category and optional mitigation
+
+**Risk Categories:**
+- 🔴 **Technical Risk:** Architecture or technology challenges
+- 🟡 **Dependency Risk:** Blocked by other work or external factors
+- 🟠 **Knowledge Risk:** Team expertise gaps
+- 🔵 **Scope Risk:** Unclear boundaries or feature creep
+
+**EXAMPLE:**
+- 🔴 **Technical Risk:** Entity instantiation pattern might not scale to 500+ concurrent spells
+  - Mitigation: Early stress testing with 1000 entities
+- 🟡 **Dependency Risk:** Blocked if SPWS-1 (Baking System) is delayed
+  - Mitigation: Create mock baking logic for parallel development
+- 🟠 **Knowledge Risk:** Team unfamiliar with Unity DOTS lifecycle management
+  - Mitigation: Knowledge sharing session on ECS entity lifetimes
+- 🔵 **Scope Risk:** Payload effects might expand beyond initial plan
+  - Mitigation: Lock payload types in SPWS-3, this story only handles entity lifecycle
+
+---
+
+### 🔗 References
+
+**INSTRUCTION:** Provide links to all relevant documentation, designs, technical references, and related stories.
+
+- **🎨 Design Files:**
+    - [Miro: Spell System Architecture Diagram](URL)
+    - [Figma: Spell Editor UI Mockup](URL)
+    
+- **📚 Documentation:**
+    - [Spellwright: DOTS Architecture Rules](../concept/dots-architecture.mdc)
+    - [Unity DOTS Manual: Entity Lifecycle](https://docs.unity3d.com/Packages/com.unity.entities@latest)
+    - [Technical Spec: Spell Component Schema](URL)
+    
+- **🌐 External Resources:**
+    - [Unity Sample: Megacity DOTS Architecture](https://github.com/Unity-Technologies/Megacity-Sample)
+    - [Reference: Path of Exile Skill System](URL)
+```
+
+---
+
+## Story Quality Checks
+
+Before presenting the Story, verify:
+
+- [ ] User story follows "As a... I want... So that..." format
+- [ ] Acceptance criteria are behavioral, testable, and focus on outcomes
+- [ ] Components section lists data structures with clear purposes (WHAT, not HOW)
+- [ ] Systems section lists behaviors with clear responsibilities (WHAT, not HOW)
+- [ ] Data flow diagram shows conceptual transformations (not function calls)
+- [ ] Architectural decisions include rationale (WHY, not just WHAT)
+- [ ] Integration points identify dependencies on other stories
+- [ ] Risks are categorized with emoji (🔴🟡🟠🔵) and include mitigation
+- [ ] References include design files, documentation, and external resources
+- [ ] NO implementation details (no code snippets, no file paths, no line numbers)
+- [ ] Uses correct Unity/DOTS terminology (Entity, Component, System, Archetype)
+- [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
+- [ ] All emoticons and markdown formatting preserved

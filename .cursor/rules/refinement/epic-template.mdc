@@ -1,0 +1,145 @@
+# Epic Template
+
+Copy this template structure when creating an Epic. Remove all INSTRUCTION/FORMAT/EXAMPLE labels and replace examples with real content.
+
+---
+
+```markdown
+# [Epic Name - Clear and Concise Title]
+
+### 🎯 Strategic Goal
+
+**INSTRUCTION:** Write a 2-3 sentence "elevator pitch" explaining what this epic achieves and why it matters. Should be understandable by anyone, including non-technical stakeholders.
+
+**FORMAT:** Direct statement, no jargon.
+
+**EXAMPLE:** "Create a spell generation system that allows game designers to define magical abilities using natural language instead of manual scripting. This will reduce spell creation time from hours to minutes and enable rapid prototyping of game mechanics."
+
+---
+
+### 🤔 Problem Statement
+
+**INSTRUCTION:** Clearly define the problem being solved and who experiences it.
+
+**What problem are we solving?**
+- **FORMAT:** Specific problem description with quantifiable impact if possible
+- **EXAMPLE:** "Designers currently spend 4-6 hours manually coding each spell, creating a bottleneck in content creation and limiting creative iteration."
+
+**Who is it for?**
+- **FORMAT:** Target user/persona who benefits
+- **EXAMPLE:** "Game designers, level designers, and technical artists who create magical abilities and combat mechanics."
+
+---
+
+### 💡 Value Hypothesis
+
+**INSTRUCTION:** Use the "We believe that by... we will achieve... measured by..." format to connect actions to outcomes.
+
+- **We believe that by** [ACTION/CHANGE]
+  - **EXAMPLE:** "implementing a natural language spell creation system"
+  
+- **We will achieve** [OUTCOME/BENEFIT]
+  - **EXAMPLE:** "75% reduction in spell creation time and 3x increase in spell variety"
+  
+- **This will be measured by** [METRIC/KPI]
+  - **EXAMPLE:** "average time to create a spell, number of unique spells in game, and designer satisfaction surveys"
+
+---
+
+### 📦 Scope
+
+**INSTRUCTION:** Explicitly define what IS and what IS NOT included to prevent scope creep.
+
+**In Scope:**
+
+*List specific features, deliverables, and work included in this epic.*
+
+1. **EXAMPLE:** "Natural language parser integration for spell descriptions"
+2. **EXAMPLE:** "JSON schema validation system for generated spells"
+3. **EXAMPLE:** "Unity ECS runtime system for spell execution"
+4. **EXAMPLE:** "Documentation and tutorial for designers"
+
+**Out of Scope:**
+
+*List what is explicitly NOT being addressed. Be specific to avoid misunderstandings.*
+
+- **EXAMPLE:** "Visual effects (VFX) system - will be handled in separate epic"
+- **EXAMPLE:** "AI-powered spell balancing - future iteration"
+- **EXAMPLE:** "Multiplayer spell synchronization - not in initial release"
+
+---
+
+### 📈 Success Criteria
+
+**INSTRUCTION:** Define measurable metrics that prove the epic succeeded. Use SMART criteria (Specific, Measurable, Achievable, Relevant, Time-bound).
+
+**Quantitative Metrics:**
+- **Metric 1:** [MEASUREMENT] - **EXAMPLE:** "Spell creation time reduced from 4 hours to < 30 minutes (measured via time tracking)"
+- **Metric 2:** [MEASUREMENT] - **EXAMPLE:** "System can generate and validate 10+ spells per minute"
+- **Metric 3:** [MEASUREMENT] - **EXAMPLE:** "Designer satisfaction score >= 8/10 in post-release survey"
+
+**Qualitative Acceptance Criteria:**
+1. **EXAMPLE:** "All features in 'In Scope' are deployed and functional in production"
+2. **EXAMPLE:** "System passes stress test with 1000 concurrent spells"
+3. **EXAMPLE:** "Documentation complete and approved by design team"
+
+---
+
+### ⚠️ Potential Risks
+
+**INSTRUCTION:** Identify risks that could prevent epic success. Focus on business and architectural risks, not implementation bugs.
+
+**FORMAT:** Brief risk description with category and optional mitigation
+
+**Risk Categories:**
+- 🔴 **Technical Risk:** Architecture or technology challenges
+- 🟡 **Dependency Risk:** Blocked by other work or external factors
+- 🟠 **Scope Risk:** Unclear boundaries or feature creep
+- 🔵 **Timeline Risk:** Schedule concerns
+
+**EXAMPLE:**
+- 🔴 **Technical Risk:** LLM API may generate invalid JSON
+  - Mitigation: Implement 3-layer validation
+- 🟡 **Dependency Risk:** Depends on Unity DOTS knowledge
+  - Mitigation: Team training sessions
+- 🟠 **Scope Risk:** Feature requests may cause scope creep
+  - Mitigation: Strict change control
+- 🔵 **Timeline Risk:** Integration complexity unknown
+  - Mitigation: Early prototype to validate
+
+---
+
+### 🔗 References
+
+**INSTRUCTION:** Provide links to all relevant documentation, designs, and references. Use specific URLs when available.
+
+- **🎨 Design Files:**
+    - [Figma: Spell Creation UI Mockups](URL)
+    - [Miro: Architecture Diagram](URL)
+    
+- **📚 Documentation:**
+    - [Technical Specification: Spell System v1.0](URL)
+    - [Unity DOTS Architecture Reference](URL)
+    
+- **🌐 External Resources:**
+    - [Reference: Diablo 4 Skill System Analysis](URL)
+    - [Academic Paper: Procedural Content Generation](URL)
+```
+
+---
+
+## Epic Quality Checks
+
+Before presenting the Epic, verify:
+
+- [ ] Strategic Goal is a clear 2-3 sentence elevator pitch
+- [ ] Problem statement includes quantifiable impact if possible
+- [ ] Value Hypothesis follows "We believe... we will achieve... measured by..." format
+- [ ] Scope clearly separates IN SCOPE vs OUT OF SCOPE with specific items
+- [ ] Success Criteria includes both quantitative metrics AND qualitative acceptance
+- [ ] All metrics are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
+- [ ] Risks are categorized with emoji (🔴🟡🟠🔵) and include mitigation when possible
+- [ ] References include design files, documentation, and external resources
+- [ ] Language is non-technical and stakeholder-friendly
+- [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
+- [ ] All emoticons and markdown formatting preserved
