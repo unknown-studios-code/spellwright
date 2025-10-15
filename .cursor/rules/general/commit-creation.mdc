@@ -1,0 +1,652 @@
+---
+description: Provides guidelines for writing commit messages following Commitizen and Conventional Commits standards, ensuring consistent and meaningful commit history with automated versioning support.
+alwaysApply: false
+---
+
+# Git Commit Message Standards
+
+This file defines mandatory commit message standards for Spellwright, following Commitizen and Conventional Commits specifications. These standards enable automated versioning, changelog generation, and clear project history.
+
+## Commit Message Format
+
+All commit messages **MUST** follow this structure:
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Basic Rules
+
+-   **Type**: Mandatory, lowercase
+-   **Scope**: Optional, lowercase, in parentheses
+-   **Subject**: Mandatory, lowercase, no period at the end
+-   **Body**: Optional, separated by blank line
+-   **Footer**: Optional, separated by blank line
+
+## Commit Types
+
+### Production Types (Trigger Semantic Versioning)
+
+#### `feat` - New Feature
+
+**Triggers**: MINOR version bump (1.x.0)
+
+**When to use:**
+
+-   Adding new functionality
+-   Implementing new user-facing features
+-   Adding new APIs or public methods
+
+**Examples:**
+
+```bash
+feat(spells): add homing modifier system
+feat(ui): implement spell creation dialog
+feat(api): add LLM spell generation endpoint
+```
+
+#### `fix` - Bug Fix
+
+**Triggers**: PATCH version bump (1.0.x)
+
+**When to use:**
+
+-   Fixing bugs in existing functionality
+-   Correcting incorrect behavior
+-   Patching security vulnerabilities
+
+**Examples:**
+
+```bash
+fix(lifetime): correct entity destruction timing
+fix(collision): prevent null reference on target destroy
+fix(baking): handle invalid JSON gracefully
+```
+
+#### `perf` - Performance Improvement
+
+**Triggers**: PATCH version bump (1.0.x)
+
+**When to use:**
+
+-   Improving performance without changing functionality
+-   Optimizing algorithms or queries
+-   Reducing memory allocations
+
+**Examples:**
+
+```bash
+perf(movement): optimize projectile update loop
+perf(collision): implement spatial hashing for O(log n) queries
+perf(baking): reduce JSON parsing from 500ms to 50ms
+```
+
+### Development Types (No Version Bump)
+
+#### `docs` - Documentation
+
+**When to use:**
+
+-   Updating documentation files
+-   Adding XML comments to code
+-   Updating README or guides
+-   Modifying rule files
+
+**Examples:**
+
+```bash
+docs(readme): add installation instructions
+docs(api): update XML documentation for SpellBakingSystem
+docs(architecture): clarify Generator/Modifier/Payload pattern
+```
+
+#### `style` - Code Style
+
+**When to use:**
+
+-   Formatting changes (whitespace, indentation)
+-   Code style fixes without logic changes
+-   Renaming variables for clarity
+
+**Examples:**
+
+```bash
+style(components): apply consistent naming conventions
+style(systems): fix indentation in HomingSystem
+style: apply EditorConfig formatting rules
+```
+
+#### `refactor` - Code Refactoring
+
+**When to use:**
+
+-   Restructuring code without changing behavior
+-   Improving code architecture
+-   Extracting methods or classes
+
+**Examples:**
+
+```bash
+refactor(baking): extract JSON validation to separate class
+refactor(systems): migrate from SystemBase to ISystem
+refactor(components): use IEnableableComponent pattern
+```
+
+#### `test` - Tests
+
+**When to use:**
+
+-   Adding or modifying tests
+-   Fixing test failures
+-   Improving test coverage
+
+**Examples:**
+
+```bash
+test(lifetime): add unit tests for entity destruction
+test(homing): add stress test with 1000 projectiles
+test(validation): add JSON schema validation tests
+```
+
+#### `build` - Build System
+
+**When to use:**
+
+-   Modifying build configuration
+-   Updating dependencies
+-   Changing CI/CD pipelines
+
+**Examples:**
+
+```bash
+build(deps): update Unity.Entities to 1.0.16
+build(ci): add automated testing workflow
+build(npm): update package.json dependencies
+```
+
+#### `ci` - Continuous Integration
+
+**When to use:**
+
+-   Modifying CI configuration
+-   Updating GitHub Actions workflows
+-   Changing automated checks
+
+**Examples:**
+
+```bash
+ci(actions): add code quality checks
+ci(github): configure automated PR reviews
+ci(tests): enable parallel test execution
+```
+
+#### `chore` - Maintenance
+
+**When to use:**
+
+-   Routine maintenance tasks
+-   Updating tooling configuration
+-   Other changes not fitting categories
+
+**Examples:**
+
+```bash
+chore(gitignore): add Unity temp files
+chore(editor): update .editorconfig rules
+chore: update license year to 2025
+```
+
+#### `revert` - Revert Previous Commit
+
+**When to use:**
+
+-   Reverting a previous commit
+
+**Format:**
+
+```bash
+revert: <header of reverted commit>
+
+This reverts commit <hash>.
+```
+
+**Example:**
+
+```bash
+revert: feat(spells): add homing modifier system
+
+This reverts commit a1b2c3d4e5f6.
+Reason: Caused performance regression in collision detection.
+```
+
+## Scope Guidelines
+
+**Scope** is optional but highly recommended. It provides context about which part of the codebase was changed.
+
+### Common Scopes for Spellwright
+
+#### Architecture Components
+
+-   `spells` - Spell system in general
+-   `generators` - Projectile, Cone, AoE, SelfCast
+-   `modifiers` - Homing, Chain, Pierce, Fork
+-   `payloads` - Damage, Heal, Status Effects
+-   `components` - ECS components
+-   `systems` - ECS systems
+-   `jobs` - Parallel jobs
+
+#### Subsystems
+
+-   `movement` - Movement systems
+-   `collision` - Collision detection
+-   `lifetime` - Entity lifetime management
+-   `baking` - JSON to ECS conversion
+-   `validation` - Data validation
+
+#### Integration
+
+-   `llm` - LLM integration
+-   `api` - API communication
+-   `json` - JSON handling
+-   `ui` - User interface
+-   `networking` - Network code
+
+#### Infrastructure
+
+-   `tests` - Testing infrastructure
+-   `docs` - Documentation
+-   `build` - Build system
+-   `ci` - Continuous Integration
+
+**Examples:**
+
+```bash
+feat(generators): add cone spell generator
+fix(collision): prevent double-hit on pierce
+perf(systems): optimize movement system for Burst
+docs(modifiers): add XML documentation for HomingModifier
+```
+
+## Subject Line Rules
+
+The subject line is the first line of the commit message.
+
+### Mandatory Rules
+
+1. **Use imperative mood**: "add", "fix", "change" (NOT "adds", "fixed", "changing")
+2. **No capitalization**: Start with lowercase letter
+3. **No period**: Don't end with period
+4. **Max 72 characters**: Keep it concise
+5. **Be descriptive**: Clearly state what the commit does
+
+### ✅ Good Examples
+
+```bash
+feat(homing): add target acquisition system
+fix(lifetime): correct time calculation bug
+perf(movement): reduce allocation in update loop
+docs(api): update LLM integration guide
+refactor(baking): extract validator to separate class
+```
+
+### ❌ Bad Examples
+
+```bash
+feat(homing): Added target acquisition.  # ❌ Past tense, capitalized, period
+fix: fixed bug                           # ❌ Not descriptive
+perf(movement): performance improvement  # ❌ Redundant with type
+Update documentation                     # ❌ No type, capitalized
+feat(homing): implement a new system for acquiring targets that can track enemies within a configurable radius  # ❌ Too long
+```
+
+## Commit Body (Optional)
+
+The body provides additional context and explanation. Separate from subject with **one blank line**.
+
+### When to Include Body
+
+-   Explaining **why** the change was made
+-   Describing complex changes
+-   Listing multiple changes in one commit
+-   Providing context for reviewers
+
+### Body Guidelines
+
+-   Wrap at 72 characters per line
+-   Use bullet points for multiple items
+-   Explain motivation and context
+-   Describe what and why, not how
+
+### Example with Body
+
+```bash
+feat(modifiers): add pierce modifier system
+
+Implements pierce functionality allowing projectiles to pass through
+multiple targets before destruction. Uses pierce counter that decrements
+on each collision.
+
+- Add PierceModifier component with pierce count
+- Integrate with CollisionSystem to check pierce state
+- Add tests for 5-target pierce scenario
+
+Related to SPWS-2 (Spell Modifiers implementation)
+```
+
+## Commit Footer (Optional)
+
+Footers provide structured metadata. Separate from body with **one blank line**.
+
+### Breaking Changes
+
+**CRITICAL**: Use `BREAKING CHANGE:` footer for breaking changes.
+**Triggers**: MAJOR version bump (x.0.0)
+
+```bash
+feat(api): change spell JSON schema structure
+
+Restructured spell JSON to support multi-payload system.
+Old single-payload format is no longer supported.
+
+BREAKING CHANGE: `payload` field changed to `payloads` array.
+Migration required for existing spell definitions.
+```
+
+### Issue References
+
+Link commits to Notion artifacts or GitHub issues:
+
+```bash
+fix(collision): prevent race condition in parallel collision check
+
+Adds explicit system ordering to ensure collision detection runs
+before payload resolution.
+
+Fixes: SPWT-23
+Related: SPWS-2, SPWT-15
+```
+
+### Other Footers
+
+```bash
+Reviewed-by: John Doe <john@example.com>
+Refs: #123, #456
+See-also: SPWS-1
+```
+
+## Complete Examples
+
+### Example 1: Simple Feature
+
+```bash
+feat(generators): add self-cast generator type
+```
+
+### Example 2: Bug Fix with Context
+
+```bash
+fix(lifetime): correct entity destruction timing
+
+Entities were being destroyed before status effects could be applied,
+causing null reference exceptions. System execution order adjusted to
+ensure effects resolve before destruction.
+
+Fixes: SPWT-23
+```
+
+### Example 3: Performance Improvement
+
+```bash
+perf(baking): optimize spell JSON deserialization
+
+Reduced baking time from 500ms to 50ms for 100 spells by:
+- Switching from Newtonsoft.Json to System.Text.Json
+- Caching schema validation objects
+- Using object pooling for temporary allocations
+
+Benchmark results show 10x improvement in production scenarios.
+```
+
+### Example 4: Breaking Change
+
+```bash
+feat(payloads)!: migrate to multi-payload system
+
+Changed spell definition to support multiple payloads per spell
+instead of single payload. Enables complex spell effects like
+"damage + burn + slow".
+
+BREAKING CHANGE: JSON schema changed. `payload` field renamed to
+`payloads` array. All existing spell JSONs must be migrated.
+
+Migration script: scripts/migrate-payloads.sh
+
+Refs: SPWE-1, SPWS-3
+```
+
+### Example 5: Refactoring
+
+```bash
+refactor(systems): migrate from SystemBase to ISystem
+
+Converted all simulation systems to ISystem for Burst compatibility:
+- MovementSystem
+- CollisionSystem
+- LifetimeSystem
+- PayloadResolutionSystem
+
+Performance improvement: ~5ms reduction per frame for 1000 entities.
+
+Related: SPWT-12
+```
+
+### Example 6: Documentation
+
+```bash
+docs(architecture): add DOTS implementation guide
+
+Added comprehensive documentation covering:
+- ISystem vs SystemBase usage patterns
+- Component design guidelines
+- EntityCommandBuffer best practices
+- Performance optimization techniques
+
+Refs: .cursor/rules/concept/dots-architecture.mdc
+```
+
+## Breaking Change Indicators
+
+Two ways to indicate breaking changes:
+
+### Method 1: Exclamation Mark in Type/Scope
+
+```bash
+feat(api)!: change spell validation API
+refactor!: restructure project folder layout
+```
+
+### Method 2: BREAKING CHANGE Footer
+
+```bash
+feat(api): change spell validation API
+
+BREAKING CHANGE: SpellValidator constructor signature changed.
+```
+
+Both methods are equivalent and trigger MAJOR version bump.
+
+## Commitizen Integration
+
+When using Commitizen CLI (`git cz`):
+
+1. Select type from list
+2. Enter scope (optional)
+3. Write short description (subject)
+4. Write long description (body) - optional
+5. List breaking changes - if any
+6. List issue references - if any
+
+Commitizen enforces format automatically.
+
+## Git Hooks
+
+### Pre-commit Hook
+
+```bash
+#!/bin/bash
+# Validate commit message format
+npm run commitlint
+```
+
+### Commit Message Validation
+
+Use commitlint to enforce standards:
+
+```bash
+npm install --save-dev @commitlint/cli @commitlint/config-conventional
+```
+
+`.commitlintrc.json`:
+
+```json
+{
+    "extends": ["@commitlint/config-conventional"],
+    "rules": {
+        "type-enum": [
+            2,
+            "always",
+            [
+                "feat",
+                "fix",
+                "docs",
+                "style",
+                "refactor",
+                "perf",
+                "test",
+                "build",
+                "ci",
+                "chore",
+                "revert"
+            ]
+        ],
+        "scope-case": [2, "always", "lowercase"],
+        "subject-case": [2, "always", "lowercase"],
+        "subject-full-stop": [2, "never", "."],
+        "subject-max-length": [2, "always", 72]
+    }
+}
+```
+
+## Automated Versioning
+
+Following Conventional Commits enables automated semantic versioning:
+
+-   `feat:` commits → MINOR version bump (1.x.0)
+-   `fix:` commits → PATCH version bump (1.0.x)
+-   `BREAKING CHANGE:` → MAJOR version bump (x.0.0)
+-   Other types → No version bump
+
+### Changelog Generation
+
+Automated changelog based on commit types:
+
+```bash
+npm install --save-dev standard-version
+npm run release
+```
+
+Generates `CHANGELOG.md` automatically from commit history.
+
+## Commit Message Checklist
+
+Before committing, verify:
+
+-   [ ] Type is correct and lowercase
+-   [ ] Scope is specific and lowercase (if used)
+-   [ ] Subject uses imperative mood
+-   [ ] Subject is lowercase with no period
+-   [ ] Subject is under 72 characters
+-   [ ] Body explains why (if needed)
+-   [ ] Breaking changes clearly marked
+-   [ ] Issue/task references included (if applicable)
+-   [ ] No spelling or grammar errors
+
+## Common Mistakes to Avoid
+
+### ❌ Don't: Vague Messages
+
+```bash
+fix: fixed bug
+feat: new feature
+chore: updates
+```
+
+### ✅ Do: Specific Messages
+
+```bash
+fix(collision): prevent null reference on target destroy
+feat(modifiers): add chain lightning functionality
+chore(deps): update Unity.Entities to 1.0.16
+```
+
+### ❌ Don't: Multiple Changes in One Commit
+
+```bash
+feat: add homing, pierce, and fork modifiers, fix collision bug, update docs
+```
+
+### ✅ Do: Atomic Commits
+
+```bash
+feat(modifiers): add homing modifier
+feat(modifiers): add pierce modifier
+feat(modifiers): add fork modifier
+fix(collision): prevent double-hit detection
+docs(modifiers): update modifier documentation
+```
+
+### ❌ Don't: Past Tense
+
+```bash
+feat(api): added new endpoint
+fix(ui): fixed button layout
+```
+
+### ✅ Do: Imperative Mood
+
+```bash
+feat(api): add new endpoint
+fix(ui): fix button layout
+```
+
+## Integration with Notion
+
+Link commits to Notion artifacts using footers:
+
+```bash
+feat(generators): implement projectile generator
+
+Adds projectile generator with configurable speed and lifetime.
+Supports velocity-based movement and automatic cleanup.
+
+Implements: SPWT-5
+Part of: SPWS-1
+Related: SPWE-1
+```
+
+## Important Notes
+
+-   **Mandatory**: All commits MUST follow Conventional Commits format
+-   **Atomic**: Each commit should represent one logical change
+-   **Meaningful**: Write commits for humans, not machines
+-   **English Only**: All commit messages must be in English
+-   **Review**: Always review commit message before pushing
+-   **Consistency**: Follow the same patterns across the project
+-   **Tools**: Use Commitizen CLI for guided commit creation
+-   **Validation**: Enable commitlint in CI/CD pipeline
+-   **Versioning**: Understand how commit types affect versioning
+-   **History**: Maintain clean, readable git history

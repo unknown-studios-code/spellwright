@@ -1,0 +1,46 @@
+---
+description: Enables searching official documentation for third-party libraries, APIs, frameworks, and SDKs (Stripe, Firebase, Unity DOTS, OpenAI, etc.) with automatic Library ID resolution.
+alwaysApply: true
+---
+
+# Activation Rules for Context7 (External Documentation Search)
+
+**Context7** enables searching official documentation for third-party libraries, APIs, frameworks, and SDKs. It automatically resolves Library IDs and returns updated documentation.
+
+## Activation Triggers
+
+**Activate when user mentions:**
+
+-   Third-party library names (Stripe, Firebase, Newtonsoft.Json, Unity DOTS, Unity Entities, OpenAI API, etc.)
+-   Questions like "how to use [library]" or "implement [functionality] using [API]"
+-   Integration or debugging of external libraries/frameworks
+
+## Workflow
+
+1. **Automatically activate** `@Context7` MCP
+2. **Resolve Library ID:**
+    - Use `resolve-library-id` with library name
+    - Analyze results by:
+        - Name similarity (exact match priority)
+        - Trust Score >= 7 (most reliable)
+        - Description relevance
+        - Code Snippet count
+    - If ambiguous, present options to user
+    - If user provides `/org/project` or `/org/project/version`, use directly
+3. **Fetch Documentation:**
+    - Use `get-library-docs` with correct Library ID
+    - Use `topic` parameter if user specified functionality
+    - Adjust `tokens` by complexity:
+        - Simple: 3000-5000 tokens
+        - Medium: 7000-8000 tokens
+        - Complex: 10000+ tokens
+    - Minimum: 1000 tokens (auto-adjusted)
+4. **Generate code** based on documentation
+5. **Always cite** source and version
+
+## Important Notes
+
+-   Always resolve Library ID before fetching docs
+-   Prioritize Trust Score >= 7
+-   Use `topic` parameter to focus search
+-   Always cite documentation source and version

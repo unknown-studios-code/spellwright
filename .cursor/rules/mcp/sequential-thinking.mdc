@@ -1,0 +1,48 @@
+---
+description: Enables deep iterative reasoning for extremely complex problems requiring decomposition, multi-step analysis, course correction, and exploration of alternative solutions.
+alwaysApply: true
+---
+
+# Activation Rules for Sequential Thinking (Deep Reasoning)
+
+**Sequential Thinking** enables deep and iterative reasoning through sequential thoughts. Ideal for complex problems requiring decomposition, multi-step analysis, revisions, and exploration of alternatives.
+
+## Activation Triggers
+
+**Use for extremely complex tasks requiring:**
+
+-   Complex decomposition with possibility of revision
+-   Analysis that may need course correction
+-   Problems where full scope is not initially clear
+-   Context maintenance over multiple steps
+-   Filtering irrelevant information
+
+**Important:** This is an **advanced** reasoning tool. For normal complexity tasks, use standard planning.
+
+## Usage
+
+1. **DO NOT explicitly mention** Sequential Thinking to user
+2. Use `mcp_sequential-thinking_sequentialthinking` tool internally
+3. **Process characteristics:**
+    - Start with thought estimate, adjust as needed
+    - Question or revise previous thoughts when appropriate
+    - Add more thoughts if needed
+    - Express uncertainty and explore alternatives
+    - Generate and verify solution hypotheses
+    - Repeat until satisfied
+4. **Present only final result** to user, not thought process
+
+## When NOT to Use
+
+-   Simple 1-3 step tasks
+-   Direct API/documentation questions (use Context7)
+-   Trivial code modifications
+-   Information-only requests (no implementation)
+
+## Important Notes
+
+-   Sequential Thinking is internal - user should not see thought process
+-   Use only for extremely complex problems
+-   Can adjust total thoughts dynamically
+-   Each thought builds on previous ones
+-   Revisions encouraged when necessary

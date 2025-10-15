@@ -1,0 +1,422 @@
+---
+description: Provides debugging techniques for DOTS/ECS including Entity Hierarchy inspection, profiling, thread-safe logging, Gizmos visualization, and performance benchmarking for spell systems.
+alwaysApply: false
+---
+
+# Debugging Tools for Spellwright
+
+This file defines specific tools and techniques for debugging spell systems in Spellwright. Since execution occurs in DOTS/ECS, traditional debugging techniques don't work directly.
+
+## Tool 1: DOTS Hierarchy Window
+
+### Mandatory Usage
+
+The **Entity Hierarchy Window** is your primary runtime inspection tool.
+
+### How to Activate
+
+```
+Window > Entities > Hierarchy
+```
+
+### What to Check
+
+-   **Entity names**: should reflect `spellName` from JSON
+-   **Attached components**: verify that all expected components are present
+-   **Component values**: inspect values of Velocity, Lifetime, DamageAmount, etc.
+-   **Entity count**: monitor creation and destruction to detect leaks
+
+### Inspection Example
+
+```
+Entity: Fireball_001
+  Components:
+    - ProjectileTag
+    - Velocity { Value: (30, 0, 0) }
+    - Lifetime { SpawnTime: 10.5, Duration: 5.0 }
+    - DamageAmount { Value: 25.0 }
+    - ElementalType { Type: Fire }
+```
+
+## Tool 2: Entity Debugger
+
+### Use for Deep Debugging
+
+The **Entity Debugger** allows complex queries and filtering.
+
+### How to Activate
+
+```
+Window > Entities > Entity Debugger
+```
+
+### Useful Queries
+
+**Find all spells with Homing:**
+
+```csharp
+EntityQuery query = GetEntityQuery(typeof(HomingTag), typeof(Velocity));
+```
+
+**Find spells that expired but weren't destroyed (potential leak):**
+
+```csharp
+// In debug system
+[BurstCompile]
+public partial struct DetectExpiredEntitiesJob : IJobEntity
+{
+    public double CurrentTime;
+
+    void Execute(ref Lifetime lifetime, in Entity entity)
+    {
+        double expireTime = lifetime.SpawnTime + lifetime.Duration;
+        if (CurrentTime > expireTime)
+        {
+            UnityEngine.Debug.LogWarning($"Entity {entity} expired but wasn't destroyed!");
+        }
+    }
+}
+```
+
+## Tool 3: Unity Profiler with DOTS
+
+### ALWAYS Profile Spell Systems
+
+Use the Profiler to detect performance bottlenecks.
+
+### Critical Metrics
+
+-   **System Update Time**: how long each ISystem takes
+-   **Job Scheduling Overhead**: job scheduling overhead
+-   **Structural Changes**: how many times EntityCommandBuffer is executed
+-   **Memory Allocations**: detect unintentional allocations
+
+### How to Enable Detailed Profiling
+
+```csharp
+[BurstCompile]
+public partial struct SpellMovementSystem : ISystem
+{
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        // Automatic profiling
+        // System name will appear in Profiler
+
+        var job = new MovementJob
+        {
+            DeltaTime = SystemAPI.Time.DeltaTime
+        };
+
+        job.ScheduleParallel();
+    }
+}
+```
+
+### Identify Performance Issues
+
+**Problem**: System update time too high (> 1ms for 100 entities)
+**Solution**: Check if Burst is enabled, use `[BurstCompile]`
+
+**Problem**: Many structural changes (> 10 per frame)
+**Solution**: Group commands in a single EntityCommandBuffer
+
+**Problem**: Memory allocations in hot path
+**Solution**: Use `DynamicBuffer` instead of `List`, avoid boxing
+
+## Tool 4: Custom Logging for DOTS
+
+### Thread-Safe Logger Implementation
+
+Since DOTS executes in parallel jobs, traditional logging can cause crashes.
+
+```csharp
+using Unity.Collections;
+using Unity.Entities;
+
+public struct DebugLogEvent : IBufferElementData
+{
+    public FixedString64Bytes Message;
+    public float Timestamp;
+}
+
+// System that collects logs from jobs
+[UpdateInGroup(typeof(PresentationSystemGroup))]
+public partial struct DebugLogCollectorSystem : ISystem
+{
+    public void OnUpdate(ref SystemState state)
+    {
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+        foreach (var (buffer, entity) in
+                 SystemAPI.Query<DynamicBuffer<DebugLogEvent>>()
+                           .WithEntityAccess())
+        {
+            foreach (var logEvent in buffer)
+            {
+                UnityEngine.Debug.Log($"[{logEvent.Timestamp:F2}s] {logEvent.Message}");
+            }
+
+            buffer.Clear();
+        }
+
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
+    }
+}
+
+// Usage in an IJobEntity
+[BurstCompile]
+public partial struct HomingMovementJob : IJobEntity
+{
+    public double ElapsedTime;
+    public EntityCommandBuffer.ParallelWriter ECB;
+
+    void Execute(Entity entity, [ChunkIndexInQuery] int sortKey, ref Velocity velocity, in HomingData homing)
+    {
+        // Thread-safe logging
+        var logEntity = ECB.CreateEntity(sortKey);
+        var buffer = ECB.AddBuffer<DebugLogEvent>(sortKey, logEntity);
+        buffer.Add(new DebugLogEvent
+        {
+            Message = $"Homing entity {entity.Index}",
+            Timestamp = (float)ElapsedTime
+        });
+    }
+}
+```
+
+## Tool 5: Gizmos Visualization for Spells
+
+### Gizmos for Visual Runtime Debugging
+
+```csharp
+using Unity.Entities;
+using UnityEngine;
+
+// System that draws Gizmos for debugging
+public partial class SpellVisualizationSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        Entities
+            .WithoutBurst() // Gizmos are not Burst-compatible
+            .WithAll<ProjectileTag>()
+            .ForEach((in LocalTransform transform, in Velocity velocity, in Lifetime lifetime) =>
+            {
+                // Draw velocity direction
+                Debug.DrawRay(transform.Position, velocity.Value.normalized * 2f, Color.yellow);
+
+                // Draw sphere at projectile
+                Debug.DrawLine(transform.Position, transform.Position + new float3(0, 0.5f, 0), Color.red);
+            })
+            .Run();
+    }
+}
+```
+
+### Area of Effect Visualization
+
+```csharp
+Entities
+    .WithoutBurst()
+    .WithAll<AreaOfEffectTag>()
+    .ForEach((in LocalTransform transform, in RadiusComponent radius) =>
+    {
+        // Draw circle on ground
+        DrawCircle(transform.Position, radius.Value, Color.cyan);
+    })
+    .Run();
+
+void DrawCircle(float3 center, float radius, Color color)
+{
+    int segments = 32;
+    float angleStep = 360f / segments;
+
+    for (int i = 0; i < segments; i++)
+    {
+        float angle1 = i * angleStep * Mathf.Deg2Rad;
+        float angle2 = (i + 1) * angleStep * Mathf.Deg2Rad;
+
+        float3 p1 = center + new float3(Mathf.Cos(angle1) * radius, 0, Mathf.Sin(angle1) * radius);
+        float3 p2 = center + new float3(Mathf.Cos(angle2) * radius, 0, Mathf.Sin(angle2) * radius);
+
+        Debug.DrawLine(p1, p2, color);
+    }
+}
+```
+
+## Tool 6: Custom Inspector for SpellDefinition
+
+### Editor Script for Enhanced Inspection
+
+```csharp
+using UnityEngine;
+using UnityEditor;
+
+[CustomEditor(typeof(SpellDefinitionAuthoring))]
+public class SpellDefinitionEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        SpellDefinitionAuthoring authoring = (SpellDefinitionAuthoring)target;
+
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("Spell Preview", EditorStyles.boldLabel);
+
+        if (GUILayout.Button("Validate JSON"))
+        {
+            bool isValid = ValidateSpellJson(authoring.spellJson);
+            if (isValid)
+            {
+                EditorUtility.DisplayDialog("Validation", "JSON is valid!", "OK");
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("Validation", "JSON has errors. Check Console.", "OK");
+            }
+        }
+
+        if (GUILayout.Button("Test Spawn Spell"))
+        {
+            if (Application.isPlaying)
+            {
+                // Instantiate spell at runtime for testing
+                TestSpawnSpell(authoring);
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("Error", "Enter Play Mode to test spawn.", "OK");
+            }
+        }
+    }
+
+    private bool ValidateSpellJson(string json)
+    {
+        try
+        {
+            var spell = Newtonsoft.Json.JsonConvert.DeserializeObject<SpellDefinition>(json);
+
+            // Custom validations
+            if (string.IsNullOrEmpty(spell.spellName))
+            {
+                Debug.LogError("spellName cannot be empty");
+                return false;
+            }
+
+            if (spell.payloads == null || spell.payloads.Length == 0)
+            {
+                Debug.LogError("Spell must have at least one payload");
+                return false;
+            }
+
+            Debug.Log("✓ Valid JSON!");
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Validation error: {e.Message}");
+            return false;
+        }
+    }
+
+    private void TestSpawnSpell(SpellDefinitionAuthoring authoring)
+    {
+        // Code to spawn spell at camera viewpoint
+        var cameraPos = Camera.main.transform.position;
+        var cameraForward = Camera.main.transform.forward;
+
+        Debug.Log($"Spawning spell at {cameraPos} facing {cameraForward}");
+        // Call spawn system here
+    }
+}
+```
+
+## Tool 7: Debugging Checklist
+
+Use this checklist when a spell doesn't work as expected:
+
+### ✅ Phase 1: JSON and Baking
+
+-   [ ] Does JSON pass schema validation?
+-   [ ] Was SpellDefinition deserialized correctly?
+-   [ ] Did Baker create the entity? (check in Hierarchy)
+-   [ ] Are all expected components attached?
+-   [ ] Do component values match JSON?
+
+### ✅ Phase 2: Movement and Behavior
+
+-   [ ] Does entity have Velocity and is it moving?
+-   [ ] Is LocalTransform being updated?
+-   [ ] Is Homing adjusting direction correctly?
+-   [ ] Is Lifetime being decremented?
+
+### ✅ Phase 3: Collision and Payloads
+
+-   [ ] Is collision system detecting impacts?
+-   [ ] Are Payloads being resolved?
+-   [ ] Is damage being applied to targets?
+-   [ ] Are status effects being applied?
+
+### ✅ Phase 4: Cleanup and Destruction
+
+-   [ ] Are expired entities being destroyed?
+-   [ ] Are there no orphaned entities (memory leaks)?
+-   [ ] Is EntityCommandBuffer being executed?
+
+## Tool 8: Performance Benchmarks
+
+### Performance Targets
+
+Keep these metrics within limits:
+
+| System                   | Target    | Warning | Critical |
+| ------------------------ | --------- | ------- | -------- |
+| SpellMovementSystem      | < 0.5ms   | 1ms     | 2ms      |
+| CollisionDetectionSystem | < 0.8ms   | 1.5ms   | 3ms      |
+| PayloadResolutionSystem  | < 0.3ms   | 0.7ms   | 1ms      |
+| LifetimeSystem           | < 0.2ms   | 0.5ms   | 1ms      |
+| **Total (100 spells)**   | **< 2ms** | **4ms** | **8ms**  |
+
+### Benchmark Script
+
+```csharp
+using Unity.Entities;
+using Unity.Profiling;
+
+public partial class SpellPerformanceBenchmark : SystemBase
+{
+    private ProfilerMarker m_MovementMarker = new ProfilerMarker("SpellMovement");
+    private ProfilerMarker m_CollisionMarker = new ProfilerMarker("SpellCollision");
+
+    protected override void OnUpdate()
+    {
+        using (m_MovementMarker.Auto())
+        {
+            // Movement code
+        }
+
+        using (m_CollisionMarker.Auto())
+        {
+            // Collision code
+        }
+    }
+}
+```
+
+## Important Notes
+
+-   Use **Entity Hierarchy Window** as primary inspection tool
+-   **ALWAYS** enable Burst Compilation for performance-critical systems
+-   Use **ProfilerMarkers** to identify bottlenecks
+-   Implement **thread-safe logging** using event buffers
+-   Use **Debug.DrawRay/DrawLine** for debugging visualization (not in final builds)
+-   Create **custom Inspectors** for edit-time validation
+-   Follow the **debugging checklist** systematically
+-   Keep **performance targets** always in mind
+-   Use **EntityCommandBuffer** to group structural changes
+-   **NEVER** use Debug.Log directly inside IJobEntity or ISystem with Burst
+-   Configure **ProfilerMarkers** for each critical system
+-   Regularly test with **100+ entities** simultaneously

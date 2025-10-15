@@ -1,0 +1,326 @@
+---
+description: Defines how to create Pull Requests following project standards, including title format, body template, integration with Notion tasks, and quality validation.
+alwaysApply: false
+---
+
+# Pull Request Creation Standards
+
+This file defines mandatory standards for creating Pull Requests in the Spellwright project. All PRs must follow Conventional Commits format for titles and use the structured template for body content.
+
+## PR Creation Triggers
+
+**Activate when user requests:**
+
+-   "create a PR", "open a pull request", "create pull request"
+-   "open PR for SPWT-X" (Task)
+-   "create PR from current branch"
+
+## Template Loading Strategy
+
+**CRITICAL:** The PR template is loaded **ON-DEMAND**, not automatically in context. You MUST explicitly read the template file when the user requests PR creation.
+
+### When User Requests PR Creation
+
+**Trigger phrases:** "create a PR", "open a pull request", "open PR for SPWT-X"
+
+**Action:**
+
+1. **Read file:** `.cursor/rules/general/pr-template.mdc`
+2. Follow the template structure provided in that file
+3. Apply all PR Creation Principles from this overview
+4. Use Conventional Commits format for title
+5. Validate using PR Creation Checklist
+
+## Workflow Overview
+
+1. **Identify Context:**
+
+    - Determine current branch (task branch: `tech/SPWS-X/SPWT-X`, `feature/SPWS-X/SPWT-X`, `bug/SPWS-X/SPWT-X`)
+    - Determine target branch (story branch: `feature/develop/SPWS-X`)
+    - Fetch task details from Notion if not already in context
+
+2. **Read Template:**
+
+    - Read `.cursor/rules/general/pr-template.mdc`
+    - Identify appropriate task-type section (Feature/Tech/Bug)
+
+3. **Generate PR Title:**
+
+    - Follow Conventional Commits format from commit message
+    - Use same format as commit: `type(scope): subject`
+    - Examples: `feat(components): implement core spell components`, `fix(collision): prevent null reference`
+
+4. **Generate PR Body:**
+
+    - Follow template structure from `pr-template.mdc`
+    - Remove INSTRUCTION/FORMAT/EXAMPLE labels
+    - Populate with task-specific information
+    - Include only relevant task-type section
+
+5. **Create PR:**
+
+    - Use GitHub MCP `create_pull_request` tool
+    - Set `draft: false` (unless explicitly requested as draft)
+    - Verify PR created successfully
+
+6. **Update Notion:**
+    - Use `notion-update-page` to set Pull Request property with PR URL
+    - Confirm update successful
+
+## PR Title Format
+
+### Title Rules
+
+1. **Follow Conventional Commits** - Same format as commit messages (see `.cursor/rules/general/commit-rules.mdc`)
+2. **Type must match commit** - Use same type as the commit (feat, fix, docs, etc.)
+3. **Max 72 characters** - Keep concise
+4. **Lowercase, no period** - Follow commit message rules
+
+### Title Examples
+
+```bash
+feat(components): implement core spell components (Velocity, Lifetime, SpellOwner)
+fix(lifetime): correct entity destruction timing
+refactor(systems): migrate from SystemBase to ISystem
+docs(architecture): add DOTS implementation guide
+perf(movement): optimize projectile update loop
+```
+
+### Title by Task Type
+
+| Task Type    | Commit Type                        | Example                                                       |
+| ------------ | ---------------------------------- | ------------------------------------------------------------- |
+| Feature Task | `feat(scope)`                      | `feat(generators): add projectile generator system`           |
+| Tech Task    | `refactor(scope)` or `perf(scope)` | `refactor(baking): extract JSON validation to separate class` |
+| Bug Task     | `fix(scope)`                       | `fix(collision): prevent double-hit on pierce`                |
+
+## PR Body Template
+
+**INSTRUCTION:** Read the complete template from `.cursor/rules/general/pr-template.mdc`
+
+The PR body follows a structured format with the following sections:
+
+-   Task identification (SPWT-X, Story, Type, Priority)
+-   What Changed (high-level summary + task-type-specific section)
+-   Files Created/Modified (directory tree or list)
+-   Definition of Done (copy from Notion, mark complete)
+-   Key Technical Decisions (3-5 with rationale)
+-   References (Notion links + docs)
+-   Notes (additional context)
+
+### Task-Type Sections
+
+**Feature Tasks:** Use "Components/Systems Added" section with quality criteria
+**Tech Tasks:** Use "Technical Improvements" section with before/after metrics
+**Bug Tasks:** Use "Bug Fix Details" section with issue/cause/solution/verification
+
+**See complete template with examples in:** `.cursor/rules/general/pr-template.mdc`
+
+## PR Creation Checklist
+
+Before creating PR, verify:
+
+### Title Validation
+
+-   [ ] Follows Conventional Commits format
+-   [ ] Type matches commit type (feat/fix/refactor/etc.)
+-   [ ] Scope is specific and relevant
+-   [ ] Subject is concise (<72 chars) and descriptive
+-   [ ] Lowercase, no period at end
+
+### Body Validation
+
+-   [ ] Includes Task ID (SPWT-X) and Story reference (SPWS-X)
+-   [ ] Type and Priority specified
+-   [ ] "What Changed" section explains high-level changes
+-   [ ] Task-type-specific section included (Components/Improvements/Bug Fix)
+-   [ ] Files section lists created/modified files
+-   [ ] Definition of Done copied from task and marked complete
+-   [ ] Key Technical Decisions include 3-5 important choices with rationale
+-   [ ] References include Notion task, story, and relevant docs
+-   [ ] Notes section provides additional context if needed
+
+### Content Quality
+
+-   [ ] All sections have real content (no placeholders)
+-   [ ] Technical terminology is correct (Unity/DOTS)
+-   [ ] File paths are accurate and complete
+-   [ ] Metrics included when relevant (performance improvements)
+-   [ ] All checkboxes in DoD marked as complete
+-   [ ] Links to Notion pages are valid
+-   [ ] Markdown formatting is correct
+
+### Notion Integration
+
+-   [ ] PR URL added to Notion task "Pull Request" property
+-   [ ] Task status updated if needed (e.g., "In Review")
+
+## Integration with Notion Tasks
+
+### After PR Creation
+
+1. **Update Notion Task:**
+
+    - Use `notion-update-page` with task ID
+    - Set Pull Request property: `<PR URL>`
+    - Example: `https://github.com/unknown-studios-code/spellwright/pull/1`
+
+2. **Optional Status Update:**
+    - If task status is still "In progress", consider updating to "In Review"
+    - Use `notion-update-page` with command: `update_properties`
+
+### Notion Update Example
+
+```javascript
+{
+  "data": {
+    "page_id": "28f56d55-129b-8067-9d4c-d8ccd971713e",
+    "command": "update_properties",
+    "properties": {
+      "Pull Request": "https://github.com/unknown-studios-code/spellwright/pull/1",
+      "Status": "In Review"
+    }
+  }
+}
+```
+
+## Common Mistakes to Avoid
+
+### ❌ Don't: Vague PR Titles
+
+```bash
+# Bad
+feat: add components
+fix: bug fix
+refactor: changes
+```
+
+### ✅ Do: Specific PR Titles
+
+```bash
+# Good
+feat(components): implement core spell components (Velocity, Lifetime, SpellOwner)
+fix(collision): prevent null reference on target destroy
+refactor(baking): migrate to enableable component pattern
+```
+
+### ❌ Don't: Incomplete Definition of Done
+
+```markdown
+## ✅ Definition of Done
+
+-   [ ] Code implemented
+-   [ ] Tested
+```
+
+### ✅ Do: Complete Definition of Done
+
+```markdown
+## ✅ Definition of Done
+
+-   [x] `Velocity.cs` created with `float3 Value` field
+-   [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
+-   [x] XML documentation added to all components
+-   [x] Components compile without errors
+-   [x] Tested in Unity Entity Inspector
+-   [x] Performance verified (<0.5ms for 100 entities)
+-   [x] All existing tests passing
+-   [x] Code review completed
+```
+
+### ❌ Don't: Missing Technical Context
+
+```markdown
+## 🎯 What Changed
+
+Added new components.
+```
+
+### ✅ Do: Detailed Technical Context
+
+```markdown
+## 🎯 What Changed
+
+Implemented three fundamental unmanaged components that form the foundation of every spell entity in the ECS architecture:
+
+### Components Added
+
+-   **`Velocity`** - 3D movement vector using `float3` for Burst compatibility
+-   **`Lifetime`** - Spawn timestamp and duration for automatic cleanup
+-   **`SpellOwner`** - Entity reference to caster for ownership tracking
+
+All components are blittable, Burst-compatible, and include comprehensive XML documentation.
+```
+
+## Draft vs Regular PRs
+
+### When to Create Draft PRs
+
+Use `draft: true` when:
+
+-   Work is incomplete but you want early feedback
+-   PR is for discussion/review of approach before full implementation
+-   User explicitly requests draft PR
+-   Task is blocked and you want to show progress
+
+### When to Create Regular PRs
+
+Use `draft: false` (default) when:
+
+-   All Definition of Done items are complete
+-   Code is ready for final review and merge
+-   Tests are passing
+-   Documentation is complete
+
+## Important Notes
+
+-   **Mandatory Template** - All PRs MUST use the template structure
+-   **Conventional Commits** - PR title MUST follow commit message format
+-   **Complete DoD** - All Definition of Done items MUST be checked before creating PR
+-   **Notion Integration** - PR URL MUST be added to Notion task property
+-   **English Only** - All PR content must be in English
+-   **Technical Accuracy** - Verify all file paths, component names, and technical details
+-   **Quality Review** - Use checklist before creating PR
+-   **Link Validation** - Ensure all Notion links are accessible
+
+## GitHub MCP Integration
+
+### Creating PR via MCP
+
+```javascript
+mcp_github_create_pull_request({
+    owner: "unknown-studios-code",
+    repo: "spellwright",
+    title: "feat(components): implement core spell components (Velocity, Lifetime, SpellOwner)",
+    head: "tech/SPWS-1/SPWT-1",
+    base: "feature/develop/SPWS-1",
+    body: "[Full PR body following template]",
+    draft: false,
+});
+```
+
+### Error Handling
+
+If PR creation fails:
+
+1. Check that base branch exists
+2. Verify head branch is pushed to remote
+3. Ensure no existing PR for same branches
+4. Verify GitHub token permissions
+5. Fallback: Provide manual PR creation URL to user
+
+## Quick Reference
+
+**When user says:**
+
+-   "create a PR" → Read `pr-template.mdc`, fetch task from Notion, generate title/body, create PR, update Notion
+-   "open PR for SPWT-5" → Read `pr-template.mdc`, fetch SPWT-5, generate PR, create, update Notion
+-   "create draft PR" → Same flow but set `draft: true`
+
+**Always remember:**
+
+-   **Read template file first:** `.cursor/rules/general/pr-template.mdc`
+-   PR Title = Commit message format (Conventional Commits)
+-   PR Body = Structured template (remove INSTRUCTION/FORMAT/EXAMPLE labels)
+-   Update Notion = Add PR URL to task property after creation
+-   Quality matters = Use checklist before creating

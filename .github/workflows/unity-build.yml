@@ -1,0 +1,99 @@
+# This workflow validates Unity project compilation by building for Windows platform.
+# It runs on pull requests to master/develop/feature branches when Unity-related files are modified.
+# The workflow includes LFS support, Library caching for faster builds, and comprehensive error reporting.
+
+name: Unity Build Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+      - "feature/develop/SPWS-*"
+    paths:
+      - "Assets/**"
+      - "Packages/**"
+      - "ProjectSettings/**"
+      - "**.cs"
+      - "**.csproj"
+
+permissions:
+  contents: read
+
+jobs:
+  unity-build:
+    name: Build Unity Project (Windows)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Create LFS file list
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: Restore LFS cache
+        uses: actions/cache@v4
+        id: lfs-cache
+        with:
+          path: .git/lfs
+          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+
+      - name: Git LFS Pull
+        run: |
+          git lfs pull
+          git add .
+          git reset --hard
+
+      - name: Restore Library cache
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+            Library-
+
+      - name: Build Unity Project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: StandaloneWindows64
+          unityVersion: auto
+          versioning: None
+          # Custom build script that just validates compilation
+          customParameters: -quit -batchmode -nographics -silent-crashes -logFile -
+
+      - name: Upload Build Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Unity-Build-Logs
+          path: |
+            Library/Bee/artifacts/**/*.log
+            Logs/**
+
+      - name: Build Summary
+        if: success()
+        run: |
+          echo "✅ Unity project compiled successfully!"
+          echo "- All assemblies built without errors"
+          echo "- DOTS packages resolved correctly"
+          echo "- No compilation warnings treated as errors"
+
+      - name: Build Failed
+        if: failure()
+        run: |
+          echo "❌ Unity build failed!"
+          echo ""
+          echo "Check the uploaded logs for details."
+          echo "Common issues:"
+          echo "  - Missing package dependencies"
+          echo "  - Compilation errors in scripts"
+          echo "  - DOTS API compatibility issues"

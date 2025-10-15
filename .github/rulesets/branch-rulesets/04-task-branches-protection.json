@@ -1,0 +1,45 @@
+{
+    "enforcement": "active",
+    "name": "Task Branches Protection",
+    "target": "branch",
+    "bypass_actors": [
+        {
+            "actor_id": 5,
+            "actor_type": "RepositoryRole",
+            "bypass_mode": "always"
+        }
+    ],
+    "conditions": {
+        "ref_name": {
+            "exclude": [],
+            "include": [
+                "refs/heads/feature/SPWS-*/SPWT-*",
+                "refs/heads/tech/SPWS-*/SPWT-*",
+                "refs/heads/bug/SPWS-*/SPWT-*"
+            ]
+        }
+    },
+    "rules": [
+        {
+            "type": "pull_request",
+            "parameters": {
+                "required_approving_review_count": 1,
+                "dismiss_stale_reviews_on_push": false,
+                "require_code_owner_review": false,
+                "require_last_push_approval": false,
+                "required_review_thread_resolution": false
+            }
+        },
+        {
+            "type": "required_status_checks",
+            "parameters": {
+                "required_status_checks": [
+                    {
+                        "context": "PR Lint / Validate PR title"
+                    }
+                ],
+                "strict_required_status_checks_policy": false
+            }
+        }
+    ]
+}

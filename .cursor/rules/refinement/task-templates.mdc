@@ -1,0 +1,491 @@
+---
+description: Provides template structures and guidelines for creating Tasks (technical implementation details including Feature Tasks, Tech Tasks, and Bug Tasks with specific code and file paths).
+alwaysApply: false
+---
+
+# Task Templates
+
+Copy the appropriate template structure when creating a Task. Remove all INSTRUCTION/FORMAT/EXAMPLE labels and replace examples with real content.
+
+---
+
+## Feature Task Template
+
+Use for new gameplay/user-facing functionality.
+
+```markdown
+# [Feature Title - Specific and Implementation-Focused]
+
+### 📝 Description
+
+**INSTRUCTION:** Describe what needs to be implemented from a gameplay/user perspective. Be specific about the visible behavior.
+
+**FORMAT:** Clear description of the feature's user-facing behavior and purpose.
+
+**EXAMPLE:** "Implement a homing modifier system that allows spell projectiles to automatically track and pursue nearby enemy targets. The homing behavior should smoothly adjust the projectile's direction each frame using a configurable turn speed, making spells feel responsive and player-friendly."
+
+---
+
+### ✅ Definition of Done
+
+**INSTRUCTION:** Create a comprehensive checklist of ALL steps required to consider this task complete. Include code, testing, documentation, and workflow items.
+
+**FORMAT:** Use numbered list for each discrete deliverable. Be specific with file names and test scenarios.
+
+**EXAMPLE:**
+
+1. Create `HomingTag` component (`IComponentData`) in `Assets/Scripts/Components/Modifiers/`
+2. Create `HomingData` component with `float TurnSpeed` and `Entity Target` fields
+3. Implement `HomingSystem` (`ISystem`) in `Assets/Scripts/Systems/Modifiers/`
+4. Write `HomingJob` (`IJobEntity`) for parallel target tracking calculations
+5. Add homing modifier support to `SpellBakingSystem.cs`
+6. Create test spell JSON with homing modifier in `Assets/Resources/TestSpells/`
+7. Test with 50+ concurrent homing projectiles in `Test_Scene_Homing`
+8. Profile system performance - ensure < 0.5ms for 100 entities
+9. Verify no errors or warnings in Unity Console
+10. Add XML documentation comments to all public APIs
+11. Branch created and link added to Notion task property "Branch"
+12. PR created and link added to Notion task property "Pull Request"
+13. Pull Request reviewed, approved, and merged
+
+---
+
+### ⚙️ Technical Refinement
+
+**INSTRUCTION:** Provide specific implementation details, file paths, code structure, and technical decisions. This is WHERE and HOW to implement.
+
+**Core Scripts:**
+
+**FORMAT:** List exact file paths and their responsibilities
+
+**EXAMPLE:**
+
+-   `Assets/Scripts/Components/Modifiers/HomingTag.cs` - Empty tag component for filtering homing spells
+-   `Assets/Scripts/Components/Modifiers/HomingData.cs` - Data component with TurnSpeed and Target entity
+-   `Assets/Scripts/Systems/Modifiers/HomingSystem.cs` - ISystem that schedules HomingJob each frame
+-   `Assets/Scripts/Jobs/Modifiers/HomingJob.cs` - IJobEntity that calculates direction to target
+
+**Key Prefabs/Assets:**
+
+**FORMAT:** List exact asset paths
+
+**EXAMPLE:**
+
+-   `Assets/Resources/TestSpells/HomingFireball.json` - Test spell definition with homing modifier
+-   `Assets/Prefabs/VFX/HomingTrail.prefab` - Visual effect for homing projectiles (optional)
+
+**Inspector Values:**
+
+**FORMAT:** Specify which values should be configurable and their default values
+
+**EXAMPLE:**
+
+-   In `HomingData.cs`, expose `float TurnSpeed = 5.0f` (degrees per second)
+-   In `SpellDefinition` JSON schema, add `"turn_speed"` field to homing modifier (range: 0.1-50.0)
+
+**Implementation Notes:**
+
+**FORMAT:** Technical decisions, algorithm choices, performance considerations
+
+**EXAMPLE:**
+
+-   Use `math.slerp()` for smooth rotation between current direction and target direction
+-   Query for closest enemy with `SystemAPI.Query<LocalTransform>().WithAll<EnemyTag>()`
+-   Apply Burst compilation `[BurstCompile]` to both system and job
+-   Use `EntityCommandBuffer.ParallelWriter` if creating/destroying entities in job
+-   Target acquisition happens once per spell spawn, not every frame
+-   If target is destroyed, projectile continues in current direction (no retargeting)
+
+**Dependencies:**
+
+**FORMAT:** List what must exist before this task can be completed
+
+**EXAMPLE:**
+
+-   Requires `SpellMovementSystem` from **SPWT-2** (must apply velocity after homing calculations)
+-   Requires `SpellBakingSystem` from **SPWT-1** to support modifier deserialization
+-   Requires enemy entities to have `EnemyTag` component for targeting queries
+
+---
+
+### ⚠️ Potential Risks
+
+**INSTRUCTION:** Identify implementation risks, edge cases, and potential blockers specific to this task.
+
+**FORMAT:** Brief risk description with category and optional mitigation
+
+**Risk Categories:**
+
+-   🔴 **Technical Risk:** Architecture or technology challenges
+-   🟡 **Dependency Risk:** Blocked by other work or external factors
+-   🟠 **Integration Risk:** Conflicts with other systems
+-   🔵 **Testing Risk:** Difficult to validate or reproduce
+
+**EXAMPLE:**
+
+-   🔴 **Performance Risk:** Querying all enemies every frame could be expensive with 100+ enemies
+    -   Mitigation: Cache closest enemy during spawn, use spatial partitioning if needed
+-   🟡 **Edge Case:** Target enemy destroyed mid-flight could cause null reference
+    -   Mitigation: Check `EntityManager.Exists(target)` before accessing transform
+-   🟠 **Integration Risk:** Homing calculations might conflict with other modifiers (e.g., fork, pierce)
+    -   Mitigation: Document execution order, ensure HomingSystem runs after movement but before collision
+-   🔵 **Testing Challenge:** Difficult to reproduce specific homing behaviors deterministically
+    -   Mitigation: Create fixed test scenarios with stationary targets first
+
+---
+
+### 🔗 References
+
+**INSTRUCTION:** Provide links to technical documentation, related tasks, and code references.
+
+-   **🎨 Design Files:**
+    -   [Miro: Homing Behavior Flow Diagram](URL)
+    -   [Video Reference: Diablo 3 Magic Missile](URL)
+-   **📚 Documentation:**
+    -   [Unity DOTS: Writing an IJobEntity](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_ijobentity.html)
+    -   [Unity Mathematics: Slerp Function](https://docs.unity3d.com/Packages/com.unity.mathematics@latest)
+    -   [Project Rules: DOTS Architecture](.cursor/rules/concept/dots-architecture.mdc)
+-   **🌐 External Resources:**
+    -   [GDC Talk: Math for Game Programmers - Juicing Your Cameras](URL)
+    -   [Reference Implementation: Unity ECS Samples - Boids](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
+```
+
+---
+
+## Tech Task Template
+
+Use for refactorings, optimizations, and internal technical improvements.
+
+```markdown
+# [Tech Title - Clear Technical Objective]
+
+### 🎯 Technical Objective
+
+**INSTRUCTION:** Explain WHAT technical improvement is being made and WHY it's necessary. Connect to business value when possible.
+
+**FORMAT:** Two parts - What (technical change) + Why (benefit/motivation)
+
+**EXAMPLE:**
+
+-   **What:** Refactor the `SpellBakingSystem` to use component enableable pattern instead of adding/removing components dynamically
+-   **Why:** Current approach causes structural changes during baking, leading to 500ms+ baking times for 100 spells. Enableable components will reduce this to <50ms by avoiding archetype changes, and simplify debugging by keeping all components visible in Entity Inspector.
+
+---
+
+### ✅ Definition of Done
+
+**INSTRUCTION:** Define success criteria with measurable outcomes when possible. Include performance targets if relevant.
+
+**FORMAT:** Numbered list with specific, verifiable completion criteria
+
+**EXAMPLE:**
+
+1. All spell components implement `IEnableableComponent` interface
+2. `SpellBakingSystem.cs` refactored to use `SetComponentEnabled()` instead of `AddComponent/RemoveComponent`
+3. Baking time for 100 spells reduced from ~500ms to <50ms (measured with Profiler)
+4. All existing spell definitions work without modification (backwards compatible)
+5. Entity Inspector shows disabled components grayed out, not hidden
+6. No structural changes occur during normal gameplay (verified in Systems Window)
+7. All existing tests pass without modification
+8. Update DOTS Architecture documentation with enableable component guidelines
+9. Branch created and link added to Notion task property "Branch"
+10. PR created, reviewed, approved, and merged
+
+---
+
+### ⚙️ Technical Refinement
+
+**INSTRUCTION:** Provide step-by-step implementation plan with specific files, functions, and code changes.
+
+**FORMAT:** Numbered steps with specific actions
+
+**EXAMPLE:**
+
+**Step 1: Update Component Definitions**
+
+-   Modify `Assets/Scripts/Components/Payloads/*.cs` to implement `IEnableableComponent`
+-   Add `: IEnableableComponent` to: `DamagePayload`, `HealPayload`, `StatusEffectPayload`
+-   Keep all fields and struct layout unchanged
+
+**Step 2: Refactor SpellBakingSystem**
+
+-   Open `Assets/Scripts/Systems/SpellBakingSystem.cs`
+-   Replace `ecb.AddComponent<T>()` with `ecb.SetComponentEnabled<T>(entity, true)`
+-   Replace `ecb.RemoveComponent<T>()` with `ecb.SetComponentEnabled<T>(entity, false)`
+-   Ensure all components are added during initial entity creation, then enabled/disabled as needed
+
+**Step 3: Update Query Filters**
+
+-   Update all systems that query payload components
+-   Change `.WithAll<PayloadComponent>()` to `.WithAll<PayloadComponent>().WithEnabled<PayloadComponent>()`
+-   Affected files: `PayloadResolutionSystem.cs`, `SpellCollisionSystem.cs`
+
+**Step 4: Performance Validation**
+
+-   Open Unity Profiler (Window > Analysis > Profiler)
+-   Navigate to `Test_Scene_StressTest` and spawn 100 spells
+-   Measure `SpellBakingSystem.OnUpdate()` time
+-   Target: <0.5ms per system update, <50ms total for 100 spells
+
+**Step 5: Compatibility Testing**
+
+-   Load all spell definitions from `Assets/Resources/Spells/`
+-   Verify each spell spawns, moves, and applies effects correctly
+-   Check Entity Inspector to confirm disabled components are visible but grayed out
+
+**Step 6: Update Documentation**
+
+-   Add section in `.cursor/rules/concept/dots-architecture.mdc` about enableable components
+-   Document when to use `IEnableableComponent` vs adding/removing components
+
+**Performance Impact:**
+
+-   Before: 500ms for 100 spells (5ms per spell)
+-   After: <50ms for 100 spells (<0.5ms per spell)
+-   **10x improvement** in baking performance
+
+---
+
+### ⚠️ Potential Risks
+
+**INSTRUCTION:** Identify technical debt, migration complexity, and rollback strategies.
+
+**FORMAT:** Brief risk description with category and optional mitigation
+
+**Risk Categories:**
+
+-   🔴 **Technical Risk:** Architecture or technology challenges
+-   🟡 **Migration Risk:** Breaking changes during refactoring
+-   🟠 **Performance Risk:** Potential regressions
+-   🔵 **Knowledge Risk:** Team expertise gaps
+
+**EXAMPLE:**
+
+-   🔴 **Migration Risk:** Existing spell entities might break if components are not added upfront
+    -   Mitigation: Add all components during entity creation, use enabled/disabled state only
+    -   Rollback: Keep old system in separate branch for 1 sprint as safety net
+-   🟡 **Testing Coverage:** Hard to verify ALL spell combinations still work
+    -   Mitigation: Run full spell test suite (50+ test cases), manual QA testing session
+-   🟠 **Performance Regression:** Querying with `WithEnabled<T>()` might have overhead
+    -   Mitigation: Profile before/after with 1000 entities, ensure no frame time increase
+-   🔵 **Team Knowledge:** Team might not be familiar with enableable component pattern
+    -   Mitigation: Tech talk + code review session before merge
+
+---
+
+### 🔗 References
+
+**INSTRUCTION:** Include Unity documentation, architectural references, and related refactoring tasks.
+
+-   **📚 Documentation:**
+    -   [Unity Entities: Enableable Components](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-enableable.html)
+    -   [Unity DOTS Best Practices: Structural Changes](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/concepts-structural-changes.html)
+    -   [Project: DOTS Architecture Rules](.cursor/rules/concept/dots-architecture.mdc)
+-   **🌐 External Resources:**
+    -   [Unite Talk: DOTS Performance Optimization](URL)
+    -   [Unity Forum: When to Use Enableable Components](URL)
+```
+
+---
+
+## Bug Task Template
+
+Use to fix identified defects and problems.
+
+```markdown
+# [Bug Title - Specific and Descriptive]
+
+### 🐛 Bug Report
+
+**INSTRUCTION:** Provide detailed, reproducible steps that allow any developer to see the bug. Include expected vs actual behavior.
+
+**Steps to Reproduce:**
+
+**FORMAT:** Numbered list of exact steps
+
+**EXAMPLE:**
+
+1. Open scene `Assets/Scenes/Test_Scene_Spells.unity`
+2. Press Play in Editor
+3. Click "Spawn Fireball" button in Game View
+4. Wait for spell to hit enemy at coordinates (10, 0, 5)
+5. Observe Unity Console for errors
+
+**Expected Behavior:**
+
+**FORMAT:** Describe what SHOULD happen
+
+**EXAMPLE:** "The fireball should apply 25 damage to the enemy, trigger the burn status effect for 5 seconds, and destroy itself. No errors should appear in Console."
+
+**Actual Behavior:**
+
+**FORMAT:** Describe what ACTUALLY happens, including error messages
+
+**EXAMPLE:** "The fireball applies damage correctly but does NOT apply burn status. Console shows error: `NullReferenceException: Object reference not set to an instance of an object` at `StatusEffectSystem.cs:line 42`. Spell entity is destroyed but orphaned `StatusEffectBuffer` remains in memory."
+
+**Environment:**
+
+**FORMAT:** Specify all relevant version and platform information
+
+**EXAMPLE:**
+
+-   **Unity Version:** 2022.3.15f1
+-   **DOTS Packages:**
+    -   `com.unity.entities` 1.0.16
+    -   `com.unity.burst` 1.8.8
+-   **Build Target:** Windows Standalone, Editor Play Mode
+-   **Device Specs:** Windows 11, Ryzen 9 5900X, RTX 3080, 32GB RAM
+-   **Commit Hash:** `a3f7d91` (branch: `feature/SPWS-2/SPWT-10`)
+-   **Reproducibility:** 100% (happens every time)
+
+---
+
+### 🔍 Root Cause Analysis
+
+**INSTRUCTION:** After investigation, document WHY the bug occurs. Fill this in once root cause is identified.
+
+**FORMAT:** Technical explanation of the underlying issue
+
+**EXAMPLE:** "The bug occurs because `StatusEffectSystem.OnUpdate()` attempts to access `StatusEffectBuffer` from the spell entity AFTER it has been destroyed by `LifecycleSystem`. The execution order is incorrect: `LifecycleSystem` runs in `SimulationSystemGroup` (default), while `StatusEffectSystem` runs in `PresentationSystemGroup` (later). By the time status effects are applied, the source entity no longer exists, causing the NullReferenceException.
+
+**Root cause:** System execution order not explicitly defined, causing race condition between entity destruction and status effect application."
+
+---
+
+### ✅ Definition of Done
+
+**INSTRUCTION:** Define what "fixed" means, including regression testing and validation across platforms.
+
+**FORMAT:** Numbered list covering fix, testing, and validation
+
+**EXAMPLE:**
+
+1. `StatusEffectSystem` moved to run BEFORE `LifecycleSystem` using `[UpdateBefore(typeof(LifecycleSystem))]`
+2. Bug no longer reproducible following original steps (tested 20+ times)
+3. Status effects correctly applied before entity destruction
+4. No `NullReferenceException` in Console
+5. No orphaned `StatusEffectBuffer` components remain (verified in Memory Profiler)
+6. Fix tested on all Build Targets: Windows Standalone, Android, WebGL
+7. Regression test added to `StatusEffectSystemTests.cs` to prevent future occurrence
+8. Verified with 100+ concurrent spells (stress test)
+9. PR includes detailed explanation of fix and root cause
+10. Branch created and link added to Notion task property "Branch"
+11. PR created, reviewed, approved, and merged
+
+---
+
+### 🔧 Implementation Plan
+
+**INSTRUCTION:** If the fix is complex, outline the step-by-step solution. Simple fixes can skip this section.
+
+**FORMAT:** Numbered steps with file changes
+
+**EXAMPLE:**
+
+**Step 1: Fix System Execution Order**
+
+-   Open `Assets/Scripts/Systems/StatusEffectSystem.cs`
+-   Add attribute above class: `[UpdateBefore(typeof(LifecycleSystem))]`
+-   This ensures status effects are applied before entity destruction
+
+**Step 2: Add Defensive Null Check**
+
+-   In `StatusEffectSystem.OnUpdate()`, add check: `if (!EntityManager.Exists(sourceEntity)) continue;`
+-   Prevents exception if entity is destroyed earlier than expected
+
+**Step 3: Create Regression Test**
+
+-   Create `Assets/Tests/StatusEffectSystemTests.cs`
+-   Test case: Spawn spell → trigger effect → verify effect applied before destruction
+-   Use `[Test]` attribute for Unity Test Runner
+
+**Step 4: Validate Memory Cleanup**
+
+-   Open Memory Profiler (Window > Analysis > Memory Profiler)
+-   Capture snapshot before and after spawning 100 spells
+-   Verify no leaked `StatusEffectBuffer` components
+
+---
+
+### ⚠️ Potential Risks
+
+**INSTRUCTION:** Identify risks in the fix itself, potential side effects, and rollback plans.
+
+**FORMAT:** Brief risk description with category and optional mitigation
+
+**Risk Categories:**
+
+-   🔴 **Technical Risk:** Architecture or technology challenges
+-   🟡 **Side Effect Risk:** Unintended consequences of the fix
+-   🟠 **Regression Risk:** Fix might break other functionality
+-   🔵 **Platform Risk:** Different behavior across platforms
+
+**EXAMPLE:**
+
+-   🔴 **Side Effect Risk:** Changing system order might affect other systems that depend on current execution flow
+    -   Mitigation: Review all systems in `SimulationSystemGroup`, verify no implicit dependencies
+-   🟡 **Regression Risk:** Fix might break existing spells that rely on current (incorrect) timing
+    -   Mitigation: Full regression test suite on all spell types (projectile, AoE, cone, self-cast)
+-   🟠 **Performance Risk:** Adding null checks might impact performance at scale
+    -   Mitigation: Profile with 1000 concurrent entities, ensure <0.1ms overhead
+-   🔵 **Platform Risk:** Bug might manifest differently on mobile platforms
+    -   Mitigation: Test on Android device before marking as complete
+
+---
+
+### 🔗 References
+
+**INSTRUCTION:** Link to error logs, related bugs, Unity documentation, and debugging sessions.
+
+-   **🐛 Bug Tracking:**
+    -   [Notion Bug Report: SPWT-23](URL)
+    -   [Console Log Screenshot](URL)
+    -   [Memory Profiler Snapshot](URL)
+-   **📚 Documentation:**
+    -   [Unity Entities: System Update Order](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/systems-update-order.html)
+    -   [Project Rules: DOTS System Ordering](.cursor/rules/concept/dots-architecture.mdc#system-execution-order)
+```
+
+---
+
+## Task Quality Checks
+
+Before presenting any Task, verify:
+
+### Feature Task Checks
+
+-   [ ] Description focuses on user-facing behavior
+-   [ ] Definition of Done includes code, tests, docs, and PR workflow (10+ items typical)
+-   [ ] File paths are exact and follow project structure (`Assets/Scripts/[Category]/[FileName].cs`)
+-   [ ] Implementation Notes include algorithm choices and performance considerations
+-   [ ] Dependencies list specific tasks/systems (with SPWT-X or system names)
+-   [ ] Risks are implementation-specific and categorized
+-   [ ] Performance targets included ("<0.5ms for 100 entities")
+
+### Tech Task Checks
+
+-   [ ] Technical Objective explains WHAT + WHY with quantifiable improvement
+-   [ ] Definition of Done includes performance metrics (before/after)
+-   [ ] Technical Refinement provides step-by-step plan
+-   [ ] Performance Impact section shows concrete improvement ("10x faster")
+-   [ ] Rollback strategy included for risky changes
+-   [ ] Documentation updates included in DoD
+
+### Bug Task Checks
+
+-   [ ] Reproduction steps are exact and detailed (any developer can reproduce)
+-   [ ] Expected vs Actual behavior clearly contrasted
+-   [ ] Environment info complete (versions, platform, commit hash, reproducibility %)
+-   [ ] Root Cause Analysis explains WHY (not just WHAT)
+-   [ ] Regression test required in Definition of Done
+-   [ ] Fix tested across multiple platforms if applicable
+
+### Universal Task Checks
+
+-   [ ] Correct template chosen (Feature/Tech/Bug matches request)
+-   [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
+-   [ ] Parent Story (SPWS-X) referenced
+-   [ ] Risks categorized with emoji (🔴🟡🟠🔵)
+-   [ ] All emoticons and markdown formatting preserved
+-   [ ] Uses correct Unity/DOTS terminology
+-   [ ] Written in English

@@ -1,0 +1,356 @@
+---
+description: Defines mandatory DOTS/ECS implementation patterns including ISystem vs SystemBase usage, component design, EntityCommandBuffer patterns, and performance-critical architectural decisions.
+alwaysApply: false
+---
+
+# DOTS/ECS Architecture Rules for Spellwright
+
+This file defines mandatory rules for implementation using Unity DOTS (Data-Oriented Technology Stack) and ECS (Entity Component System). These rules ensure maximum performance and architectural consistency.
+
+## Rule 1: ISystem vs SystemBase - Mandatory Choice
+
+### ALWAYS Use ISystem For:
+
+-   Spell simulation logic executed frame-by-frame
+-   Movement systems (MovementSystem)
+-   Collision systems (CollisionSystem)
+-   Lifetime systems (LifetimeSystem)
+-   Behavior systems (HomingSystem, ChainingSystem, etc.)
+-   Payload resolution systems (PayloadResolutionSystem)
+-   Any performance-critical logic
+
+### ONLY Use SystemBase For:
+
+-   JSON baking to entities (SpellBakingSystem)
+-   One-time initial configuration
+-   Network API integration
+-   Communication with traditional UI layer
+-   Tasks that occur once per spell
+
+### Trade-offs Comparison
+
+| Feature                | ISystem        | SystemBase       | Guideline                 |
+| ---------------------- | -------------- | ---------------- | ------------------------- |
+| **Burst Compatible**   | ✅ Yes         | ❌ No            | Mandatory for simulation  |
+| **Garbage Collection** | ✅ Zero GC     | ⚠️ Potential GC  | Avoid GC in hot paths     |
+| **Storage**            | Unmanaged only | Can have managed | Keep simulation pure      |
+| **Performance**        | ⚡ Maximum     | 🐌 Moderate      | Performance is critical   |
+| **Syntax**             | More verbose   | Simpler          | Performance > Convenience |
+
+## Rule 2: Components - Unmanaged Only
+
+### Correct Component Structure
+
+```csharp
+// ✅ CORRECT - Unmanaged component
+public struct Velocity : IComponentData
+{
+    public float3 Value;
+}
+
+public struct Lifetime : IComponentData
+{
+    public float RemainingTime;
+    public float InitialTime;
+}
+
+public struct HomingModifier : IComponentData
+{
+    public float TurnSpeed;
+    public Entity Target;
+}
+```
+
+### What to NEVER Do
+
+```csharp
+// ❌ WRONG - Managed class
+public class Velocity : IComponentData
+{
+    public Vector3 Value; // Managed type
+}
+
+// ❌ WRONG - String in struct
+public struct SpellData : IComponentData
+{
+    public string SpellName; // Strings are managed!
+}
+
+// ❌ WRONG - Object reference
+public struct SpellConfig : IComponentData
+{
+    public ScriptableObject Config; // Managed reference!
+}
+```
+
+### Component Rules
+
+-   Use **only blittable types**: int, float, bool, float3, Entity, etc.
+-   **NEVER** use: string, class, List<T>, Dictionary<K,V>, or any managed type
+-   Use **FixedString** if you need text (e.g., FixedString64Bytes)
+-   Use **DynamicBuffer<T>** for variable-size collections
+-   Keep components **small and focused** (Single Responsibility)
+
+## Rule 3: Systems - Structure and Patterns
+
+### ISystem Pattern
+
+```csharp
+[BurstCompile]
+public partial struct MovementSystem : ISystem
+{
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    {
+        // System initialization
+        state.RequireForUpdate<Velocity>();
+    }
+
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        float deltaTime = SystemAPI.Time.DeltaTime;
+
+        // Query and processing
+        foreach (var (transform, velocity) in
+                 SystemAPI.Query<RefRW<LocalTransform>, RefRO<Velocity>>())
+        {
+            transform.ValueRW.Position += velocity.ValueRO.Value * deltaTime;
+        }
+    }
+
+    [BurstCompile]
+    public void OnDestroy(ref SystemState state)
+    {
+        // Cleanup if needed
+    }
+}
+```
+
+### SystemBase Pattern (Baking Only)
+
+```csharp
+public partial class SpellBakingSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        // Process JSON and create entities
+        var ecb = new EntityCommandBuffer(Allocator.TempJob);
+
+        Entities
+            .WithAll<SpellJsonData>()
+            .ForEach((Entity entity, in SpellJsonData jsonData) =>
+            {
+                // Create spell entity
+                Entity spellEntity = ecb.CreateEntity();
+                ecb.AddComponent(spellEntity, new ProjectileTag());
+                ecb.AddComponent(spellEntity, new Velocity { Value = jsonData.Speed });
+
+                // Destroy temporary JSON entity
+                ecb.DestroyEntity(entity);
+            })
+            .WithoutBurst()
+            .Run();
+
+        ecb.Playback(EntityManager);
+        ecb.Dispose();
+    }
+}
+```
+
+## Rule 4: EntityCommandBuffer - Structural Changes
+
+### ALWAYS Use ECB For:
+
+-   Creating entities
+-   Destroying entities
+-   Adding components
+-   Removing components
+-   Instantiating prefabs
+
+### Correct Pattern
+
+```csharp
+[BurstCompile]
+public partial struct LifetimeSystem : ISystem
+{
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        var ecb = new EntityCommandBuffer(Allocator.TempJob);
+        float deltaTime = SystemAPI.Time.DeltaTime;
+
+        foreach (var (lifetime, entity) in
+                 SystemAPI.Query<RefRW<Lifetime>>()
+                         .WithEntityAccess())
+        {
+            lifetime.ValueRW.RemainingTime -= deltaTime;
+
+            if (lifetime.ValueRO.RemainingTime <= 0)
+            {
+                // Queued structural change
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
+    }
+}
+```
+
+## Rule 5: Jobs and Parallelization
+
+### When to Use Jobs
+
+-   Heavy mathematical calculations
+-   Processing large quantities of entities
+-   Independent operations on entities
+
+### IJobEntity Pattern
+
+```csharp
+[BurstCompile]
+public partial struct ApplyVelocityJob : IJobEntity
+{
+    public float DeltaTime;
+
+    [BurstCompile]
+    public void Execute(ref LocalTransform transform, in Velocity velocity)
+    {
+        transform.Position += velocity.Value * DeltaTime;
+    }
+}
+
+// System usage
+[BurstCompile]
+public partial struct MovementSystem : ISystem
+{
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        var job = new ApplyVelocityJob
+        {
+            DeltaTime = SystemAPI.Time.DeltaTime
+        };
+
+        job.ScheduleParallel();
+    }
+}
+```
+
+## Rule 6: DynamicBuffer for Collections
+
+### When to Use DynamicBuffer
+
+-   Variable-size lists (e.g., multiple payloads)
+-   Dynamic arrays per entity
+-   Data that changes size at runtime
+
+### Example: Multiple Payloads
+
+```csharp
+// Define buffer element
+public struct PayloadElement : IBufferElementData
+{
+    public PayloadType Type;      // Enum: Damage, Heal, ApplyStatus
+    public ElementalType Element; // Enum: Fire, Frost, Shock
+    public StatusEffectType Effect; // Enum: Burn, Slow, Stun
+    public float Amount;
+    public float Duration;
+}
+
+// Add buffer to entity (in baking)
+var buffer = ecb.AddBuffer<PayloadElement>(spellEntity);
+buffer.Add(new PayloadElement
+{
+    Type = PayloadType.Damage,
+    Element = ElementalType.Fire,
+    Amount = 10f
+});
+buffer.Add(new PayloadElement
+{
+    Type = PayloadType.ApplyStatus,
+    Effect = StatusEffectType.Burn,
+    Duration = 5f
+});
+
+// Process buffer (in system)
+foreach (var (buffer, entity) in
+         SystemAPI.Query<DynamicBuffer<PayloadElement>>()
+                 .WithEntityAccess())
+{
+    foreach (var payload in buffer)
+    {
+        // Process each payload
+        ApplyPayload(entity, payload);
+    }
+}
+```
+
+## Rule 7: Tags for Efficient Queries
+
+### Use Tags for Categorization
+
+```csharp
+// Tags are empty components
+public struct ProjectileTag : IComponentData { }
+public struct AreaOfEffectTag : IComponentData { }
+public struct HomingTag : IComponentData { }
+
+// Efficient query
+foreach (var (velocity, entity) in
+         SystemAPI.Query<RefRW<Velocity>>()
+                 .WithAll<ProjectileTag, HomingTag>()
+                 .WithEntityAccess())
+{
+    // Process only homing projectiles
+}
+```
+
+## Rule 8: System Execution Order
+
+### Define Explicit Order
+
+```csharp
+// System must run BEFORE another
+[UpdateBefore(typeof(MovementSystem))]
+public partial struct HomingSystem : ISystem { }
+
+// System must run AFTER another
+[UpdateAfter(typeof(CollisionSystem))]
+public partial struct PayloadResolutionSystem : ISystem { }
+
+// Group of related systems
+[UpdateInGroup(typeof(SimulationSystemGroup))]
+public partial struct SpellSimulationGroup : ComponentSystemGroup { }
+```
+
+## Rule 9: Prefabs in ECS
+
+### Create Entity Prefab
+
+```csharp
+// In baking system
+Entity prefabEntity = ecb.CreateEntity();
+ecb.AddComponent<Prefab>(prefabEntity);
+ecb.AddComponent(prefabEntity, new ProjectileTag());
+ecb.AddComponent(prefabEntity, new Velocity { Value = float3.zero });
+ecb.AddComponent(prefabEntity, new Lifetime { InitialTime = 5f });
+
+// Instantiate prefab (extremely fast)
+Entity instance = ecb.Instantiate(prefabEntity);
+```
+
+## Important Notes
+
+-   **ISystem is mandatory** for all spell simulation logic
+-   **SystemBase** should be used ONLY for baking and initial configuration
+-   **Managed components** are prohibited for runtime entities
+-   **EntityCommandBuffer** is mandatory for structural changes
+-   **Burst Compiler** must be applied to all ISystem and Jobs
+-   Use **DynamicBuffer** for variable-size collections
+-   Always define **execution order** when there are dependencies
+-   **Tags** are more efficient than components with data for queries
+-   **Prefabs** in ECS are instantiated extremely quickly
+-   Consult Unity's debug windows (Entities Hierarchy, Systems Window) frequently

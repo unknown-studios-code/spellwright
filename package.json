@@ -1,0 +1,39 @@
+{
+    "author": "Unknown Studios",
+    "description": "A modular spell crafting framework for Unity that translates natural language descriptions into procedural magic using AI.",
+    "homepage": "https://github.com/unknown-studios-code/spellwright#readme",
+    "main": ".vscode/launch.json",
+    "name": "spellwright",
+    "version": "0.0.1",
+    "bugs": {
+        "url": "https://github.com/unknown-studios-code/spellwright/issues"
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
+    },
+    "devDependencies": {
+        "commitizen": "^4.3.1",
+        "cz-conventional-changelog": "^3.0.1",
+        "husky": "^9.1.7"
+    },
+    "keywords": [
+        "ai",
+        "ecs",
+        "llm",
+        "modular",
+        "nlp",
+        "procedural",
+        "spell",
+        "unity"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/unknown-studios-code/spellwright.git"
+    },
+    "scripts": {
+        "prepare": "husky",
+        "test": "echo \"Warning: no test specified\" && exit 0"
+    }
+}
