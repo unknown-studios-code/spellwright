@@ -21,11 +21,11 @@ All commit messages **MUST** follow this structure:
 
 ### Basic Rules
 
--   **Type**: Mandatory, lowercase
--   **Scope**: Optional, lowercase, in parentheses
--   **Subject**: Mandatory, lowercase, no period at the end
--   **Body**: Optional, separated by blank line
--   **Footer**: Optional, separated by blank line
+- **Type**: Mandatory, lowercase
+- **Scope**: Optional, lowercase, in parentheses
+- **Subject**: Mandatory, lowercase, no period at the end
+- **Body**: Optional, separated by blank line
+- **Footer**: Optional, separated by blank line
 
 ## Commit Types
 
@@ -37,9 +37,9 @@ All commit messages **MUST** follow this structure:
 
 **When to use:**
 
--   Adding new functionality
--   Implementing new user-facing features
--   Adding new APIs or public methods
+- Adding new functionality
+- Implementing new user-facing features
+- Adding new APIs or public methods
 
 **Examples:**
 
@@ -55,9 +55,9 @@ feat(api): add LLM spell generation endpoint
 
 **When to use:**
 
--   Fixing bugs in existing functionality
--   Correcting incorrect behavior
--   Patching security vulnerabilities
+- Fixing bugs in existing functionality
+- Correcting incorrect behavior
+- Patching security vulnerabilities
 
 **Examples:**
 
@@ -73,9 +73,9 @@ fix(baking): handle invalid JSON gracefully
 
 **When to use:**
 
--   Improving performance without changing functionality
--   Optimizing algorithms or queries
--   Reducing memory allocations
+- Improving performance without changing functionality
+- Optimizing algorithms or queries
+- Reducing memory allocations
 
 **Examples:**
 
@@ -91,10 +91,10 @@ perf(baking): reduce JSON parsing from 500ms to 50ms
 
 **When to use:**
 
--   Updating documentation files
--   Adding XML comments to code
--   Updating README or guides
--   Modifying rule files
+- Updating documentation files
+- Adding XML comments to code
+- Updating README or guides
+- Modifying rule files
 
 **Examples:**
 
@@ -108,9 +108,9 @@ docs(architecture): clarify Generator/Modifier/Payload pattern
 
 **When to use:**
 
--   Formatting changes (whitespace, indentation)
--   Code style fixes without logic changes
--   Renaming variables for clarity
+- Formatting changes (whitespace, indentation)
+- Code style fixes without logic changes
+- Renaming variables for clarity
 
 **Examples:**
 
@@ -124,9 +124,9 @@ style: apply EditorConfig formatting rules
 
 **When to use:**
 
--   Restructuring code without changing behavior
--   Improving code architecture
--   Extracting methods or classes
+- Restructuring code without changing behavior
+- Improving code architecture
+- Extracting methods or classes
 
 **Examples:**
 
@@ -140,9 +140,9 @@ refactor(components): use IEnableableComponent pattern
 
 **When to use:**
 
--   Adding or modifying tests
--   Fixing test failures
--   Improving test coverage
+- Adding or modifying tests
+- Fixing test failures
+- Improving test coverage
 
 **Examples:**
 
@@ -156,9 +156,9 @@ test(validation): add JSON schema validation tests
 
 **When to use:**
 
--   Modifying build configuration
--   Updating dependencies
--   Changing CI/CD pipelines
+- Modifying build configuration
+- Updating dependencies
+- Changing CI/CD pipelines
 
 **Examples:**
 
@@ -172,9 +172,9 @@ build(npm): update package.json dependencies
 
 **When to use:**
 
--   Modifying CI configuration
--   Updating GitHub Actions workflows
--   Changing automated checks
+- Modifying CI configuration
+- Updating GitHub Actions workflows
+- Changing automated checks
 
 **Examples:**
 
@@ -188,9 +188,9 @@ ci(tests): enable parallel test execution
 
 **When to use:**
 
--   Routine maintenance tasks
--   Updating tooling configuration
--   Other changes not fitting categories
+- Routine maintenance tasks
+- Updating tooling configuration
+- Other changes not fitting categories
 
 **Examples:**
 
@@ -204,7 +204,7 @@ chore: update license year to 2025
 
 **When to use:**
 
--   Reverting a previous commit
+- Reverting a previous commit
 
 **Format:**
 
@@ -231,36 +231,36 @@ Reason: Caused performance regression in collision detection.
 
 #### Architecture Components
 
--   `spells` - Spell system in general
--   `generators` - Projectile, Cone, AoE, SelfCast
--   `modifiers` - Homing, Chain, Pierce, Fork
--   `payloads` - Damage, Heal, Status Effects
--   `components` - ECS components
--   `systems` - ECS systems
--   `jobs` - Parallel jobs
+- `spells` - Spell system in general
+- `generators` - Projectile, Cone, AoE, SelfCast
+- `modifiers` - Homing, Chain, Pierce, Fork
+- `payloads` - Damage, Heal, Status Effects
+- `components` - ECS components
+- `systems` - ECS systems
+- `jobs` - Parallel jobs
 
 #### Subsystems
 
--   `movement` - Movement systems
--   `collision` - Collision detection
--   `lifetime` - Entity lifetime management
--   `baking` - JSON to ECS conversion
--   `validation` - Data validation
+- `movement` - Movement systems
+- `collision` - Collision detection
+- `lifetime` - Entity lifetime management
+- `baking` - JSON to ECS conversion
+- `validation` - Data validation
 
 #### Integration
 
--   `llm` - LLM integration
--   `api` - API communication
--   `json` - JSON handling
--   `ui` - User interface
--   `networking` - Network code
+- `llm` - LLM integration
+- `api` - API communication
+- `json` - JSON handling
+- `ui` - User interface
+- `networking` - Network code
 
 #### Infrastructure
 
--   `tests` - Testing infrastructure
--   `docs` - Documentation
--   `build` - Build system
--   `ci` - Continuous Integration
+- `tests` - Testing infrastructure
+- `docs` - Documentation
+- `build` - Build system
+- `ci` - Continuous Integration
 
 **Examples:**
 
@@ -309,17 +309,17 @@ The body provides additional context and explanation. Separate from subject with
 
 ### When to Include Body
 
--   Explaining **why** the change was made
--   Describing complex changes
--   Listing multiple changes in one commit
--   Providing context for reviewers
+- Explaining **why** the change was made
+- Describing complex changes
+- Listing multiple changes in one commit
+- Providing context for reviewers
 
 ### Body Guidelines
 
--   Wrap at 72 characters per line
--   Use bullet points for multiple items
--   Explain motivation and context
--   Describe what and why, not how
+- Wrap at 72 characters per line
+- Use bullet points for multiple items
+- Explain motivation and context
+- Describe what and why, not how
 
 ### Example with Body
 
@@ -514,30 +514,30 @@ npm install --save-dev @commitlint/cli @commitlint/config-conventional
 
 ```json
 {
-    "extends": ["@commitlint/config-conventional"],
-    "rules": {
-        "type-enum": [
-            2,
-            "always",
-            [
-                "feat",
-                "fix",
-                "docs",
-                "style",
-                "refactor",
-                "perf",
-                "test",
-                "build",
-                "ci",
-                "chore",
-                "revert"
-            ]
-        ],
-        "scope-case": [2, "always", "lowercase"],
-        "subject-case": [2, "always", "lowercase"],
-        "subject-full-stop": [2, "never", "."],
-        "subject-max-length": [2, "always", 72]
-    }
+  "extends": ["@commitlint/config-conventional"],
+  "rules": {
+    "type-enum": [
+      2,
+      "always",
+      [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "perf",
+        "test",
+        "build",
+        "ci",
+        "chore",
+        "revert"
+      ]
+    ],
+    "scope-case": [2, "always", "lowercase"],
+    "subject-case": [2, "always", "lowercase"],
+    "subject-full-stop": [2, "never", "."],
+    "subject-max-length": [2, "always", 72]
+  }
 }
 ```
 
@@ -545,10 +545,10 @@ npm install --save-dev @commitlint/cli @commitlint/config-conventional
 
 Following Conventional Commits enables automated semantic versioning:
 
--   `feat:` commits → MINOR version bump (1.x.0)
--   `fix:` commits → PATCH version bump (1.0.x)
--   `BREAKING CHANGE:` → MAJOR version bump (x.0.0)
--   Other types → No version bump
+- `feat:` commits → MINOR version bump (1.x.0)
+- `fix:` commits → PATCH version bump (1.0.x)
+- `BREAKING CHANGE:` → MAJOR version bump (x.0.0)
+- Other types → No version bump
 
 ### Changelog Generation
 
@@ -565,15 +565,15 @@ Generates `CHANGELOG.md` automatically from commit history.
 
 Before committing, verify:
 
--   [ ] Type is correct and lowercase
--   [ ] Scope is specific and lowercase (if used)
--   [ ] Subject uses imperative mood
--   [ ] Subject is lowercase with no period
--   [ ] Subject is under 72 characters
--   [ ] Body explains why (if needed)
--   [ ] Breaking changes clearly marked
--   [ ] Issue/task references included (if applicable)
--   [ ] No spelling or grammar errors
+- [ ] Type is correct and lowercase
+- [ ] Scope is specific and lowercase (if used)
+- [ ] Subject uses imperative mood
+- [ ] Subject is lowercase with no period
+- [ ] Subject is under 72 characters
+- [ ] Body explains why (if needed)
+- [ ] Breaking changes clearly marked
+- [ ] Issue/task references included (if applicable)
+- [ ] No spelling or grammar errors
 
 ## Common Mistakes to Avoid
 
@@ -640,13 +640,13 @@ Related: SPWE-1
 
 ## Important Notes
 
--   **Mandatory**: All commits MUST follow Conventional Commits format
--   **Atomic**: Each commit should represent one logical change
--   **Meaningful**: Write commits for humans, not machines
--   **English Only**: All commit messages must be in English
--   **Review**: Always review commit message before pushing
--   **Consistency**: Follow the same patterns across the project
--   **Tools**: Use Commitizen CLI for guided commit creation
--   **Validation**: Enable commitlint in CI/CD pipeline
--   **Versioning**: Understand how commit types affect versioning
--   **History**: Maintain clean, readable git history
+- **Mandatory**: All commits MUST follow Conventional Commits format
+- **Atomic**: Each commit should represent one logical change
+- **Meaningful**: Write commits for humans, not machines
+- **English Only**: All commit messages must be in English
+- **Review**: Always review commit message before pushing
+- **Consistency**: Follow the same patterns across the project
+- **Tools**: Use Commitizen CLI for guided commit creation
+- **Validation**: Enable commitlint in CI/CD pipeline
+- **Versioning**: Understand how commit types affect versioning
+- **History**: Maintain clean, readable git history

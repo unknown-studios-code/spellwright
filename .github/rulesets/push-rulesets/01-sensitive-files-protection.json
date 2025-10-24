@@ -34,12 +34,7 @@
         {
             "type": "file_extension_restriction",
             "parameters": {
-                "restricted_file_extensions": [
-                    ".key",
-                    ".pem",
-                    ".p12",
-                    ".pfx"
-                ]
+                "restricted_file_extensions": [".key", ".pem", ".p12", ".pfx"]
             }
         },
         {

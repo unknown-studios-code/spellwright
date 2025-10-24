@@ -1,0 +1,83 @@
+# Unity Generated Folders
+Library/
+Temp/
+Logs/
+Builds/
+obj/
+bin/
+Build/
+Obj/
+UserSettings/
+MemoryCaptures/
+Recordings/
+
+# Unity Files
+*.meta
+*.asset
+*.prefab
+*.unity
+*.mat
+*.controller
+*.anim
+*.overrideController
+*.mask
+*.cubemap
+*.flare
+*.physicMaterial
+*.physicsMaterial2D
+*.guiskin
+*.fontsettings
+*.shadervariants
+*.preset
+*.spriteatlas
+*.mixer
+*.playable
+*.signal
+*.brush
+*.terrainlayer
+*.giparams
+*.lighting
+
+# C# Generated Files
+*.csproj
+*.sln
+*.suo
+*.user
+*.userosscache
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Visual Studio / Rider
+.vs/
+.vscode/
+.idea/
+*.DotSettings.user
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Node / NPM (if using)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Other
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+*.bak
+*.cache
+
+# Specific files to ignore
+.editorconfig
+

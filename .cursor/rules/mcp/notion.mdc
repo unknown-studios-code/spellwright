@@ -11,50 +11,50 @@ alwaysApply: true
 
 **Writing to Notion:**
 
--   Verbs: "document", "create a page", "save to", "record", "add to database", "export to Notion"
--   Usually referencing code, discussions, or results
+- Verbs: "document", "create a page", "save to", "record", "add to database", "export to Notion"
+- Usually referencing code, discussions, or results
 
 **Reading from Notion:**
 
--   Phrases: "based on the document", "using the Notion page", "according to the PRD", "consult the task"
--   "summarize the Notion page titled..."
+- Phrases: "based on the document", "using the Notion page", "according to the PRD", "consult the task"
+- "summarize the Notion page titled..."
 
 **Advanced Search:**
 
--   "search in Notion for documents created [period]"
--   "find pages by [author]"
--   "search in teamspace [name]"
--   "search in database [name]"
+- "search in Notion for documents created [period]"
+- "find pages by [author]"
+- "search in teamspace [name]"
+- "search in database [name]"
 
 **Project Artifacts:**
 
--   Mentions: `SPWE-X` (Epic), `SPWS-X` (Story), `SPWT-X` (Task)
--   Phrases: "summarize task SPWT-5", "show epic SPWE-2", "what's the status of SPWS-1"
+- Mentions: `SPWE-X` (Epic), `SPWS-X` (Story), `SPWT-X` (Task)
+- Phrases: "summarize task SPWT-5", "show epic SPWE-2", "what's the status of SPWS-1"
 
 ## Actions by Category
 
 ### Writing
 
--   **Create:** `notion-create-pages`
--   **Update:** `notion-update-page`
--   **Database:** `notion-create-database`
--   Always confirm destination page/database first
+- **Create:** `notion-create-pages`
+- **Update:** `notion-update-page`
+- **Database:** `notion-create-database`
+- Always confirm destination page/database first
 
 ### Reading
 
--   **Search:** `notion-search` with `query_type: "internal"`
--   **Fetch:** `notion-fetch` for complete page content
--   **Databases:** Fetch database first to get data sources (collection:// URLs)
+- **Search:** `notion-search` with `query_type: "internal"`
+- **Fetch:** `notion-fetch` for complete page content
+- **Databases:** Fetch database first to get data sources (collection:// URLs)
 
 ### Advanced Search Filters
 
--   **Date:** `filters.created_date_range` with `start_date`/`end_date` (ISO 8601)
--   **Author:**
-    -   Search user: `notion-search` with `query_type: "user"`
-    -   Apply: `filters.created_by_user_ids`
--   **Teamspace:** Use `teamspace_id` (UUID)
--   **Database:** Use `data_source_url` format `collection://<data_source_id>`
--   **Sorting:** `orderBy` (CREATED_AT, UPDATED_AT, COMMENTS) + `direction` (ASC, DESC)
+- **Date:** `filters.created_date_range` with `start_date`/`end_date` (ISO 8601)
+- **Author:**
+  - Search user: `notion-search` with `query_type: "user"`
+  - Apply: `filters.created_by_user_ids`
+- **Teamspace:** Use `teamspace_id` (UUID)
+- **Database:** Use `data_source_url` format `collection://<data_source_id>`
+- **Sorting:** `orderBy` (CREATED_AT, UPDATED_AT, COMMENTS) + `direction` (ASC, DESC)
 
 ### Project Artifact Search (SPWE-X, SPWS-X, SPWT-X)
 
@@ -62,26 +62,26 @@ alwaysApply: true
 
 1. **Locate Container:**
 
-    - `SPWE-X` → Search "Epics" page
-    - `SPWS-X` → Search "Stories" page
-    - `SPWT-X` → Search "Tasks" page
-    - Use: `notion-search` with `query_type: "internal"`
+   - `SPWE-X` → Search "Epics" page
+   - `SPWS-X` → Search "Stories" page
+   - `SPWT-X` → Search "Tasks" page
+   - Use: `notion-search` with `query_type: "internal"`
 
 2. **Find Artifact:**
 
-    - Use: `notion-search` with:
-        - `query: "[artifact ID]"` (e.g., "SPWT-5")
-        - `page_url: "[container page ID/URL]"`
-        - `query_type: "internal"`
+   - Use: `notion-search` with:
+     - `query: "[artifact ID]"` (e.g., "SPWT-5")
+     - `page_url: "[container page ID/URL]"`
+     - `query_type: "internal"`
 
 3. **Get Content:**
-    - Use: `notion-fetch` with artifact ID
-    - If not found, try global search without `page_url`
+   - Use: `notion-fetch` with artifact ID
+   - If not found, try global search without `page_url`
 
 ## Important Notes
 
--   Use `page_url` to direct search to correct container (Epics/Stories/Tasks)
--   `notion-fetch` accepts IDs (with/without dashes) or complete URLs
--   Search limit: 30 requests/min
--   Always confirm page/database name before writing
--   For artifacts, always follow 2-step process
+- Use `page_url` to direct search to correct container (Epics/Stories/Tasks)
+- `notion-fetch` accepts IDs (with/without dashes) or complete URLs
+- Search limit: 30 requests/min
+- Always confirm page/database name before writing
+- For artifacts, always follow 2-step process

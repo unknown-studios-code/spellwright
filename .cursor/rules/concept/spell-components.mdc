@@ -29,9 +29,9 @@ Generators define the fundamental form and delivery method of the spell.
 
 ```json
 {
-    "type": "projectile",
-    "speed": 50.0,
-    "lifetime": 3.0
+  "type": "projectile",
+  "speed": 50.0,
+  "lifetime": 3.0
 }
 ```
 
@@ -54,8 +54,8 @@ public struct Lifetime : IComponentData
 
 **Responsible Systems**:
 
--   `MovementSystem` - Updates position based on velocity
--   `LifetimeSystem` - Decrements time and destroys when expired
+- `MovementSystem` - Updates position based on velocity
+- `LifetimeSystem` - Decrements time and destroys when expired
 
 ### Area of Effect
 
@@ -65,9 +65,9 @@ public struct Lifetime : IComponentData
 
 ```json
 {
-    "type": "area_of_effect",
-    "radius": 5.0,
-    "lifetime": 2.0
+  "type": "area_of_effect",
+  "radius": 5.0,
+  "lifetime": 2.0
 }
 ```
 
@@ -90,8 +90,8 @@ public struct Lifetime : IComponentData
 
 **Responsible Systems**:
 
--   `AreaQuerySystem` - Queries entities within radius
--   `LifetimeSystem` - Manages area duration
+- `AreaQuerySystem` - Queries entities within radius
+- `LifetimeSystem` - Manages area duration
 
 ### Cone
 
@@ -101,10 +101,10 @@ public struct Lifetime : IComponentData
 
 ```json
 {
-    "type": "cone",
-    "radius": 8.0,
-    "angle": 60.0,
-    "lifetime": 1.5
+  "type": "cone",
+  "radius": 8.0,
+  "angle": 60.0,
+  "lifetime": 1.5
 }
 ```
 
@@ -131,8 +131,8 @@ public struct Direction : IComponentData
 
 **Responsible Systems**:
 
--   `ConeQuerySystem` - Queries entities within cone
--   `LifetimeSystem` - Manages duration
+- `ConeQuerySystem` - Queries entities within cone
+- `LifetimeSystem` - Manages duration
 
 ### Self Cast
 
@@ -142,7 +142,7 @@ public struct Direction : IComponentData
 
 ```json
 {
-    "type": "self_cast"
+  "type": "self_cast"
 }
 ```
 
@@ -159,7 +159,7 @@ public struct Caster : IComponentData
 
 **Responsible Systems**:
 
--   `SelfCastSystem` - Applies effects to the caster themselves
+- `SelfCastSystem` - Applies effects to the caster themselves
 
 ## Modifiers: How Behavior is Altered
 
@@ -173,8 +173,8 @@ Modifiers are additional components that modify the basic behavior of the genera
 
 ```json
 {
-    "type": "homing",
-    "turn_speed": 5.0
+  "type": "homing",
+  "turn_speed": 5.0
 }
 ```
 
@@ -234,8 +234,8 @@ public partial struct HomingSystem : ISystem
 
 ```json
 {
-    "type": "chain",
-    "max_bounces": 3
+  "type": "chain",
+  "max_bounces": 3
 }
 ```
 
@@ -318,8 +318,8 @@ public partial struct ChainingSystem : ISystem
 
 ```json
 {
-    "type": "pierce",
-    "pierce_count": 5
+  "type": "pierce",
+  "pierce_count": 5
 }
 ```
 
@@ -335,9 +335,9 @@ public struct PierceModifier : IComponentData
 
 **Responsible System**:
 
--   Logic integrated into `CollisionSystem`
--   Doesn't destroy projectile if `PiercesLeft > 0`
--   Decrements `PiercesLeft` on each collision
+- Logic integrated into `CollisionSystem`
+- Doesn't destroy projectile if `PiercesLeft > 0`
+- Decrements `PiercesLeft` on each collision
 
 ### Fork
 
@@ -347,9 +347,9 @@ public struct PierceModifier : IComponentData
 
 ```json
 {
-    "type": "fork",
-    "fork_count": 3,
-    "fork_angle": 30.0
+  "type": "fork",
+  "fork_count": 3,
+  "fork_angle": 30.0
 }
 ```
 
@@ -372,9 +372,9 @@ public struct ForkModifier : IComponentData
 
 ```json
 {
-    "type": "multi_shot",
-    "count": 5,
-    "spread_angle": 45.0
+  "type": "multi_shot",
+  "count": 5,
+  "spread_angle": 45.0
 }
 ```
 
@@ -439,18 +439,18 @@ public struct PayloadElement : IBufferElementData
 
 ```json
 {
-    "payloads": [
-        {
-            "type": "damage",
-            "amount": 10.0,
-            "elemental_type": "fire"
-        },
-        {
-            "type": "apply_status_effect",
-            "effect_name": "burn",
-            "duration": 5.0
-        }
-    ]
+  "payloads": [
+    {
+      "type": "damage",
+      "amount": 10.0,
+      "elemental_type": "fire"
+    },
+    {
+      "type": "apply_status_effect",
+      "effect_name": "burn",
+      "duration": 5.0
+    }
+  ]
 }
 ```
 
@@ -542,14 +542,14 @@ public partial struct PayloadResolutionSystem : ISystem
 
 ## Important Notes
 
--   The Generator/Modifier/Payload model must be followed strictly
--   **One generator** per spell (mandatory)
--   **Zero or more modifiers** per spell (optional)
--   **One or more payloads** per spell (mandatory)
--   Use **DynamicBuffer<PayloadElement>** for multiple payloads
--   Modifiers are **additive and independent** - can be combined freely
--   Each component should be **small and focused** (Single Responsibility)
--   Systems should be **reusable** - don't couple spell-specific logic
--   Use **tags** for efficient queries (ProjectileTag, AreaOfEffectTag, etc.)
--   Always define **execution order** for systems with dependencies
--   New generators/modifiers/payloads can be added without modifying existing code
+- The Generator/Modifier/Payload model must be followed strictly
+- **One generator** per spell (mandatory)
+- **Zero or more modifiers** per spell (optional)
+- **One or more payloads** per spell (mandatory)
+- Use **DynamicBuffer<PayloadElement>** for multiple payloads
+- Modifiers are **additive and independent** - can be combined freely
+- Each component should be **small and focused** (Single Responsibility)
+- Systems should be **reusable** - don't couple spell-specific logic
+- Use **tags** for efficient queries (ProjectileTag, AreaOfEffectTag, etc.)
+- Always define **execution order** for systems with dependencies
+- New generators/modifiers/payloads can be added without modifying existing code
