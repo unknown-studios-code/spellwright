@@ -92,17 +92,27 @@ Apply **3-5 labels minimum** to every PR, following this structure:
 
 ### Type Label (MANDATORY - Choose ONE)
 
-Based on **branch type** or **commit type**:
+Based on **branch type** (for feature/bug/tech) or **commit type** (fallback):
 
-| Branch/Commit Pattern        | Label            | When to Use                              |
-| ---------------------------- | ---------------- | ---------------------------------------- |
-| `feature/` or `feat:`        | `type: feature`  | New functionality, components, systems   |
-| `bug/` or `fix:`             | `type: bug`      | Bug fixes, error corrections             |
-| `tech/` or `refactor:`       | `type: tech`     | Refactoring, tech debt, code cleanup     |
-| `docs:`                      | `type: docs`     | Documentation only changes               |
-| `test:`                      | `type: test`     | Test-related changes                     |
-| `.github/workflows/` changes | `type: ci/cd`    | CI/CD, workflows, rulesets               |
-| Breaking API changes         | `type: breaking` | Incompatible changes (add to other type) |
+| Branch/Commit Pattern        | Label            | When to Use                              | Priority Rule                                    |
+| ---------------------------- | ---------------- | ---------------------------------------- | ------------------------------------------------ |
+| `feature/`                   | `type: feature`  | New functionality, components, systems   | **Branch prefix (if matches pattern)**           |
+| `bug/`                       | `type: bug`      | Bug fixes, error corrections             | **Branch prefix (if matches pattern)**           |
+| `tech/`                      | `type: tech`     | Refactoring, tech debt, code cleanup     | **Branch prefix (if matches pattern)**           |
+| `feat:`                      | `type: feature`  | New functionality (fallback)             | **Commit type (if branch doesn't match)**        |
+| `fix:`                       | `type: bug`      | Bug fixes (fallback)                     | **Commit type (if branch doesn't match)**        |
+| `refactor:`                  | `type: tech`     | Refactoring (fallback)                   | **Commit type (if branch doesn't match)**        |
+| `docs:`                      | `type: docs`     | Documentation only changes               | **Commit type**                                  |
+| `test:`                      | `type: test`     | Test-related changes                     | **Commit type**                                  |
+| `.github/workflows/` changes | `type: ci/cd`    | CI/CD, workflows, rulesets               | **File path or commit type**                     |
+| Breaking API changes         | `type: breaking` | Incompatible changes (add to other type) | **Commit footer or explicit breaking flag**      |
+
+**CRITICAL RULES:**
+1. **If branch matches** `feature/`, `bug/`, or `tech/` pattern → **Use branch prefix** (IGNORE commit type)
+2. **If branch does NOT match** these patterns (e.g., `hotfix/`, `release/`, custom branch) → **Use commit type** (`feat:`, `fix:`, `refactor:`, etc.)
+3. **For all other labels** (`docs`, `test`, `ci/cd`, `breaking`) → **Always use commit type or file paths**
+
+This ensures consistency between branch naming and PR labeling while providing flexibility for non-standard branch names.
 
 ### Priority Label (MANDATORY - Choose ONE)
 
@@ -256,11 +266,21 @@ type: test
    - Read file paths
    - Read PR description
    - Read Notion task description
+   - **MOST IMPORTANT: Read branch name**
 
 2. Determine Type Label:
-   - Check branch prefix (feature/bug/tech)
-   - Check commit type (feat/fix/refactor)
-   - Check file locations (.github/workflows → ci/cd)
+   - **Step 1:** Check if branch matches standard patterns
+     - If `feature/` → type: feature (IGNORE commit type)
+     - If `bug/` → type: bug (IGNORE commit type)
+     - If `tech/` → type: tech (IGNORE commit type)
+   - **Step 2:** If branch does NOT match above patterns, check commit type
+     - `feat:` → type: feature
+     - `fix:` → type: bug
+     - `refactor:` → type: tech
+     - `docs:` → type: docs
+     - `test:` → type: test
+     - `.github/workflows/` → type: ci/cd
+     - Breaking changes → type: breaking (additional)
 
 3. Determine Priority Label:
    - Read Notion task Priority property
