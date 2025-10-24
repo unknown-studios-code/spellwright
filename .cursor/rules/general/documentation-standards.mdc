@@ -32,14 +32,14 @@ public class ExampleClass { }
 
 **MUST be documented:**
 
-- ✅ All public classes, structs, and interfaces
-- ✅ All public and internal methods
-- ✅ All public properties and fields
-- ✅ All ECS components (IComponentData)
-- ✅ All ECS systems (ISystem, SystemBase)
-- ✅ All Jobs (IJob, IJobEntity)
-- ✅ All enum types and their values
-- ✅ All delegates and events
+- All public classes, structs, and interfaces
+- All public and internal methods
+- All public properties and fields
+- All ECS components (IComponentData)
+- All ECS systems (ISystem, SystemBase)
+- All Jobs (IJob, IJobEntity)
+- All enum types and their values
+- All delegates and events
 
 **Optional documentation:**
 
@@ -60,368 +60,166 @@ public class ExampleClass { }
 
 ### Essential Tags
 
-#### `<summary>`
+| Tag                  | Purpose                           | Required For       | Example                                                                               |
+| -------------------- | --------------------------------- | ------------------ | ------------------------------------------------------------------------------------- |
+| `<summary>`          | Brief description (1-3 sentences) | All public APIs    | `/// <summary>Defines movement data for projectile spells.</summary>`                 |
+| `<param>`            | Parameter description             | All parameters     | `/// <param name="entity">The entity to move.</param>`                                |
+| `<returns>`          | Return value description          | Non-void methods   | `/// <returns>The final damage value after modifiers.</returns>`                      |
+| `<exception>`        | Exception documentation           | Methods that throw | `/// <exception cref="ArgumentNullException">Thrown when entity is null.</exception>` |
+| `<remarks>`          | Implementation details            | When needed        | `/// <remarks>Runs in SimulationSystemGroup after physics.</remarks>`                 |
+| `<value>`            | Property value description        | Properties         | `/// <value>Speed in units/second. Range: 0.1f to 100f.</value>`                      |
+| `<example>`          | Usage example                     | Complex APIs       | `/// <example><code>var spell = CreateProjectile();</code></example>`                 |
+| `<c>`                | Inline code term                  | In text            | `Sets the <c>Lifetime</c> component`                                                  |
+| `<see cref=""/>`     | Code reference                    | Cross-references   | `See also <see cref="HealSystem"/>`                                                   |
+| `<seealso cref=""/>` | Related reference                 | Related links      | `/// <seealso cref="HomingModifierSystem"/>`                                          |
 
-Brief description of type or member. **Mandatory for all public APIs.**
+### Tag Rules
 
-```csharp
-/// <summary>
-/// Represents a projectile spell that moves in a straight line.
-/// </summary>
-public struct ProjectileComponent : IComponentData { }
-```
+**`<summary>` Rules:**
 
-**Rules:**
-
-- Keep it concise (1-3 sentences)
 - Start with active verbs: "Represents", "Defines", "Calculates", "Processes"
-- Avoid redundancy: Don't repeat the member name
 - Use present tense
+- 1-3 sentences max
+- Don't repeat the member name
+- **Bad:** `/// <summary>ProjectileComponent</summary>`
+- **Good:** `/// <summary>Defines movement data for projectile-type spell generators.</summary>`
 
-**❌ Bad:**
+**`<param>` Rules:**
 
-```csharp
-/// <summary>
-/// ProjectileComponent
-/// </summary>
-```
-
-**✅ Good:**
-
-```csharp
-/// <summary>
-/// Defines movement data for projectile-type spell generators.
-/// </summary>
-```
-
-#### `<param>`
-
-Describes method parameters. **Mandatory for all parameters.**
-
-```csharp
-/// <summary>
-/// Moves the entity by the specified offset.
-/// </summary>
-/// <param name="entity">The entity to move.</param>
-/// <param name="offset">The movement offset in world space.</param>
-public void MoveEntity(Entity entity, float3 offset) { }
-```
-
-**Rules:**
-
-- One `<param>` tag per parameter
-- Match parameter name exactly
-- Describe purpose and valid values
+- One tag per parameter, match name exactly
 - Start with "The" or "A/An"
+- Describe purpose and valid values
+- Example: `/// <param name="offset">The movement offset in world space.</param>`
 
-#### `<returns>`
-
-Describes return value. **Mandatory for non-void methods.**
-
-```csharp
-/// <summary>
-/// Calculates the damage after applying modifiers.
-/// </summary>
-/// <param name="baseDamage">The base damage value.</param>
-/// <returns>The final damage value after all modifiers are applied.</returns>
-public float CalculateDamage(float baseDamage) { }
-```
-
-**Rules:**
+**`<returns>` Rules:**
 
 - Describe what is returned, not just the type
 - Include range or possible values when relevant
 - Mention null conditions for reference types
 
-#### `<exception>`
-
-Documents exceptions that can be thrown.
-
-```csharp
-/// <summary>
-/// Retrieves a spell component from the entity.
-/// </summary>
-/// <param name="entity">The target entity.</param>
-/// <returns>The spell component data.</returns>
-/// <exception cref="System.InvalidOperationException">
-/// Thrown when the entity does not have a spell component.
-/// </exception>
-public SpellData GetSpellData(Entity entity) { }
-```
-
-### Formatting Tags
-
-#### `<c>` - Inline Code
-
-For inline code terms within text.
-
-```csharp
-/// <summary>
-/// Sets the <c>Lifetime</c> component to the specified duration.
-/// </summary>
-```
-
-#### `<code>` - Code Block
-
-For multi-line code examples.
-
-```csharp
-/// <summary>
-/// Creates a new projectile spell.
-/// </summary>
-/// <example>
-/// <code>
-/// var spell = CreateProjectile();
-/// spell.Speed = 10f;
-/// spell.Lifetime = 5f;
-/// </code>
-/// </example>
-```
-
-#### `<para>` - Paragraph
-
-For structured text with multiple paragraphs.
-
-```csharp
-/// <summary>
-/// Handles spell collision detection.
-/// <para>
-/// This system uses Unity Physics to detect collisions between spell entities
-/// and target entities.
-/// </para>
-/// <para>
-/// Collision results are processed in the same frame to ensure determinism.
-/// </para>
-/// </summary>
-```
-
-### Cross-Reference Tags
-
-#### `<see cref=""/>` - Inline Reference
-
-Reference to another code element.
-
-```csharp
-/// <summary>
-/// Applies damage to the target. See also <see cref="HealSystem"/> for healing.
-/// </summary>
-```
-
-**Rules:**
+**Cross-References:**
 
 - Use fully qualified names when ambiguous: `<see cref="UnityEngine.Transform"/>`
 - For generics, use curly braces: `<see cref="DynamicBuffer{T}"/>`
-- Works with: classes, methods, properties, fields, enums
-
-#### `<seealso cref=""/>` - Related Links
-
-Links to related code elements.
-
-```csharp
-/// <summary>
-/// Processes projectile movement.
-/// </summary>
-/// <seealso cref="HomingModifierSystem"/>
-/// <seealso cref="PierceModifierSystem"/>
-public partial struct ProjectileMovementSystem : ISystem { }
-```
-
-### Additional Tags
-
-#### `<example>` - Usage Example
-
-Provides usage examples.
-
-```csharp
-/// <summary>
-/// Bakes spell JSON into ECS components.
-/// </summary>
-/// <example>
-/// This example shows how to bake a projectile spell:
-/// <code>
-/// var json = "{ \"generator\": \"projectile\", \"speed\": 15 }";
-/// BakeSpellFromJson(entity, json);
-/// </code>
-/// </example>
-```
-
-#### `<remarks>` - Implementation Details
-
-Additional important information.
-
-```csharp
-/// <summary>
-/// Updates spell lifetimes and destroys expired entities.
-/// </summary>
-/// <remarks>
-/// This system runs in the SimulationSystemGroup after physics updates.
-/// All lifetime values are in seconds and use Time.DeltaTime for updates.
-/// Performance: O(n) where n is the number of entities with Lifetime component.
-/// </remarks>
-public partial struct LifetimeSystem : ISystem { }
-```
-
-#### `<value>` - Property Description
-
-Describes property value and behavior.
-
-```csharp
-/// <summary>
-/// Gets or sets the spell's movement speed.
-/// </summary>
-/// <value>
-/// The speed in units per second. Must be non-negative.
-/// Default value is 10.0f.
-/// </value>
-public float Speed { get; set; }
-```
 
 ## Unity-Specific Documentation Patterns
 
-### MonoBehaviour and ScriptableObject
+### MonoBehaviour/ScriptableObject
+
+**Required documentation:**
+
+- Component purpose and where to attach
+- Required dependencies
+- Inspector-configurable fields with valid ranges
+- Unity messages used (Awake, Start, Update, etc.)
+
+**Example:**
 
 ```csharp
 /// <summary>
-/// Handles player input for spell casting.
-/// Attach this component to the player GameObject.
+/// Handles player input for spell casting. Attach to player GameObject.
 /// </summary>
 /// <remarks>
-/// Requires: PlayerController component
-/// Unity Messages: Update(), OnEnable(), OnDisable()
+/// Requires: PlayerController. Unity Messages: Update, OnEnable, OnDisable
 /// </remarks>
 public class SpellCastingInput : MonoBehaviour
 {
-    /// <summary>
-    /// The key code used to cast the primary spell.
-    /// </summary>
-    /// <remarks>
-    /// Configure this in the Unity Inspector. Default: Mouse0
-    /// </remarks>
-    [SerializeField]
-    private KeyCode castKey = KeyCode.Mouse0;
+    /// <summary>Key for casting primary spell. Configure in Inspector (default: Mouse0).</summary>
+    [SerializeField] private KeyCode castKey = KeyCode.Mouse0;
 }
 ```
-
-**Rules:**
-
-- Document Unity Inspector fields with `<remarks>` for configuration notes
-- Mention required components and dependencies
-- List Unity messages (Awake, Start, Update, etc.) if not obvious
 
 ### ECS Components (IComponentData)
 
-```csharp
-/// <summary>
-/// Defines the remaining lifetime of a spell entity.
-/// When lifetime reaches zero, the entity is destroyed.
-/// </summary>
-/// <remarks>
-/// This is an unmanaged component compatible with Burst compilation.
-/// Updated by: LifetimeSystem
-/// Performance: Blittable type, cache-friendly
-/// </remarks>
-public struct Lifetime : IComponentData
-{
-    /// <summary>
-    /// The remaining time in seconds before the entity is destroyed.
-    /// </summary>
-    /// <value>
-    /// Time in seconds. Must be non-negative.
-    /// Set to negative value to indicate unlimited lifetime.
-    /// </value>
-    public float Value;
-}
-```
-
-**Required information:**
+**Required documentation:**
 
 - What the component represents
 - Which systems read/write it
 - Performance characteristics (blittable, burst-compatible)
 - Data constraints and valid ranges
 
-### ECS Systems (ISystem)
+**Example:**
 
 ```csharp
 /// <summary>
-/// Processes projectile movement for all spell entities with ProjectileComponent.
-/// Updates entity positions based on velocity and delta time.
+/// Remaining lifetime of a spell entity. Entity destroyed when reaches zero.
 /// </summary>
 /// <remarks>
-/// System Group: SimulationSystemGroup
-/// Update Order: After TransformSystemGroup
-/// Burst Compiled: Yes
-/// Threading: Parallel (IJobEntity)
-/// Performance: O(n) where n = number of projectile entities
+/// Unmanaged, Burst-compatible. Updated by: LifetimeSystem. Blittable, cache-friendly.
+/// </remarks>
+public struct Lifetime : IComponentData
+{
+    /// <summary>Time in seconds before destruction. Negative = unlimited.</summary>
+    /// <value>Must be non-negative or -1 for unlimited.</value>
+    public float Value;
+}
+```
+
+### ECS Systems (ISystem)
+
+**Required documentation:**
+
+- System purpose (verb: "Processes", "Updates", "Handles")
+- Components queried
+- System group and update order
+- Burst compilation status
+- Threading model
+- Performance characteristics
+
+**Example:**
+
+```csharp
+/// <summary>
+/// Processes projectile movement for spell entities with ProjectileComponent.
+/// </summary>
+/// <remarks>
+/// Group: SimulationSystemGroup, After: TransformSystemGroup
+/// Burst: Yes, Threading: Parallel (IJobEntity), Performance: O(n)
 /// </remarks>
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 [UpdateAfter(typeof(TransformSystemGroup))]
 public partial struct ProjectileMovementSystem : ISystem
 {
-    /// <summary>
-    /// Called when the system is created.
-    /// Initializes system state and queries.
-    /// </summary>
-    /// <param name="state">The system state provided by Unity.</param>
+    /// <summary>Initializes system state and queries.</summary>
+    [BurstCompile]
     public void OnCreate(ref SystemState state) { }
 
-    /// <summary>
-    /// Called every frame to update projectile positions.
-    /// </summary>
-    /// <param name="state">The system state provided by Unity.</param>
+    /// <summary>Updates projectile positions every frame.</summary>
     [BurstCompile]
     public void OnUpdate(ref SystemState state) { }
 }
 ```
 
-**Required information:**
-
-- What the system does (verb: "Processes", "Updates", "Handles")
-- Which components it queries
-- System group and update order
-- Burst compilation status
-- Threading model (parallel/sequential)
-- Performance characteristics
-
 ### ECS Jobs (IJobEntity)
+
+**Required documentation:**
+
+- Job purpose and execution model
+- Burst compilation status
+- Component access (Read/Write/Read-only)
+- Thread safety
+
+**Example:**
 
 ```csharp
 /// <summary>
-/// Parallel job that updates projectile positions based on velocity.
+/// Parallel job updating projectile positions based on velocity.
 /// </summary>
 /// <remarks>
-/// Burst Compiled: Yes
-/// Schedule Mode: Parallel
-/// Components: Read/Write LocalTransform, Read Velocity
+/// Burst: Yes, Schedule: Parallel, Access: RW LocalTransform, RO Velocity
 /// </remarks>
 [BurstCompile]
 public partial struct MoveProjectilesJob : IJobEntity
 {
-    /// <summary>
-    /// The delta time for this frame, in seconds.
-    /// </summary>
     public float DeltaTime;
 
-    /// <summary>
-    /// Executes the job for a single entity.
-    /// Updates the entity's position by applying velocity over delta time.
-    /// </summary>
-    /// <param name="transform">The entity's transform component.</param>
-    /// <param name="velocity">The entity's velocity component.</param>
     public void Execute(ref LocalTransform transform, in Velocity velocity)
     {
         transform.Position += velocity.Value * DeltaTime;
     }
 }
 ```
-
-**Required information:**
-
-- Job purpose and execution model
-- Burst compilation status
-- Component access (Read/Write/Read-only)
-- Thread safety considerations
 
 ## Spellwright Architecture Documentation
 
@@ -431,24 +229,16 @@ Document how components fit into the spell architecture:
 
 ```csharp
 /// <summary>
-/// Projectile generator component for the Spellwright spell system.
-/// Part of the Generator layer - defines how spells originate and move.
+/// Projectile generator for the Spellwright spell system.
+/// Part of Generator layer - defines how spells originate and move.
 /// </summary>
 /// <remarks>
-/// Architecture Layer: Generator (Mandatory - one per spell)
-/// Compatible Modifiers: Homing, Pierce, Fork, Chain
-/// Compatible Payloads: All payload types
-/// Performance: Blittable component, Burst-compatible
+/// Layer: Generator (Mandatory). Compatible: Homing/Pierce/Fork modifiers, all payloads.
+/// Performance: Blittable, Burst-compatible. Valid Speed: 0.1f to 100f (recommended: 5-30f).
 /// </remarks>
 public struct ProjectileComponent : IComponentData
 {
-    /// <summary>
-    /// The movement speed of the projectile in units per second.
-    /// </summary>
-    /// <value>
-    /// Speed in units/second. Valid range: 0.1f to 100.0f.
-    /// Recommended range for balanced gameplay: 5.0f to 30.0f.
-    /// </value>
+    /// <summary>Movement speed in units per second.</summary>
     public float Speed;
 }
 ```
@@ -460,297 +250,122 @@ Document relationship to JSON schema:
 ```csharp
 /// <summary>
 /// Bakes projectile generator JSON into ECS components.
-/// Converts JSON string data into optimized runtime ECS entities.
 /// </summary>
 /// <remarks>
-/// System Type: Baking System (SystemBase)
-/// Execution: One-time during spell creation
-/// JSON Schema: Matches "generator.projectile" schema
-/// Output Components: ProjectileComponent, Velocity, LocalTransform
-/// Validation: Client-side JSON validation before baking
+/// Type: Baking System. Execution: One-time during spell creation.
+/// JSON Schema: "generator.projectile". Output: ProjectileComponent, Velocity, LocalTransform.
+/// Validation: Client-side before baking.
 /// </remarks>
 public partial class ProjectileBakingSystem : SystemBase
 {
-    /// <summary>
-    /// Bakes a projectile spell from validated JSON data.
-    /// </summary>
-    /// <param name="entity">The target entity to add components to.</param>
-    /// <param name="jsonData">The validated JSON object containing spell data.</param>
-    /// <exception cref="System.ArgumentNullException">
-    /// Thrown when jsonData is null.
-    /// </exception>
-    /// <exception cref="System.FormatException">
-    /// Thrown when JSON structure doesn't match expected schema.
-    /// </exception>
+    /// <summary>Bakes projectile spell from validated JSON data.</summary>
+    /// <exception cref="ArgumentNullException">Thrown when jsonData is null.</exception>
+    /// <exception cref="FormatException">Thrown when JSON doesn't match schema.</exception>
     protected override void OnUpdate() { }
 }
 ```
 
-## Performance Documentation
+## Advanced Documentation Patterns
 
-Always document performance characteristics for DOTS code:
+### Performance Documentation
+
+Document performance characteristics for DOTS code:
+
+**Include:**
+
+- Time complexity (Big O notation)
+- Memory allocation (zero GC)
+- Burst compilation status
+- Threading model
+- Target performance metrics
+
+**Example:**
 
 ```csharp
-/// <summary>
-/// System that processes spell collisions using Unity Physics.
-/// </summary>
+/// <summary>Processes spell collisions using Unity Physics.</summary>
 /// <remarks>
-/// Performance Characteristics:
-/// - Time Complexity: O(n*m) where n=spells, m=average hits per spell
-/// - Memory: Zero GC allocations (uses NativeArrays)
-/// - Burst Compiled: Yes (full Burst compatibility)
-/// - Threading: Parallel via IJobEntity
-/// - Cache Friendly: Sequential component access pattern
-/// Target Performance: &lt;0.5ms for 1000 active spells @60fps
-/// Profiling Category: "Spell.Physics"
+/// Performance: O(n*m) where n=spells, m=avg hits. Zero GC (NativeArrays).
+/// Burst: Yes. Threading: Parallel (IJobEntity). Cache-friendly sequential access.
+/// Target: &lt;0.5ms for 1000 spells @60fps. Profiler: "Spell.Physics"
 /// </remarks>
 ```
 
-**Include when relevant:**
+### Validation and Constraints
 
-- Time complexity (Big O notation)
-- Memory allocation characteristics (zero GC)
-- Burst compilation status
-- Threading model
-- Cache efficiency
-- Target performance metrics
-- Unity Profiler category
-
-## Validation and Constraints
-
-Document data validation and constraints:
+Document data validation:
 
 ```csharp
-/// <summary>
-/// Validates spell JSON against the Spellwright schema.
-/// Implements three-layer validation strategy.
-/// </summary>
+/// <summary>Validates spell JSON against Spellwright schema.</summary>
 /// <remarks>
-/// Validation Layers:
-/// 1. API Function Calling (LLM-side)
-/// 2. Few-Shot Prompting (LLM-side)
-/// 3. Client-side validation (This implementation)
+/// Three-layer validation: 1) API Function Calling (LLM), 2) Few-Shot Prompting (LLM), 3) Client-side (this).
 /// </remarks>
 public class SpellValidator
 {
-    /// <summary>
-    /// Validates that damage value is within acceptable range.
-    /// </summary>
-    /// <param name="damage">The damage value to validate.</param>
-    /// <returns>True if damage is valid; otherwise, false.</returns>
+    /// <summary>Validates damage value is within range.</summary>
+    /// <returns>True if valid; otherwise, false.</returns>
     /// <remarks>
-    /// Valid Range: 1.0f to 1000.0f
-    /// Recommended Range: 10.0f to 100.0f for balanced gameplay
-    /// Validation Rule: Must be positive and finite
+    /// Valid: 1.0f to 1000.0f. Recommended: 10f to 100f. Must be positive and finite.
     /// </remarks>
     public bool ValidateDamage(float damage) { }
 }
 ```
 
-## Thread Safety Documentation
+### Thread Safety
 
-For systems that use jobs or parallel processing:
+Document thread safety for jobs/parallel processing:
 
 ```csharp
-/// <summary>
-/// Processes multiple spells in parallel using job system.
-/// </summary>
+/// <summary>Processes multiple spells in parallel using job system.</summary>
 /// <remarks>
-/// Thread Safety:
-/// - Read-Only Access: Velocity, ProjectileComponent
-/// - Write Access: LocalTransform (no shared writes)
-/// - Parallel Safe: Yes (no race conditions)
-/// - EntityCommandBuffer: Used for structural changes (deferred execution)
-/// Synchronization: Implicit via IJobEntity scheduling
+/// Thread Safety: RO Velocity/ProjectileComponent, RW LocalTransform (no shared writes).
+/// Parallel Safe: Yes (no race conditions). ECB: Deferred structural changes.
+/// Synchronization: Implicit via IJobEntity scheduling.
 /// </remarks>
 ```
 
 ## Documentation Quality Checklist
 
-Before committing code, verify:
-
 - [ ] All public types have `<summary>` tags
 - [ ] All method parameters have `<param>` tags
 - [ ] All non-void methods have `<returns>` tags
-- [ ] All exceptions are documented with `<exception>` tags
+- [ ] All exceptions documented with `<exception>` tags
 - [ ] Cross-references use `<see cref=""/>` with correct syntax
 - [ ] ECS components document which systems use them
 - [ ] ECS systems document update order and burst compilation
 - [ ] Performance-critical code includes performance remarks
 - [ ] Unity-specific attributes are explained
-- [ ] No spelling or grammar errors in documentation
+- [ ] No spelling or grammar errors
 
 ## Tools and Validation
 
-### IDE Integration
+**IDE Integration:**
 
 - Visual Studio: Enable XML documentation warnings (CS1591)
 - Rider: Enable "Missing XML comment" inspections
 - VS Code: Install C# XML Documentation extension
 
-### Build-Time Validation
+**Build-Time:** Treat documentation warnings as errors in CI/CD pipeline
 
-Documentation warnings should be treated as errors in CI/CD pipeline.
+**AI-Assisted:** Always review for technical accuracy, verify code references, validate performance claims, check Unity/DOTS terminology
 
-### AI-Assisted Documentation
+## Best Practices
 
-When using AI to generate documentation:
+**Do:**
 
-- Always review for technical accuracy
-- Verify code references are correct
-- Ensure performance claims are validated
-- Check Unity/DOTS terminology is correct
+- Write descriptive titles with scope: `/// <summary>Projectile movement speed in units/second. Valid: 0.1f-100f.</summary>`
+- Document all public types, methods, parameters, and return values
+- Include performance characteristics for DOTS code
+- Document thread safety for parallel systems
+- Keep documentation synchronized with code changes
+- Explain **why**, not just **what**
 
-## Examples by Component Type
+**Don't:**
 
-### Complete Component Example
-
-```csharp
-/// <summary>
-/// Defines homing behavior for spell projectiles.
-/// Automatically tracks and pursues the nearest valid target within range.
-/// </summary>
-/// <remarks>
-/// Architecture Layer: Modifier (Optional)
-/// Compatible Generators: Projectile, Area of Effect
-/// System: Processed by HomingModifierSystem
-/// Performance: Blittable, Burst-compatible
-/// Target Selection: Uses spatial hash for O(log n) nearest-neighbor search
-/// </remarks>
-public struct HomingModifier : IComponentData
-{
-    /// <summary>
-    /// The maximum distance at which targets can be detected.
-    /// </summary>
-    /// <value>
-    /// Detection range in world units. Valid range: 1.0f to 50.0f.
-    /// Default: 15.0f units.
-    /// </value>
-    public float DetectionRange;
-
-    /// <summary>
-    /// The rotation speed when turning toward target.
-    /// </summary>
-    /// <value>
-    /// Rotation speed in degrees per second. Valid range: 30.0f to 360.0f.
-    /// Higher values create sharper turns.
-    /// </value>
-    public float TurnSpeed;
-
-    /// <summary>
-    /// The entity currently being tracked, or Entity.Null if no target.
-    /// </summary>
-    /// <value>
-    /// The target entity. Set to Entity.Null when no valid target exists.
-    /// Updated every frame by HomingModifierSystem.
-    /// </value>
-    public Entity Target;
-}
-```
-
-### Complete System Example
-
-```csharp
-/// <summary>
-/// Updates the lifetime of all spell entities and destroys expired ones.
-/// Runs every frame to decrease lifetime values and schedule destruction.
-/// </summary>
-/// <remarks>
-/// System Group: SimulationSystemGroup
-/// Update Order: Before TransformSystemGroup (early cleanup)
-/// Burst Compiled: Yes
-/// Threading: Parallel via IJobEntity for lifetime updates
-/// Performance: O(n) where n = entities with Lifetime component
-/// Target: &lt;0.1ms for 5000 entities @60fps
-/// Entity Destruction: Deferred via EntityCommandBuffer
-/// </remarks>
-[BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateBefore(typeof(TransformSystemGroup))]
-public partial struct LifetimeSystem : ISystem
-{
-    /// <summary>
-    /// Called when the system is created. Initializes entity queries.
-    /// </summary>
-    /// <param name="state">The system state provided by Unity ECS.</param>
-    [BurstCompile]
-    public void OnCreate(ref SystemState state)
-    {
-        // Query entities with Lifetime component
-        state.RequireForUpdate<Lifetime>();
-    }
-
-    /// <summary>
-    /// Called every frame to update lifetimes and destroy expired entities.
-    /// </summary>
-    /// <param name="state">The system state provided by Unity ECS.</param>
-    /// <remarks>
-    /// Process:
-    /// 1. Schedule parallel job to decrease all lifetime values
-    /// 2. Query for expired entities (lifetime &lt;= 0)
-    /// 3. Schedule destruction via EntityCommandBuffer
-    /// 4. Playback command buffer at end of frame
-    /// </remarks>
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
-    {
-        // Implementation
-    }
-}
-```
-
-## Anti-Patterns to Avoid
-
-### ❌ Don't: Redundant Documentation
-
-```csharp
-/// <summary>
-/// Gets or sets the speed.
-/// </summary>
-public float Speed { get; set; } // Adds no information
-```
-
-### ✅ Do: Meaningful Documentation
-
-```csharp
-/// <summary>
-/// Gets or sets the projectile movement speed in units per second.
-/// </summary>
-/// <value>Valid range: 0.1f to 100.0f. Default: 10.0f.</value>
-public float Speed { get; set; }
-```
-
-### ❌ Don't: Incorrect Type References
-
-```csharp
-/// <summary>
-/// Uses List<int> for storage. // Invalid XML
-/// </summary>
-```
-
-### ✅ Do: Proper XML Escaping
-
-```csharp
-/// <summary>
-/// Uses <see cref="System.Collections.Generic.List{T}"/> for storage.
-/// </summary>
-```
-
-### ❌ Don't: Vague Descriptions
-
-```csharp
-/// <summary>
-/// Does stuff with the entity.
-/// </summary>
-```
-
-### ✅ Do: Specific Descriptions
-
-```csharp
-/// <summary>
-/// Applies fire damage to the target entity and starts burn status effect.
-/// </summary>
-```
+- Use redundant descriptions: `/// <summary>Gets or sets the speed.</summary>` (adds nothing)
+- Write vague descriptions: `/// <summary>Does stuff with entity.</summary>`
+- Forget XML escaping: Use `<see cref="List{T}"/>` not `List<T>`
+- Copy-paste without reviewing for accuracy
+- Leave documentation outdated after refactoring
 
 ## Important Notes
 
