@@ -39,18 +39,49 @@ This file defines mandatory standards for creating Pull Requests in the Spellwri
 
 **1. Type Label (MANDATORY - Choose ONE)**
 
-**Branch prefix takes priority:** If branch is `feature/`, `bug/`, or `tech/` → use branch type (ignore commit)
-**Fallback to commit type:** For other branches, use commit type (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`)
+**CRITICAL RULE: Branch prefix ALWAYS takes priority over commit type!**
 
-| Pattern                | Label            | Use Case                                |
-| ---------------------- | ---------------- | --------------------------------------- |
-| `feature/` or `feat:`  | `type: feature`  | New functionality, components, systems  |
-| `bug/` or `fix:`       | `type: bug`      | Bug fixes, error corrections            |
-| `tech/` or `refactor:` | `type: tech`     | Refactoring, tech debt                  |
-| `docs:`                | `type: docs`     | Documentation changes                   |
-| `test:`                | `type: test`     | Test-related changes                    |
-| `.github/workflows/`   | `type: ci/cd`    | CI/CD, workflows                        |
-| Breaking changes       | `type: breaking` | Incompatible changes (additional label) |
+**Step 1: Check branch name FIRST**
+
+- If branch starts with `feature/` → Use `type: feature` (STOP, ignore commit type)
+- If branch starts with `bug/` → Use `type: bug` (STOP, ignore commit type)
+- If branch starts with `tech/` → Use `type: tech` (STOP, ignore commit type)
+
+**Step 2: If no matching branch prefix, THEN check commit type**
+
+- `feat:` → `type: feature`
+- `fix:` → `type: bug`
+- `refactor:` or `perf:` → `type: tech`
+- `docs:` → `type: docs`
+- `test:` → `type: test`
+
+**Step 3: Special cases (checked independently)**
+
+- Files in `.github/workflows/` → `type: ci/cd`
+- `BREAKING CHANGE:` footer in commit → Add `type: breaking` (additional label, not replacement)
+
+**Decision Matrix:**
+
+| Branch Prefix | Commit Type | Final Label (Branch Wins!) |
+| ------------- | ----------- | -------------------------- |
+| `tech/`       | `feat:`     | `type: tech`               |
+| `feature/`    | `fix:`      | `type: feature`            |
+| `bug/`        | `feat:`     | `type: bug`                |
+| `main`        | `feat:`     | `type: feature`            |
+| `develop`     | `fix:`      | `type: bug`                |
+
+**Special Cases Examples:**
+
+| Files Modified              | Additional Label | Notes                                    |
+| --------------------------- | ---------------- | ---------------------------------------- |
+| `.github/workflows/*.yml`   | `type: ci/cd`    | CI/CD configuration changes              |
+| Any with `BREAKING CHANGE:` | `type: breaking` | ADDED to existing type (not replacement) |
+
+**Example - Breaking Change:**
+
+- Branch: `feature/SPWS-1/SPWT-10`
+- Commit: `feat(api)!: change spell validation API`
+- Final Labels: `type: feature` + `type: breaking` (both labels applied)
 
 **2. Priority Label (MANDATORY - Choose ONE)**
 
@@ -75,18 +106,39 @@ Use Notion task Priority property (default to `medium` if missing):
 
 ### Label Assignment Algorithm
 
-1. **Analyze:** Branch name (most important), commit messages, file paths, task description
-2. **Type:** Branch prefix (`feature/`, `bug/`, `tech/`) OR commit type (`feat:`, `fix:`, etc.)
-3. **Priority:** Notion Priority property OR impact assessment
-4. **Context (1-2):** Scan filenames/descriptions for spell/dots/area keywords
-5. **Additional (0-2):** Performance, status, or special labels
-6. **Validate:** 3-5 labels total, no redundancy
+**Execute in this EXACT order:**
+
+1. **Extract branch name** from current git branch or PR head
+2. **Determine Type Label (CHECK BRANCH FIRST!):**
+    - a. Does branch start with `feature/`, `bug/`, or `tech/`?
+        - YES → Use corresponding `type:` label, SKIP to step 3
+        - NO → Check commit message type (`feat:`, `fix:`, etc.)
+3. **Priority:** Read Notion task "Priority" property (default: `medium`)
+4. **Context (1-2):** Scan file paths and task description for keywords:
+    - Spell keywords → `spell: generator|modifier|payload|component`
+    - DOTS keywords → `dots: system|component|job|burst|entities`
+    - Domain keywords → `area: architecture|input|physics|rendering|networking|ui|audio`
+5. **Additional (0-2):** Add if relevant: `status:`, `performance`, `technical debt`, `quick win`
+6. **Validate:** Total of 3-5 labels, no duplicates
 
 ### Example: Feature Task
 
 **Branch:** `feature/SPWS-1/SPWT-5` | **Priority:** High | **Files:** `ProjectileGeneratorSystem.cs`
 
 **Labels:** `type: feature`, `priority: high`, `spell: generator`, `dots: system`
+
+### Example: Tech Task
+
+**Branch:** `tech/SPWS-1/SPWT-4` | **Commit:** `feat(payloads): ...` | **Priority:** Medium
+
+**Step-by-step:**
+
+1. Branch = `tech/SPWS-1/SPWT-4` → starts with `tech/`
+2. Type label = `type: tech` (IGNORE commit `feat:`)
+3. Priority = `priority: medium` (from Notion)
+4. Context = `spell: payload`, `dots: component` (from files)
+
+**Final Labels:** `type: tech`, `priority: medium`, `spell: payload`, `dots: component`
 
 ## PR Title Format
 
