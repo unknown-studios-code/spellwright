@@ -12,40 +12,28 @@
     "conditions": {
         "ref_name": {
             "exclude": [],
-            "include": [
-                "refs/heads/master"
-            ]
+            "include": ["refs/heads/master"]
         }
     },
     "rules": [
-        {
-            "type": "pull_request",
-            "parameters": {
-                "required_approving_review_count": 1,
-                "dismiss_stale_reviews_on_push": true,
-                "require_code_owner_review": false,
-                "require_last_push_approval": false,
-                "required_review_thread_resolution": true
-            }
-        },
         {
             "type": "required_status_checks",
             "parameters": {
                 "required_status_checks": [
                     {
-                        "context": "PR Lint / Validate PR title"
+                        "context": "Validate PR title"
                     },
                     {
-                        "context": "C# Lint / Check C# Formatting"
+                        "context": "Validate EditorConfig Rules"
                     },
                     {
-                        "context": "Unity Build Validation / Build Unity Project (Windows)"
+                        "context": "Build Unity Project (Windows)"
                     },
                     {
-                        "context": "Edit Mode Test Results"
+                        "context": "Unity Edit Mode Tests"
                     },
                     {
-                        "context": "Play Mode Test Results"
+                        "context": "Unity Play Mode Tests"
                     }
                 ],
                 "strict_required_status_checks_policy": true

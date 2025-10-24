@@ -67,8 +67,6 @@ jobs:
           targetPlatform: StandaloneWindows64
           unityVersion: auto
           versioning: None
-          # Custom build script that just validates compilation
-          customParameters: -quit -batchmode -nographics -silent-crashes -logFile -
 
       - name: Upload Build Logs
         uses: actions/upload-artifact@v4

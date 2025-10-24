@@ -21,10 +21,10 @@ Window > Entities > Hierarchy
 
 ### What to Check
 
--   **Entity names**: should reflect `spellName` from JSON
--   **Attached components**: verify that all expected components are present
--   **Component values**: inspect values of Velocity, Lifetime, DamageAmount, etc.
--   **Entity count**: monitor creation and destruction to detect leaks
+- **Entity names**: should reflect `spellName` from JSON
+- **Attached components**: verify that all expected components are present
+- **Component values**: inspect values of Velocity, Lifetime, DamageAmount, etc.
+- **Entity count**: monitor creation and destruction to detect leaks
 
 ### Inspection Example
 
@@ -86,10 +86,10 @@ Use the Profiler to detect performance bottlenecks.
 
 ### Critical Metrics
 
--   **System Update Time**: how long each ISystem takes
--   **Job Scheduling Overhead**: job scheduling overhead
--   **Structural Changes**: how many times EntityCommandBuffer is executed
--   **Memory Allocations**: detect unintentional allocations
+- **System Update Time**: how long each ISystem takes
+- **Job Scheduling Overhead**: job scheduling overhead
+- **Structural Changes**: how many times EntityCommandBuffer is executed
+- **Memory Allocations**: detect unintentional allocations
 
 ### How to Enable Detailed Profiling
 
@@ -340,31 +340,31 @@ Use this checklist when a spell doesn't work as expected:
 
 ### ✅ Phase 1: JSON and Baking
 
--   [ ] Does JSON pass schema validation?
--   [ ] Was SpellDefinition deserialized correctly?
--   [ ] Did Baker create the entity? (check in Hierarchy)
--   [ ] Are all expected components attached?
--   [ ] Do component values match JSON?
+- [ ] Does JSON pass schema validation?
+- [ ] Was SpellDefinition deserialized correctly?
+- [ ] Did Baker create the entity? (check in Hierarchy)
+- [ ] Are all expected components attached?
+- [ ] Do component values match JSON?
 
 ### ✅ Phase 2: Movement and Behavior
 
--   [ ] Does entity have Velocity and is it moving?
--   [ ] Is LocalTransform being updated?
--   [ ] Is Homing adjusting direction correctly?
--   [ ] Is Lifetime being decremented?
+- [ ] Does entity have Velocity and is it moving?
+- [ ] Is LocalTransform being updated?
+- [ ] Is Homing adjusting direction correctly?
+- [ ] Is Lifetime being decremented?
 
 ### ✅ Phase 3: Collision and Payloads
 
--   [ ] Is collision system detecting impacts?
--   [ ] Are Payloads being resolved?
--   [ ] Is damage being applied to targets?
--   [ ] Are status effects being applied?
+- [ ] Is collision system detecting impacts?
+- [ ] Are Payloads being resolved?
+- [ ] Is damage being applied to targets?
+- [ ] Are status effects being applied?
 
 ### ✅ Phase 4: Cleanup and Destruction
 
--   [ ] Are expired entities being destroyed?
--   [ ] Are there no orphaned entities (memory leaks)?
--   [ ] Is EntityCommandBuffer being executed?
+- [ ] Are expired entities being destroyed?
+- [ ] Are there no orphaned entities (memory leaks)?
+- [ ] Is EntityCommandBuffer being executed?
 
 ## Tool 8: Performance Benchmarks
 
@@ -408,15 +408,15 @@ public partial class SpellPerformanceBenchmark : SystemBase
 
 ## Important Notes
 
--   Use **Entity Hierarchy Window** as primary inspection tool
--   **ALWAYS** enable Burst Compilation for performance-critical systems
--   Use **ProfilerMarkers** to identify bottlenecks
--   Implement **thread-safe logging** using event buffers
--   Use **Debug.DrawRay/DrawLine** for debugging visualization (not in final builds)
--   Create **custom Inspectors** for edit-time validation
--   Follow the **debugging checklist** systematically
--   Keep **performance targets** always in mind
--   Use **EntityCommandBuffer** to group structural changes
--   **NEVER** use Debug.Log directly inside IJobEntity or ISystem with Burst
--   Configure **ProfilerMarkers** for each critical system
--   Regularly test with **100+ entities** simultaneously
+- Use **Entity Hierarchy Window** as primary inspection tool
+- **ALWAYS** enable Burst Compilation for performance-critical systems
+- Use **ProfilerMarkers** to identify bottlenecks
+- Implement **thread-safe logging** using event buffers
+- Use **Debug.DrawRay/DrawLine** for debugging visualization (not in final builds)
+- Create **custom Inspectors** for edit-time validation
+- Follow the **debugging checklist** systematically
+- Keep **performance targets** always in mind
+- Use **EntityCommandBuffer** to group structural changes
+- **NEVER** use Debug.Log directly inside IJobEntity or ISystem with Burst
+- Configure **ProfilerMarkers** for each critical system
+- Regularly test with **100+ entities** simultaneously

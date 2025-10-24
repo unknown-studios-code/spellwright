@@ -7,7 +7,7 @@ This directory contains the CI/CD workflows configured for the Spellwright repos
 ```
 .github/workflows/
 ├── pr-lint.yml              # PR title validation
-├── dotnet-lint.yml          # C# code formatting
+├── editorconfig-lint.yml    # EditorConfig rules validation
 ├── unity-build.yml          # Unity compilation validation
 ├── unity-tests-editmode.yml # Unit tests (Edit Mode)
 ├── unity-tests-playmode.yml # Integration tests (Play Mode)
@@ -22,19 +22,19 @@ Validates Pull Request titles to ensure they follow Conventional Commits specifi
 
 **Triggers:**
 
--   `pull_request_target`: opened, edited, synchronize
--   Runs on: All branches
+- `pull_request_target`: opened, edited, synchronize
+- Runs on: All branches
 
 **Requirements:**
 
--   Format: `type(scope): subject`
--   Types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
--   Scope: Required
--   Subject: Must start with lowercase letter, max 72 characters
+- Format: `type(scope): subject`
+- Types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
+- Scope: Required
+- Subject: Must start with lowercase letter, max 72 characters
 
 **Status Check Generated:**
 
--   `PR Lint / Validate PR title`
+- `Validate PR title`
 
 **Example:**
 
@@ -46,36 +46,42 @@ Validates Pull Request titles to ensure they follow Conventional Commits specifi
 
 **Bypass:**
 
--   Add label `skip-title-check` to PR
+- Add label `skip-title-check` to PR
 
 ---
 
-### 2. **C# Code Formatting** (`dotnet-lint.yml`)
+### 2. **EditorConfig Validation** (`editorconfig-lint.yml`)
 
-Validates C# code formatting using `dotnet format` with `.editorconfig` rules.
+Validates that files comply with EditorConfig formatting rules.
 
 **Triggers:**
 
--   `pull_request`: Changes to `**.cs`, `**.csproj`, or `.editorconfig`
--   `push`: To `master` or `develop` branches
--   Runs on: `master`, `develop`
+- `pull_request`: Changes to any file (excluding build artifacts)
+- `push`: To `master` or `develop` branches
 
 **What it checks:**
 
--   ✅ Code style consistency
--   ✅ Naming conventions
--   ✅ Indentation and spacing
--   ✅ EditorConfig compliance
+- ✅ Line endings (LF - Unix style)
+- ✅ Trailing whitespace removal
+- ✅ Final newline insertion
+- ✅ Character encoding (UTF-8)
+- ✅ Indentation consistency
+- ⚠️ Does NOT check C# naming conventions
+- ⚠️ Does NOT check C# code style rules
 
 **Status Check Generated:**
 
--   `C# Lint / Check C# Formatting`
+- `Validate EditorConfig Rules`
+
+**Limitations:**
+
+This workflow validates basic formatting rules only. For complete C# code style validation (naming conventions, var usage, expression-bodied members, etc.), developers must configure their IDE to apply `.editorconfig` rules on save.
 
 **To fix locally:**
 
-```bash
-dotnet format
-```
+1. Configure IDE to apply EditorConfig on save
+2. Use "Format Document" (VS/VS Code) or "Code Cleanup" (Rider)
+3. Commit and push again
 
 ---
 
@@ -85,29 +91,29 @@ Validates Unity project compilation by building for Windows platform.
 
 **Triggers:**
 
--   `pull_request`: Changes to Unity files
-    -   `Assets/**`
-    -   `Packages/**`
-    -   `ProjectSettings/**`
-    -   `**.cs`, `**.csproj`
--   Runs on: `master`, `develop`, `feature/develop/SPWS-*`
+- `pull_request`: Changes to Unity files
+    - `Assets/**`
+    - `Packages/**`
+    - `ProjectSettings/**`
+    - `**.cs`, `**.csproj`
+- Runs on: `master`, `develop`, `feature/develop/SPWS-*`
 
 **Features:**
 
--   ✅ LFS support with caching
--   ✅ Library caching for faster builds
--   ✅ Build logs uploaded as artifacts
--   ✅ Windows 64-bit target platform
+- ✅ LFS support with caching
+- ✅ Library caching for faster builds
+- ✅ Build logs uploaded as artifacts
+- ✅ Windows 64-bit target platform
 
 **Status Check Generated:**
 
--   `Unity Build Validation / Build Unity Project (Windows)`
+- `Build Unity Project (Windows)`
 
 **Required Secrets:**
 
--   `UNITY_LICENSE`
--   `UNITY_EMAIL`
--   `UNITY_PASSWORD`
+- `UNITY_LICENSE`
+- `UNITY_EMAIL`
+- `UNITY_PASSWORD`
 
 ---
 
@@ -117,37 +123,37 @@ Executes Unity Edit Mode tests (unit tests without Play Mode).
 
 **Triggers:**
 
--   `pull_request`: Changes to Unity files
-    -   `Assets/**`
-    -   `Packages/**`
-    -   `**.cs`
--   Runs on: `master`, `develop`
+- `pull_request`: Changes to Unity files
+    - `Assets/**`
+    - `Packages/**`
+    - `**.cs`
+- Runs on: `master`, `develop`
 
 **Features:**
 
--   ✅ LFS support with caching
--   ✅ Library caching for faster execution
--   ✅ Code coverage reports
--   ✅ Test results uploaded as artifacts
--   ✅ Coverage reports with badges
+- ✅ LFS support with caching
+- ✅ Library caching for faster execution
+- ✅ Code coverage reports
+- ✅ Test results uploaded as artifacts
+- ✅ Coverage reports with badges
 
 **Status Check Generated:**
 
--   `Edit Mode Test Results`
+- `Unity Edit Mode Tests`
 
 **Required Secrets:**
 
--   `UNITY_LICENSE`
--   `UNITY_EMAIL`
--   `UNITY_PASSWORD`
+- `UNITY_LICENSE`
+- `UNITY_EMAIL`
+- `UNITY_PASSWORD`
 
 **What it tests:**
 
--   Unit tests (logic validation)
--   Component validation
--   Data structures
--   Pure functions
--   Non-runtime code
+- Unit tests (logic validation)
+- Component validation
+- Data structures
+- Pure functions
+- Non-runtime code
 
 ---
 
@@ -157,37 +163,37 @@ Executes Unity Play Mode tests (integration and system tests).
 
 **Triggers:**
 
--   `pull_request`: Changes to Unity files
-    -   `Assets/**`
-    -   `Packages/**`
-    -   `**.cs`
--   Runs on: **`master` only** (final validation)
+- `pull_request`: Changes to Unity files
+    - `Assets/**`
+    - `Packages/**`
+    - `**.cs`
+- Runs on: **`master` only** (final validation)
 
 **Features:**
 
--   ✅ LFS support with caching
--   ✅ Library caching for faster execution
--   ✅ Code coverage reports
--   ✅ Test results uploaded as artifacts
--   ✅ Coverage reports with badges
+- ✅ LFS support with caching
+- ✅ Library caching for faster execution
+- ✅ Code coverage reports
+- ✅ Test results uploaded as artifacts
+- ✅ Coverage reports with badges
 
 **Status Check Generated:**
 
--   `Play Mode Test Results`
+- `Unity Play Mode Tests`
 
 **Required Secrets:**
 
--   `UNITY_LICENSE`
--   `UNITY_EMAIL`
--   `UNITY_PASSWORD`
+- `UNITY_LICENSE`
+- `UNITY_EMAIL`
+- `UNITY_PASSWORD`
 
 **What it tests:**
 
--   Integration tests (systems working together)
--   Runtime behavior
--   DOTS systems execution
--   Physics and collisions
--   Scene-based tests
+- Integration tests (systems working together)
+- Runtime behavior
+- DOTS systems execution
+- Physics and collisions
+- Scene-based tests
 
 ---
 
@@ -287,7 +293,7 @@ Follow instructions in [Rulesets README](../rulesets/README.md) to import branch
                ▼
 ┌─────────────────────────────────────┐
 │ Parallel execution:                 │
-│ - C# Lint (formatting)              │
+│ - EditorConfig Lint (formatting)    │
 │ - Unity Build (compilation)         │
 │ - Unity Edit Mode Tests (unit)      │
 │ - Unity Play Mode Tests (if master) │
@@ -306,13 +312,15 @@ Follow instructions in [Rulesets README](../rulesets/README.md) to import branch
 
 Use these exact names when configuring branch protection rules:
 
-| Workflow File              | Status Check Name                                        |
-| -------------------------- | -------------------------------------------------------- |
-| `pr-lint.yml`              | `PR Lint / Validate PR title`                            |
-| `dotnet-lint.yml`          | `C# Lint / Check C# Formatting`                          |
-| `unity-build.yml`          | `Unity Build Validation / Build Unity Project (Windows)` |
-| `unity-tests-editmode.yml` | `Edit Mode Test Results`                                 |
-| `unity-tests-playmode.yml` | `Play Mode Test Results`                                 |
+| Workflow File              | GitHub UI Display                                        | API Name (for Rulesets) ✅      |
+| -------------------------- | -------------------------------------------------------- | ------------------------------- |
+| `pr-lint.yml`              | `PR Lint / Validate PR title`                            | `Validate PR title`             |
+| `editorconfig-lint.yml`    | `EditorConfig Lint / Validate EditorConfig Rules`        | `Validate EditorConfig Rules`   |
+| `unity-build.yml`          | `Unity Build Validation / Build Unity Project (Windows)` | `Build Unity Project (Windows)` |
+| `unity-tests-editmode.yml` | `Unity Tests (Edit Mode) / Unity Edit Mode Tests`        | `Unity Edit Mode Tests`         |
+| `unity-tests-playmode.yml` | `Unity Tests (Play Mode) / Unity Play Mode Tests`        | `Unity Play Mode Tests`         |
+
+**Important:** Rulesets must use the **API Name** (job name only), not the UI display format!
 
 ---
 
@@ -353,19 +361,27 @@ Use these exact names when configuring branch protection rules:
 
 ### **Formatting Issues**
 
-**Error:** `Code formatting issues detected`
+**Error:** `EditorConfig validation failed`
 
 **Solution:**
 
-```bash
-# Auto-fix formatting
-dotnet format
+1. Check which files failed validation in workflow logs
+2. Configure your IDE to apply EditorConfig on save:
+    - **Visual Studio**: Tools → Options → Text Editor → Code Style → General → Enable EditorConfig support
+    - **Rider**: Settings → Editor → Code Style → Enable EditorConfig support
+    - **VS Code**: Install "EditorConfig for VS Code" extension
+3. Format files manually:
+    - **Visual Studio**: Edit → Advanced → Format Document
+    - **Rider**: Code → Reformat Code (Ctrl+Alt+L)
+    - **VS Code**: Format Document (Shift+Alt+F)
+4. Commit and push again
 
-# Commit and push
-git add .
-git commit -m "style: apply code formatting"
-git push
-```
+**Common issues:**
+
+- Missing final newline in files
+- Trailing whitespace at end of lines
+- Wrong line endings (CRLF instead of LF)
+- Inconsistent indentation (tabs vs spaces)
 
 ### **LFS Issues**
 
@@ -393,10 +409,10 @@ All workflows implement aggressive caching:
 
 **Expected Times:**
 
--   First run: ~15-20 minutes (no cache)
--   Subsequent runs: ~5-8 minutes (with cache)
--   PR Lint: ~30 seconds
--   C# Lint: ~1-2 minutes
+- First run: ~15-20 minutes (no cache)
+- Subsequent runs: ~5-8 minutes (with cache)
+- PR Lint: ~30 seconds
+- EditorConfig Lint: ~30 seconds
 
 ---
 
@@ -427,31 +443,20 @@ All workflows implement aggressive caching:
 
 ### **Official Documentation**
 
--   [GitHub Actions](https://docs.github.com/en/actions)
--   [GameCI Unity Builder](https://game.ci/docs/github/builder)
--   [GameCI Unity Test Runner](https://game.ci/docs/github/test-runner)
--   [actions/checkout](https://github.com/actions/checkout)
--   [actions/cache](https://github.com/actions/cache)
+- [GitHub Actions](https://docs.github.com/en/actions)
+- [GameCI Unity Builder](https://game.ci/docs/github/builder)
+- [GameCI Unity Test Runner](https://game.ci/docs/github/test-runner)
+- [actions/checkout](https://github.com/actions/checkout)
+- [actions/cache](https://github.com/actions/cache)
 
 ### **Project Documentation**
 
--   [Branch Rulesets](../rulesets/README.md)
--   [Commit Standards](../../.cursor/rules/general/commit-creation.mdc)
--   [PR Standards](../../.cursor/rules/general/pr-creation.mdc)
--   [Branch Patterns](../../.cursor/rules/general/shell-commands.mdc)
+- [Branch Rulesets](../rulesets/README.md)
+- [Commit Standards](../../.cursor/rules/general/commit-creation.mdc)
+- [PR Standards](../../.cursor/rules/general/pr-creation.mdc)
+- [Branch Patterns](../../.cursor/rules/general/shell-commands.mdc)
 
 ### **Unity DOTS Resources**
 
--   [Unity DOTS Documentation](https://docs.unity3d.com/Packages/com.unity.entities@latest)
--   [DOTS Best Practices](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_best_practices.html)
-
----
-
-## 📝 Changelog
-
--   **2025-10-24** - Documentation created
-    -   Documented all 5 workflows
-    -   Added troubleshooting guide
-    -   Included setup instructions
-    -   Referenced integration with rulesets
-    -   Added performance optimization tips
+- [Unity DOTS Documentation](https://docs.unity3d.com/Packages/com.unity.entities@latest)
+- [DOTS Best Practices](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_best_practices.html)

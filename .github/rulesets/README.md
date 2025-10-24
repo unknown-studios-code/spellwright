@@ -20,21 +20,19 @@ This directory contains the rulesets (rule sets) configured for the Spellwright 
 
 Protection for the main production branch (adapted for solo development).
 
--   ✅ **1 approval** required on PRs
--   ✅ Dismiss stale reviews when new commits are pushed
--   ✅ Require review thread resolution
--   ✅ Status checks must pass:
-    -   `PR Lint / Validate PR title`
-    -   `C# Lint / Check C# Formatting`
-    -   `Unity Build Validation / Build Unity Project (Windows)`
-    -   `Edit Mode Test Results`
-    -   `Play Mode Test Results`
--   ✅ Branches must be up to date before merging
--   ✅ Require linear history
--   ✅ Require signed commits
--   ✅ Block force push
--   ✅ Block deletion
--   ✅ Block direct updates
+- ✅ Status checks must pass:
+    - `Validate PR title`
+    - `Validate EditorConfig Rules`
+    - `Build Unity Project (Windows)`
+    - `Unity Edit Mode Tests`
+    - `Unity Play Mode Tests`
+- ✅ Branches must be up to date before merging
+- ✅ Require linear history
+- ✅ Require signed commits
+- ✅ Block force push
+- ✅ Block deletion
+- ✅ Block direct updates
+- ⚠️ **No approval required** (solo development workflow)
 
 **Target:** `master`
 
@@ -44,18 +42,16 @@ Protection for the main production branch (adapted for solo development).
 
 Protection for the main development branch.
 
--   ✅ **1 approval** required on PRs
--   ✅ Dismiss stale reviews when new commits are pushed
--   ✅ Require review thread resolution
--   ✅ Status checks must pass:
-    -   `PR Lint / Validate PR title`
-    -   `C# Lint / Check C# Formatting`
-    -   `Unity Build Validation / Build Unity Project (Windows)`
-    -   `Edit Mode Test Results`
--   ✅ Branches must be up to date before merging
--   ✅ Require linear history
--   ✅ Block force push
--   ✅ Block deletion
+- ✅ Status checks must pass:
+    - `Validate PR title`
+    - `Validate EditorConfig Rules`
+    - `Build Unity Project (Windows)`
+    - `Unity Edit Mode Tests`
+- ✅ Branches must be up to date before merging
+- ✅ Require linear history
+- ✅ Block force push
+- ✅ Block deletion
+- ⚠️ **No approval required** (solo development workflow)
 
 **Target:** `develop`
 
@@ -65,12 +61,12 @@ Protection for the main development branch.
 
 Moderate protection for User Story branches.
 
--   ✅ **1 approval** required on PRs
--   ✅ Block deletion (after merge)
--   ⚠️ Allow force push (during development)
--   ⚠️ Optional status checks:
-    -   `PR Lint / Validate PR title`
-    -   `Unity Build Validation / Build Unity Project (Windows)`
+- ✅ Block deletion (after merge)
+- ⚠️ Allow force push (during development)
+- ⚠️ Optional status checks:
+    - `Validate PR title`
+    - `Build Unity Project (Windows)`
+- ⚠️ **No approval required** (solo development workflow)
 
 **Target:** `feature/develop/SPWS-*`
 
@@ -80,17 +76,17 @@ Moderate protection for User Story branches.
 
 Basic protection for Task branches (Feature/Tech/Bug).
 
--   ✅ **1 approval** required on PRs
--   ✅ Optional status checks:
-    -   `PR Lint / Validate PR title`
--   ✅ Allow force push (flexibility during development)
--   ✅ Allow deletion
+- ✅ Optional status checks:
+    - `Validate PR title`
+- ✅ Allow force push (flexibility during development)
+- ✅ Allow deletion
+- ⚠️ **No approval required** (solo development workflow)
 
 **Targets:**
 
--   `feature/SPWS-*/SPWT-*`
--   `tech/SPWS-*/SPWT-*`
--   `bug/SPWS-*/SPWT-*`
+- `feature/SPWS-*/SPWT-*`
+- `tech/SPWS-*/SPWT-*`
+- `bug/SPWS-*/SPWT-*`
 
 ---
 
@@ -100,10 +96,10 @@ Basic protection for Task branches (Feature/Tech/Bug).
 
 Protection for release tags to ensure immutability.
 
--   ✅ Restrict creation (admins only)
--   ✅ Restrict deletion
--   ✅ Restrict updates
--   ✅ Require signed tags
+- ✅ Restrict creation (admins only)
+- ✅ Restrict deletion
+- ✅ Restrict updates
+- ✅ Require signed tags
 
 **Target:** `v*` (e.g., v1.0.0, v1.2.3-beta)
 
@@ -117,15 +113,15 @@ Protection against committing sensitive files and validation of size/path.
 
 **Blocked files:**
 
--   ✅ Private keys: `*.key`, `*.pem`, `*.p12`, `*.pfx`
--   ✅ Environment variables: `*.env`, `.env*`
--   ✅ SSH keys: `**/id_rsa`, `**/id_dsa`, `**/.ssh/*`
--   ✅ Credentials: `**/credentials.json`, `**/secrets.json`
+- ✅ Private keys: `*.key`, `*.pem`, `*.p12`, `*.pfx`
+- ✅ Environment variables: `*.env`, `.env*`
+- ✅ SSH keys: `**/id_rsa`, `**/id_dsa`, `**/.ssh/*`
+- ✅ Credentials: `**/credentials.json`, `**/secrets.json`
 
 **Limits:**
 
--   ✅ Maximum file size: **100 MB**
--   ✅ Maximum path length: **255 characters** (Windows compatibility)
+- ✅ Maximum file size: **100 MB**
+- ✅ Maximum path length: **255 characters** (Windows compatibility)
 
 **Target:** Entire repository (including forks)
 
@@ -197,8 +193,8 @@ Get-ChildItem .github/rulesets/push-rulesets/*.json | ForEach-Object {
 
 All rulesets are configured with bypass for:
 
--   **Repository Admins** (actor_id: 5, RepositoryRole)
-    -   Bypass mode: `always`
+- **Repository Admins** (actor_id: 5, RepositoryRole)
+    - Bypass mode: `always`
 
 To add specific users/teams to the bypass:
 
@@ -252,37 +248,44 @@ As you are the sole developer, the PR process works as follows:
 
 **Advantages of maintaining PRs even when working alone:**
 
--   ✅ Clean and organized history
--   ✅ Integration with Notion (PR links)
--   ✅ Automatic CI/CD validation
--   ✅ Visual code review before merge
--   ✅ Structured documentation (PR body)
--   ✅ Traceability (task → PR → commit)
+- ✅ Clean and organized history
+- ✅ Integration with Notion (PR links)
+- ✅ Automatic CI/CD validation
+- ✅ Visual code review before merge
+- ✅ Structured documentation (PR body)
+- ✅ Traceability (task → PR → commit)
 
 ---
 
 ## ⚠️ Important Notes
 
-1. **Push Rulesets** require **GitHub Team** or **Enterprise** plan
+1. **Solo Development Workflow**
+    - All branch rulesets **do not require manual PR approvals**
+    - CI checks validate code quality automatically
+    - Merge directly after CI passes (no review needed)
+    - Labels and assignees are assigned automatically
+    - **Rationale**: Streamlined workflow for solo development without sacrificing quality
 
+2. **Push Rulesets** require **GitHub Team** or **Enterprise** plan
     - If you are on Free/Pro, the `01-sensitive-files-protection.json` file will fail on import
     - Consider using local Git hooks or GitHub Actions as an alternative
 
-2. **Status Checks**
+3. **Status Checks**
+    - Rulesets use the **job name** from workflows, not the "Workflow / Job" format
+    - GitHub UI displays: `Workflow Name / Job Name`
+    - GitHub API reports: `Job Name` (only)
+    - Rulesets must use: `Job Name` (the API format)
+    - See [Status Check Names Reference](.github/workflows/README.md#-status-check-names-reference) for exact names
 
-    - Rulesets include empty `required_status_checks`
-    - Configure your GitHub Actions CI/CD first
-    - Then edit the rulesets to add specific checks
-
-3. **Signed Commits**
-
+4. **Signed Commits**
     - Master branch requires signed commits/tags
     - Configure GPG keys: https://docs.github.com/en/authentication/managing-commit-signature-verification
     - **Optional**: Remove this rule if you prefer not to use it
 
-4. **Conventional Commits**
-    - Consider adding a GitHub Action to validate commit format
-    - Example: https://github.com/amannn/action-semantic-pull-request
+5. **Conventional Commits**
+    - PR titles are validated via `pr-lint.yml` workflow
+    - Follows Conventional Commits specification
+    - Required types: feat, fix, docs, refactor, perf, test, chore, ci, build, revert
 
 ---
 
@@ -305,21 +308,34 @@ To update an existing ruleset:
 
 ## 📚 References
 
--   [GitHub Docs - About Rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
--   [GitHub Ruleset Recipes](https://github.com/github/ruleset-recipes)
--   [Spellwright - Commit Standards](.cursor/rules/general/commit-creation.mdc)
--   [Spellwright - PR Standards](.cursor/rules/general/pr-creation.mdc)
--   [Spellwright - Branch Patterns](.cursor/rules/general/shell-commands.mdc)
+- [GitHub Docs - About Rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+- [GitHub Ruleset Recipes](https://github.com/github/ruleset-recipes)
+- [Spellwright - Commit Standards](.cursor/rules/general/commit-creation.mdc)
+- [Spellwright - PR Standards](.cursor/rules/general/pr-creation.mdc)
+- [Spellwright - Branch Patterns](.cursor/rules/general/shell-commands.mdc)
 
 ---
 
 ## 📝 Changelog
 
--   **2025-10-24** - Adjustment for solo development
-    -   Reduced required_approving_review_count from 2 to 1 on master
-    -   Removed require_last_push_approval (allows self-review)
-    -   Maintained branch protection and linear history
--   **2025-10-24** - Initial creation of rulesets for Spellwright
-    -   Branch protection for master, develop, story and task branches
-    -   Tag protection for releases
-    -   Push rulesets for sensitive files
+- **2025-10-24** - Removed approval requirement for solo development
+    - Removed `required_approving_review_count` from all branch rulesets
+    - Simplified workflow: merge directly after CI passes
+    - No manual review/approval needed
+    - Updated documentation to reflect solo development workflow
+    - **Rationale**: Streamline process without sacrificing quality (CI validates everything)
+- **2025-10-24** - Status check names corrected
+    - Updated all rulesets to use job names (API format) instead of "Workflow / Job" format
+    - Corrected check names: `Validate PR title`, `Validate EditorConfig Rules`, `Build Unity Project (Windows)`, `Unity Edit Mode Tests`, `Unity Play Mode Tests`
+    - Added documentation explaining GitHub UI vs API naming differences
+    - Fixed "Waiting for status" issue in Pull Requests
+- **2025-10-24** - EditorConfig workflow integration
+    - Added `Validate EditorConfig Rules` to master and develop rulesets
+    - Replaced C# Lint with EditorConfig Lint for basic formatting validation
+    - Updated documentation to reflect new status check
+- **2025-10-24** - Initial rulesets configuration
+    - Created branch rulesets for master, develop, story, and task branches
+    - Created tag ruleset for release tags
+    - Created push ruleset for sensitive files protection
+    - Configured status checks and branch protection rules
+    - Documented all rulesets and usage instructions
