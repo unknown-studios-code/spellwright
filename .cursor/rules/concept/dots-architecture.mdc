@@ -11,21 +11,21 @@ This file defines mandatory rules for implementation using Unity DOTS (Data-Orie
 
 ### ALWAYS Use ISystem For:
 
--   Spell simulation logic executed frame-by-frame
--   Movement systems (MovementSystem)
--   Collision systems (CollisionSystem)
--   Lifetime systems (LifetimeSystem)
--   Behavior systems (HomingSystem, ChainingSystem, etc.)
--   Payload resolution systems (PayloadResolutionSystem)
--   Any performance-critical logic
+- Spell simulation logic executed frame-by-frame
+- Movement systems (MovementSystem)
+- Collision systems (CollisionSystem)
+- Lifetime systems (LifetimeSystem)
+- Behavior systems (HomingSystem, ChainingSystem, etc.)
+- Payload resolution systems (PayloadResolutionSystem)
+- Any performance-critical logic
 
 ### ONLY Use SystemBase For:
 
--   JSON baking to entities (SpellBakingSystem)
--   One-time initial configuration
--   Network API integration
--   Communication with traditional UI layer
--   Tasks that occur once per spell
+- JSON baking to entities (SpellBakingSystem)
+- One-time initial configuration
+- Network API integration
+- Communication with traditional UI layer
+- Tasks that occur once per spell
 
 ### Trade-offs Comparison
 
@@ -85,11 +85,11 @@ public struct SpellConfig : IComponentData
 
 ### Component Rules
 
--   Use **only blittable types**: int, float, bool, float3, Entity, etc.
--   **NEVER** use: string, class, List<T>, Dictionary<K,V>, or any managed type
--   Use **FixedString** if you need text (e.g., FixedString64Bytes)
--   Use **DynamicBuffer<T>** for variable-size collections
--   Keep components **small and focused** (Single Responsibility)
+- Use **only blittable types**: int, float, bool, float3, Entity, etc.
+- **NEVER** use: string, class, List<T>, Dictionary<K,V>, or any managed type
+- Use **FixedString** if you need text (e.g., FixedString64Bytes)
+- Use **DynamicBuffer<T>** for variable-size collections
+- Keep components **small and focused** (Single Responsibility)
 
 ## Rule 3: Systems - Structure and Patterns
 
@@ -162,11 +162,11 @@ public partial class SpellBakingSystem : SystemBase
 
 ### ALWAYS Use ECB For:
 
--   Creating entities
--   Destroying entities
--   Adding components
--   Removing components
--   Instantiating prefabs
+- Creating entities
+- Destroying entities
+- Adding components
+- Removing components
+- Instantiating prefabs
 
 ### Correct Pattern
 
@@ -203,9 +203,9 @@ public partial struct LifetimeSystem : ISystem
 
 ### When to Use Jobs
 
--   Heavy mathematical calculations
--   Processing large quantities of entities
--   Independent operations on entities
+- Heavy mathematical calculations
+- Processing large quantities of entities
+- Independent operations on entities
 
 ### IJobEntity Pattern
 
@@ -243,9 +243,9 @@ public partial struct MovementSystem : ISystem
 
 ### When to Use DynamicBuffer
 
--   Variable-size lists (e.g., multiple payloads)
--   Dynamic arrays per entity
--   Data that changes size at runtime
+- Variable-size lists (e.g., multiple payloads)
+- Dynamic arrays per entity
+- Data that changes size at runtime
 
 ### Example: Multiple Payloads
 
@@ -344,13 +344,13 @@ Entity instance = ecb.Instantiate(prefabEntity);
 
 ## Important Notes
 
--   **ISystem is mandatory** for all spell simulation logic
--   **SystemBase** should be used ONLY for baking and initial configuration
--   **Managed components** are prohibited for runtime entities
--   **EntityCommandBuffer** is mandatory for structural changes
--   **Burst Compiler** must be applied to all ISystem and Jobs
--   Use **DynamicBuffer** for variable-size collections
--   Always define **execution order** when there are dependencies
--   **Tags** are more efficient than components with data for queries
--   **Prefabs** in ECS are instantiated extremely quickly
--   Consult Unity's debug windows (Entities Hierarchy, Systems Window) frequently
+- **ISystem is mandatory** for all spell simulation logic
+- **SystemBase** should be used ONLY for baking and initial configuration
+- **Managed components** are prohibited for runtime entities
+- **EntityCommandBuffer** is mandatory for structural changes
+- **Burst Compiler** must be applied to all ISystem and Jobs
+- Use **DynamicBuffer** for variable-size collections
+- Always define **execution order** when there are dependencies
+- **Tags** are more efficient than components with data for queries
+- **Prefabs** in ECS are instantiated extremely quickly
+- Consult Unity's debug windows (Entities Hierarchy, Systems Window) frequently

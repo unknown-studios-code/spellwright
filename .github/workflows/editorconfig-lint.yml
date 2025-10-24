@@ -1,0 +1,114 @@
+# This workflow validates that files comply with EditorConfig rules.
+# It checks basic formatting rules like indentation, line endings, trailing whitespace, etc.
+#
+# LIMITATIONS:
+# - Does NOT validate C# naming conventions (private fields, etc.)
+# - Does NOT validate C# code style rules (var usage, braces, etc.)
+# - Only validates rules that editorconfig-checker supports
+#
+# For complete C# formatting validation, developers should:
+# - Configure their IDE to apply .editorconfig rules on save
+# - Use Code Cleanup in Rider or Format Document in VS
+
+name: EditorConfig Lint
+
+on:
+  pull_request:
+    paths:
+      - "**"
+      - "!.git/**"
+      - "!.github/**"
+      - "!Library/**"
+      - "!Temp/**"
+      - "!Logs/**"
+  push:
+    branches:
+      - master
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  editorconfig-lint:
+    name: Validate EditorConfig Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install editorconfig-checker
+        run: |
+          # Get latest release version from GitHub API
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/editorconfig-checker/editorconfig-checker/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "Installing editorconfig-checker $LATEST_VERSION"
+
+          # Download and install
+          wget -q "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/${LATEST_VERSION}/ec-linux-amd64.tar.gz"
+          tar -xzf ec-linux-amd64.tar.gz
+          sudo mv bin/ec-linux-amd64 /usr/local/bin/editorconfig-checker
+
+          # Verify installation
+          editorconfig-checker --version
+
+      - name: Run EditorConfig Checker
+        id: ec_check
+        run: |
+          set +e  # Don't exit on error, capture it
+
+          # Run checker and capture output
+          OUTPUT=$(editorconfig-checker \
+            --exclude ".git|Library|Temp|Logs|Builds|obj|bin|.vs|UserSettings|MemoryCaptures|Recordings|\.meta$|\.asset$|\.unity$|\.inputactions$" \
+            --disable-indent-size 2>&1)
+
+          EXIT_CODE=$?
+
+          # Always show output
+          echo "$OUTPUT"
+
+          # Exit with the same code
+          exit $EXIT_CODE
+
+      - name: Validation Summary
+        if: success()
+        run: |
+          echo "✅ All files comply with EditorConfig rules!"
+          echo ""
+          echo "Validated:"
+          echo "  - Line endings (LF)"
+          echo "  - Trailing whitespace removal"
+          echo "  - Final newline insertion"
+          echo "  - Character encoding (UTF-8)"
+
+      - name: Validation Failed - Show Details
+        if: failure()
+        run: |
+          echo "❌ EditorConfig validation failed!"
+          echo ""
+          echo "The errors above show which files need fixes."
+          echo ""
+          echo "Common error types:"
+          echo "  • 'Wrong line ending' → File has CRLF instead of LF"
+          echo "  • 'Trailing whitespace' → Extra spaces at end of line"
+          echo "  • 'No final newline' → File missing newline at end"
+          echo "  • 'Wrong charset' → File encoding is not UTF-8"
+          echo ""
+          echo "To fix locally:"
+          echo "  1. Configure your IDE to apply EditorConfig on save:"
+          echo "     - Visual Studio: Tools → Options → Text Editor → Enable EditorConfig"
+          echo "     - Rider: Settings → Editor → Code Style → Enable EditorConfig"
+          echo "     - VS Code: Install 'EditorConfig for VS Code' extension"
+          echo ""
+          echo "  2. Format the files mentioned above:"
+          echo "     - Visual Studio: Edit → Advanced → Format Document"
+          echo "     - Rider: Code → Reformat Code (Ctrl+Alt+L)"
+          echo "     - VS Code: Format Document (Shift+Alt+F)"
+          echo ""
+          echo "  3. For line ending issues on Windows:"
+          echo "     git config core.autocrlf true"
+          echo "     git add --renormalize <file>"
+          echo ""
+          echo "  4. Commit and push again"

@@ -11,9 +11,9 @@ Defines how to create Git branches following project naming patterns, integrated
 
 **Activate when user requests:**
 
--   "create a branch for SPWS-X" (Story)
--   "create branch for SPWT-X" (Task)
--   "create branch for task SPWT-X"
+- "create a branch for SPWS-X" (Story)
+- "create branch for SPWT-X" (Task)
+- "create branch for task SPWT-X"
 
 ## Branch Patterns
 
@@ -31,40 +31,40 @@ Defines how to create Git branches following project naming patterns, integrated
 1. Identify: `SPWS-X` = Story (no Notion lookup needed)
 2. Pattern: `feature/develop/SPWS-X`
 3. Execute:
-    - `git checkout develop`
-    - `git pull origin develop`
-    - `git checkout -b feature/develop/SPWS-X`
-    - `git push -u origin feature/develop/SPWS-X`
+   - `git checkout develop`
+   - `git pull origin develop`
+   - `git checkout -b feature/develop/SPWS-X`
+   - `git push -u origin feature/develop/SPWS-X`
 4. **Update Notion:**
-    - Use `notion-search` to find Story page with ID `SPWS-X`
-    - Use `notion-update-page` to set Branch property: `https://github.com/unknown-studios-code/spellwright/tree/feature/develop/SPWS-X`
+   - Use `notion-search` to find Story page with ID `SPWS-X`
+   - Use `notion-update-page` to set Branch property: `https://github.com/unknown-studios-code/spellwright/tree/feature/develop/SPWS-X`
 5. Confirm branch created and Notion updated to user
 
 ### For Tasks (SPWT-X)
 
 1. **Fetch from Notion:**
 
-    - Use `notion-search` with `query_type: "internal"` and query: "SPWT-X"
-    - Use `notion-fetch` to get:
-        - Task type: Feature, Tech, or Bug
-        - Parent Story: SPWS-X
+   - Use `notion-search` with `query_type: "internal"` and query: "SPWT-X"
+   - Use `notion-fetch` to get:
+     - Task type: Feature, Tech, or Bug
+     - Parent Story: SPWS-X
 
 2. **Apply pattern by type:**
 
-    - Feature → `feature/[parent-story]/SPWT-X`
-    - Tech → `tech/[parent-story]/SPWT-X`
-    - Bug → `bug/[parent-story]/SPWT-X`
+   - Feature → `feature/[parent-story]/SPWT-X`
+   - Tech → `tech/[parent-story]/SPWT-X`
+   - Bug → `bug/[parent-story]/SPWT-X`
 
 3. **Execute:**
 
-    - `git checkout feature/develop/[parent-story]`
-    - `git pull origin feature/develop/[parent-story]`
-    - `git checkout -b [type]/[parent-story]/SPWT-X`
-    - `git push -u origin [type]/[parent-story]/SPWT-X`
+   - `git checkout feature/develop/[parent-story]`
+   - `git pull origin feature/develop/[parent-story]`
+   - `git checkout -b [type]/[parent-story]/SPWT-X`
+   - `git push -u origin [type]/[parent-story]/SPWT-X`
 
 4. **Update Notion:**
 
-    - Use `notion-update-page` to set Branch property: `https://github.com/unknown-studios-code/spellwright/tree/[type]/[parent-story]/SPWT-X`
+   - Use `notion-update-page` to set Branch property: `https://github.com/unknown-studios-code/spellwright/tree/[type]/[parent-story]/SPWT-X`
 
 5. **Confirm branch created and Notion updated to user**
 
@@ -76,11 +76,11 @@ Defines how to create Git branches following project naming patterns, integrated
 
 ## Important Notes
 
--   Stories (SPWS-X): Always use `feature/develop/` prefix
--   Tasks (SPWT-X): Always fetch type and parent from Notion first
--   Before creating: Always checkout and update base branch
--   After creating: Push branch to remote with `-u` flag to set upstream tracking
--   After push: Update Notion "Branch" property with GitHub tree URL
--   Confirm branch name, Notion update status, and report executed commands
--   Validate ID format (SPWS-X or SPWT-X) before proceeding
--   GitHub tree URL format: `https://github.com/unknown-studios-code/spellwright/tree/[branch-name]`
+- Stories (SPWS-X): Always use `feature/develop/` prefix
+- Tasks (SPWT-X): Always fetch type and parent from Notion first
+- Before creating: Always checkout and update base branch
+- After creating: Push branch to remote with `-u` flag to set upstream tracking
+- After push: Update Notion "Branch" property with GitHub tree URL
+- Confirm branch name, Notion update status, and report executed commands
+- Validate ID format (SPWS-X or SPWT-X) before proceeding
+- GitHub tree URL format: `https://github.com/unknown-studios-code/spellwright/tree/[branch-name]`
