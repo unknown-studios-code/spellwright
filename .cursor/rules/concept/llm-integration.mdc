@@ -1,6 +1,8 @@
 ---
+description: Defines patterns for integrating with Large Language Models including async communication, three-layer validation strategy, error handling, and API configuration for spell generation.
 alwaysApply: false
 ---
+
 # LLM Integration for Spell Generation
 
 This file defines rules and patterns for integrating with Large Language Models (LLMs) in Spellwright. The LLM acts as a "compiler" that translates natural language into structured JSON.
@@ -41,41 +43,41 @@ public class LLMSpellCreationService
 {
     private const string API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
     private string apiKey;
-    
+
     public async Task<string> CreateSpellJsonAsync(string userPrompt)
     {
         // 1. Build request payload
         var requestPayload = BuildRequestPayload(userPrompt);
-        
+
         // 2. Create HTTP request
         using UnityWebRequest request = new UnityWebRequest(API_ENDPOINT, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(requestPayload);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
-        
+
         // 3. Headers
         request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Authorization", $"Bearer {apiKey}");
-        
+
         // 4. Send asynchronous request
         var operation = request.SendWebRequest();
-        
+
         // 5. Wait for response without blocking
         while (!operation.isDone)
         {
             await Task.Yield();
         }
-        
+
         // 6. Check for errors
         if (request.result != UnityWebRequest.Result.Success)
         {
             throw new System.Exception($"LLM API Error: {request.error}");
         }
-        
+
         // 7. Extract JSON from response
         string responseText = request.downloadHandler.text;
         string spellJson = ExtractJsonFromResponse(responseText);
-        
+
         return spellJson;
     }
 }
@@ -87,16 +89,16 @@ public class LLMSpellCreationService
 public class SpellCreationUI : MonoBehaviour
 {
     private LLMSpellCreationService llmService;
-    
+
     public async void OnCreateSpellButtonClicked()
     {
         string userInput = inputField.text;
-        
+
         try
         {
             // Doesn't block UI
             string spellJson = await llmService.CreateSpellJsonAsync(userInput);
-            
+
             // Validate and process JSON
             ProcessSpellJson(spellJson);
         }
@@ -151,7 +153,7 @@ private string BuildRequestPayload(string userPrompt)
         },
         tool_choice = new { type = "function", function = new { name = "create_spell" } }
     };
-    
+
     return JsonUtility.ToJson(payload);
 }
 ```
@@ -233,39 +235,39 @@ using Newtonsoft.Json.Schema;
 public class SpellJsonValidator
 {
     private JSchema schema;
-    
+
     public SpellJsonValidator()
     {
         // Load schema from Resources or file
         string schemaJson = Resources.Load<TextAsset>("SpellSchema").text;
         schema = JSchema.Parse(schemaJson);
     }
-    
+
     public bool ValidateSpellJson(string jsonString, out List<string> errors)
     {
         errors = new List<string>();
-        
+
         try
         {
             // 1. Check if it's valid JSON
             JObject spellObj = JObject.Parse(jsonString);
-            
+
             // 2. Validate against schema
             bool isValid = spellObj.IsValid(schema, out IList<string> schemaErrors);
-            
+
             if (!isValid)
             {
                 errors.AddRange(schemaErrors);
                 return false;
             }
-            
+
             // 3. Custom validations
             if (!ValidateCustomRules(spellObj, out var customErrors))
             {
                 errors.AddRange(customErrors);
                 return false;
             }
-            
+
             return true;
         }
         catch (JsonException e)
@@ -274,11 +276,11 @@ public class SpellJsonValidator
             return false;
         }
     }
-    
+
     private bool ValidateCustomRules(JObject spellObj, out List<string> errors)
     {
         errors = new List<string>();
-        
+
         // Check if has at least one payload
         var payloads = spellObj["payloads"];
         if (payloads == null || !payloads.Any())
@@ -286,7 +288,7 @@ public class SpellJsonValidator
             errors.Add("Spell must have at least one payload");
             return false;
         }
-        
+
         // Check reasonable numeric values
         var generator = spellObj["generator"];
         if (generator["speed"] != null)
@@ -298,7 +300,7 @@ public class SpellJsonValidator
                 return false;
             }
         }
-        
+
         return true;
     }
 }
@@ -321,24 +323,24 @@ public async Task<string> CreateSpellJsonAsync(string userPrompt)
     try
     {
         string json = await CallLLMApiAsync(userPrompt);
-        
+
         // Validate
         if (!validator.ValidateSpellJson(json, out var errors))
         {
             // Validation error - try again with feedback
             string errorFeedback = string.Join(", ", errors);
             Debug.LogWarning($"Invalid JSON: {errorFeedback}. Retrying...");
-            
+
             // Retry with error message
             json = await RetryWithFeedback(userPrompt, errorFeedback);
-            
+
             // Validate again
             if (!validator.ValidateSpellJson(json, out errors))
             {
                 throw new SpellCreationException("Validation failed after retry", errors);
             }
         }
-        
+
         return json;
     }
     catch (UnityWebRequestException e)
@@ -367,19 +369,19 @@ public async Task<string> CreateSpellJsonAsync(string userPrompt)
 {
     // 1. Log user input
     Debug.Log($"[LLM] User Input: {userPrompt}");
-    
+
     // 2. Log complete prompt sent
     string fullPrompt = BuildFullPrompt(userPrompt);
     Debug.Log($"[LLM] Full Prompt Length: {fullPrompt.Length} chars");
-    
+
     // 3. Log request
     Debug.Log($"[LLM] Sending request to {API_ENDPOINT}");
-    
+
     string json = await CallLLMApiAsync(fullPrompt);
-    
+
     // 4. Log raw response
     Debug.Log($"[LLM] Raw Response: {json}");
-    
+
     // 5. Log validation
     if (validator.ValidateSpellJson(json, out var errors))
     {
@@ -389,7 +391,7 @@ public async Task<string> CreateSpellJsonAsync(string userPrompt)
     {
         Debug.LogError($"[LLM] ✗ Invalid JSON: {string.Join(", ", errors)}");
     }
-    
+
     return json;
 }
 ```
@@ -410,7 +412,7 @@ public class LLMConfig : ScriptableObject
     [SerializeField] private string model = "gpt-4";
     [SerializeField] private int maxRetries = 3;
     [SerializeField] private float timeoutSeconds = 30f;
-    
+
     public string ApiKey => apiKey;
     public string ApiEndpoint => apiEndpoint;
     public string Model => model;
@@ -425,7 +427,7 @@ public class LLMConfig : ScriptableObject
 public async Task<string> CreateSpellJsonAsync(string userPrompt)
 {
     int retryCount = 0;
-    
+
     while (retryCount < config.MaxRetries)
     {
         try
@@ -433,49 +435,49 @@ public async Task<string> CreateSpellJsonAsync(string userPrompt)
             var cts = new CancellationTokenSource(
                 TimeSpan.FromSeconds(config.TimeoutSeconds)
             );
-            
+
             return await CallLLMApiAsync(userPrompt, cts.Token);
         }
         catch (OperationCanceledException)
         {
             retryCount++;
             Debug.LogWarning($"Timeout on attempt {retryCount}/{config.MaxRetries}");
-            
+
             if (retryCount >= config.MaxRetries)
             {
                 throw new SpellCreationException("Timeout after multiple attempts");
             }
-            
+
             await Task.Delay(1000 * retryCount); // Exponential backoff
         }
     }
-    
+
     throw new SpellCreationException("Failed after multiple attempts");
 }
 ```
 
 ## Comparison of JSON Generation Techniques
 
-| Technique | Description | Pros | Cons | Use in Spellwright |
-|---|---|---|---|---|
-| **Basic Prompting** | Ask for JSON in prompt | Easy | Unreliable | ❌ Inadequate |
-| **Schema in Prompt** | Include schema in prompt | Improves structure | Doesn't guarantee syntax | ⚠️ Insufficient alone |
-| **JSON Mode** | API parameter | Guarantees valid syntax | Less schema control | ✅ Acceptable alternative |
-| **Function Calling** | Schema as tool | Guarantees syntax and schema | API-specific | ✅ **Main approach** |
-| **Few-Shot** | Examples in prompt | Improves semantics | Increases prompt size | ✅ **Essential** |
-| **Client Validation** | Validate in Unity | Last line of defense | Additional overhead | ✅ **Mandatory** |
+| Technique             | Description              | Pros                         | Cons                     | Use in Spellwright        |
+| --------------------- | ------------------------ | ---------------------------- | ------------------------ | ------------------------- |
+| **Basic Prompting**   | Ask for JSON in prompt   | Easy                         | Unreliable               | ❌ Inadequate             |
+| **Schema in Prompt**  | Include schema in prompt | Improves structure           | Doesn't guarantee syntax | ⚠️ Insufficient alone     |
+| **JSON Mode**         | API parameter            | Guarantees valid syntax      | Less schema control      | ✅ Acceptable alternative |
+| **Function Calling**  | Schema as tool           | Guarantees syntax and schema | API-specific             | ✅ **Main approach**      |
+| **Few-Shot**          | Examples in prompt       | Improves semantics           | Increases prompt size    | ✅ **Essential**          |
+| **Client Validation** | Validate in Unity        | Last line of defense         | Additional overhead      | ✅ **Mandatory**          |
 
 ## Important Notes
 
--  **Asynchronous communication** is mandatory - never block main thread
--  Use **Function Calling** from API as first line of defense
--  **Few-shot prompting** is essential for semantic accuracy
--  **Always validate** JSON on client before processing
--  Implement **detailed logging** to facilitate debugging
--  Use **retry with exponential backoff** for temporary errors
--  **Never hardcode** API keys - use external configuration
--  Define **appropriate timeouts** (e.g., 30 seconds)
--  Handle **all error types** explicitly
--  Consult the `json-schema.mdc` file for complete JSON schema
--  Keep few-shot examples **updated** with new spell types
--  Use **CancellationToken** to allow cancellation of long requests
+-   **Asynchronous communication** is mandatory - never block main thread
+-   Use **Function Calling** from API as first line of defense
+-   **Few-shot prompting** is essential for semantic accuracy
+-   **Always validate** JSON on client before processing
+-   Implement **detailed logging** to facilitate debugging
+-   Use **retry with exponential backoff** for temporary errors
+-   **Never hardcode** API keys - use external configuration
+-   Define **appropriate timeouts** (e.g., 30 seconds)
+-   Handle **all error types** explicitly
+-   Consult the `json-schema.mdc` file for complete JSON schema
+-   Keep few-shot examples **updated** with new spell types
+-   Use **CancellationToken** to allow cancellation of long requests

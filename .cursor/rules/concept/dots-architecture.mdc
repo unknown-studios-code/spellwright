@@ -1,6 +1,8 @@
 ---
+description: Defines mandatory DOTS/ECS implementation patterns including ISystem vs SystemBase usage, component design, EntityCommandBuffer patterns, and performance-critical architectural decisions.
 alwaysApply: false
 ---
+
 # DOTS/ECS Architecture Rules for Spellwright
 
 This file defines mandatory rules for implementation using Unity DOTS (Data-Oriented Technology Stack) and ECS (Entity Component System). These rules ensure maximum performance and architectural consistency.
@@ -9,31 +11,31 @@ This file defines mandatory rules for implementation using Unity DOTS (Data-Orie
 
 ### ALWAYS Use ISystem For:
 
--  Spell simulation logic executed frame-by-frame
--  Movement systems (MovementSystem)
--  Collision systems (CollisionSystem)
--  Lifetime systems (LifetimeSystem)
--  Behavior systems (HomingSystem, ChainingSystem, etc.)
--  Payload resolution systems (PayloadResolutionSystem)
--  Any performance-critical logic
+-   Spell simulation logic executed frame-by-frame
+-   Movement systems (MovementSystem)
+-   Collision systems (CollisionSystem)
+-   Lifetime systems (LifetimeSystem)
+-   Behavior systems (HomingSystem, ChainingSystem, etc.)
+-   Payload resolution systems (PayloadResolutionSystem)
+-   Any performance-critical logic
 
 ### ONLY Use SystemBase For:
 
--  JSON baking to entities (SpellBakingSystem)
--  One-time initial configuration
--  Network API integration
--  Communication with traditional UI layer
--  Tasks that occur once per spell
+-   JSON baking to entities (SpellBakingSystem)
+-   One-time initial configuration
+-   Network API integration
+-   Communication with traditional UI layer
+-   Tasks that occur once per spell
 
 ### Trade-offs Comparison
 
-| Feature | ISystem | SystemBase | Guideline |
-|---|---|---|---|
-| **Burst Compatible** | ✅ Yes | ❌ No | Mandatory for simulation |
-| **Garbage Collection** | ✅ Zero GC | ⚠️ Potential GC | Avoid GC in hot paths |
-| **Storage** | Unmanaged only | Can have managed | Keep simulation pure |
-| **Performance** | ⚡ Maximum | 🐌 Moderate | Performance is critical |
-| **Syntax** | More verbose | Simpler | Performance > Convenience |
+| Feature                | ISystem        | SystemBase       | Guideline                 |
+| ---------------------- | -------------- | ---------------- | ------------------------- |
+| **Burst Compatible**   | ✅ Yes         | ❌ No            | Mandatory for simulation  |
+| **Garbage Collection** | ✅ Zero GC     | ⚠️ Potential GC  | Avoid GC in hot paths     |
+| **Storage**            | Unmanaged only | Can have managed | Keep simulation pure      |
+| **Performance**        | ⚡ Maximum     | 🐌 Moderate      | Performance is critical   |
+| **Syntax**             | More verbose   | Simpler          | Performance > Convenience |
 
 ## Rule 2: Components - Unmanaged Only
 
@@ -83,11 +85,11 @@ public struct SpellConfig : IComponentData
 
 ### Component Rules
 
--  Use **only blittable types**: int, float, bool, float3, Entity, etc.
--  **NEVER** use: string, class, List<T>, Dictionary<K,V>, or any managed type
--  Use **FixedString** if you need text (e.g., FixedString64Bytes)
--  Use **DynamicBuffer<T>** for variable-size collections
--  Keep components **small and focused** (Single Responsibility)
+-   Use **only blittable types**: int, float, bool, float3, Entity, etc.
+-   **NEVER** use: string, class, List<T>, Dictionary<K,V>, or any managed type
+-   Use **FixedString** if you need text (e.g., FixedString64Bytes)
+-   Use **DynamicBuffer<T>** for variable-size collections
+-   Keep components **small and focused** (Single Responsibility)
 
 ## Rule 3: Systems - Structure and Patterns
 
@@ -108,9 +110,9 @@ public partial struct MovementSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         float deltaTime = SystemAPI.Time.DeltaTime;
-        
+
         // Query and processing
-        foreach (var (transform, velocity) in 
+        foreach (var (transform, velocity) in
                  SystemAPI.Query<RefRW<LocalTransform>, RefRO<Velocity>>())
         {
             transform.ValueRW.Position += velocity.ValueRO.Value * deltaTime;
@@ -134,7 +136,7 @@ public partial class SpellBakingSystem : SystemBase
     {
         // Process JSON and create entities
         var ecb = new EntityCommandBuffer(Allocator.TempJob);
-        
+
         Entities
             .WithAll<SpellJsonData>()
             .ForEach((Entity entity, in SpellJsonData jsonData) =>
@@ -143,13 +145,13 @@ public partial class SpellBakingSystem : SystemBase
                 Entity spellEntity = ecb.CreateEntity();
                 ecb.AddComponent(spellEntity, new ProjectileTag());
                 ecb.AddComponent(spellEntity, new Velocity { Value = jsonData.Speed });
-                
+
                 // Destroy temporary JSON entity
                 ecb.DestroyEntity(entity);
             })
             .WithoutBurst()
             .Run();
-        
+
         ecb.Playback(EntityManager);
         ecb.Dispose();
     }
@@ -160,11 +162,11 @@ public partial class SpellBakingSystem : SystemBase
 
 ### ALWAYS Use ECB For:
 
--  Creating entities
--  Destroying entities
--  Adding components
--  Removing components
--  Instantiating prefabs
+-   Creating entities
+-   Destroying entities
+-   Adding components
+-   Removing components
+-   Instantiating prefabs
 
 ### Correct Pattern
 
@@ -177,20 +179,20 @@ public partial struct LifetimeSystem : ISystem
     {
         var ecb = new EntityCommandBuffer(Allocator.TempJob);
         float deltaTime = SystemAPI.Time.DeltaTime;
-        
-        foreach (var (lifetime, entity) in 
+
+        foreach (var (lifetime, entity) in
                  SystemAPI.Query<RefRW<Lifetime>>()
                          .WithEntityAccess())
         {
             lifetime.ValueRW.RemainingTime -= deltaTime;
-            
+
             if (lifetime.ValueRO.RemainingTime <= 0)
             {
                 // Queued structural change
                 ecb.DestroyEntity(entity);
             }
         }
-        
+
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
     }
@@ -201,9 +203,9 @@ public partial struct LifetimeSystem : ISystem
 
 ### When to Use Jobs
 
--  Heavy mathematical calculations
--  Processing large quantities of entities
--  Independent operations on entities
+-   Heavy mathematical calculations
+-   Processing large quantities of entities
+-   Independent operations on entities
 
 ### IJobEntity Pattern
 
@@ -212,7 +214,7 @@ public partial struct LifetimeSystem : ISystem
 public partial struct ApplyVelocityJob : IJobEntity
 {
     public float DeltaTime;
-    
+
     [BurstCompile]
     public void Execute(ref LocalTransform transform, in Velocity velocity)
     {
@@ -231,7 +233,7 @@ public partial struct MovementSystem : ISystem
         {
             DeltaTime = SystemAPI.Time.DeltaTime
         };
-        
+
         job.ScheduleParallel();
     }
 }
@@ -241,9 +243,9 @@ public partial struct MovementSystem : ISystem
 
 ### When to Use DynamicBuffer
 
--  Variable-size lists (e.g., multiple payloads)
--  Dynamic arrays per entity
--  Data that changes size at runtime
+-   Variable-size lists (e.g., multiple payloads)
+-   Dynamic arrays per entity
+-   Data that changes size at runtime
 
 ### Example: Multiple Payloads
 
@@ -260,21 +262,21 @@ public struct PayloadElement : IBufferElementData
 
 // Add buffer to entity (in baking)
 var buffer = ecb.AddBuffer<PayloadElement>(spellEntity);
-buffer.Add(new PayloadElement 
-{ 
+buffer.Add(new PayloadElement
+{
     Type = PayloadType.Damage,
     Element = ElementalType.Fire,
     Amount = 10f
 });
-buffer.Add(new PayloadElement 
-{ 
+buffer.Add(new PayloadElement
+{
     Type = PayloadType.ApplyStatus,
     Effect = StatusEffectType.Burn,
     Duration = 5f
 });
 
 // Process buffer (in system)
-foreach (var (buffer, entity) in 
+foreach (var (buffer, entity) in
          SystemAPI.Query<DynamicBuffer<PayloadElement>>()
                  .WithEntityAccess())
 {
@@ -297,7 +299,7 @@ public struct AreaOfEffectTag : IComponentData { }
 public struct HomingTag : IComponentData { }
 
 // Efficient query
-foreach (var (velocity, entity) in 
+foreach (var (velocity, entity) in
          SystemAPI.Query<RefRW<Velocity>>()
                  .WithAll<ProjectileTag, HomingTag>()
                  .WithEntityAccess())
@@ -342,13 +344,13 @@ Entity instance = ecb.Instantiate(prefabEntity);
 
 ## Important Notes
 
--  **ISystem is mandatory** for all spell simulation logic
--  **SystemBase** should be used ONLY for baking and initial configuration
--  **Managed components** are prohibited for runtime entities
--  **EntityCommandBuffer** is mandatory for structural changes
--  **Burst Compiler** must be applied to all ISystem and Jobs
--  Use **DynamicBuffer** for variable-size collections
--  Always define **execution order** when there are dependencies
--  **Tags** are more efficient than components with data for queries
--  **Prefabs** in ECS are instantiated extremely quickly
--  Consult Unity's debug windows (Entities Hierarchy, Systems Window) frequently
+-   **ISystem is mandatory** for all spell simulation logic
+-   **SystemBase** should be used ONLY for baking and initial configuration
+-   **Managed components** are prohibited for runtime entities
+-   **EntityCommandBuffer** is mandatory for structural changes
+-   **Burst Compiler** must be applied to all ISystem and Jobs
+-   Use **DynamicBuffer** for variable-size collections
+-   Always define **execution order** when there are dependencies
+-   **Tags** are more efficient than components with data for queries
+-   **Prefabs** in ECS are instantiated extremely quickly
+-   Consult Unity's debug windows (Entities Hierarchy, Systems Window) frequently

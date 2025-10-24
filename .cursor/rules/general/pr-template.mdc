@@ -1,0 +1,619 @@
+---
+description: Provides the complete Pull Request template structure with task-type-specific sections and formatting guidelines.
+alwaysApply: false
+---
+
+# Pull Request Template
+
+Copy this template structure when creating a Pull Request. Remove all INSTRUCTION/FORMAT/EXAMPLE labels and replace examples with real content.
+
+---
+
+## PR Body Template Structure
+
+```markdown
+## 📋 Task: SPWT-X
+
+**INSTRUCTION:** Replace SPWT-X with actual task ID. Fetch task details from Notion to populate all sections.
+
+**FORMAT:** Task ID, Story reference, Type, Priority
+
+**EXAMPLE:**
+**Story:** SPWS-1 - Spell Data Architecture & Foundation  
+**Type:** Tech  
+**Priority:** Critical
+
+---
+
+## 🎯 What Changed
+
+**INSTRUCTION:** Provide a high-level summary (2-4 sentences) explaining what was implemented, fixed, or improved. Focus on WHAT changed, not HOW.
+
+**FORMAT:** Concise paragraph followed by task-type-specific section (see below)
+
+**EXAMPLE:** "Implemented three fundamental unmanaged components that form the foundation of every spell entity in the ECS architecture."
+
+### [TASK-TYPE-SPECIFIC SECTION - Choose one below]
+
+**INSTRUCTION:** Select the appropriate section based on task type (Feature/Tech/Bug). Remove the other two sections.
+
+---
+
+#### FOR FEATURE TASKS: Components/Systems Added
+
+**INSTRUCTION:** List what was added with brief descriptions. Include quality criteria.
+
+**FORMAT:**
+```
+
+-   **`ComponentName`** - Brief description of purpose
+-   **`SystemName`** - Brief description of responsibility
+-   **`AssetName`** - Brief description
+
+All [components/systems/features] are:
+
+-   ✅ Quality criterion 1
+-   ✅ Quality criterion 2
+-   ✅ Quality criterion 3
+
+````
+
+**EXAMPLE:**
+```markdown
+### Components Added
+
+- **`Velocity`** - 3D movement vector using `float3` for Burst compatibility
+- **`Lifetime`** - Spawn timestamp and duration for automatic cleanup
+- **`SpellOwner`** - Entity reference to caster for ownership tracking
+
+All components are:
+- ✅ Blittable and Burst-compatible
+- ✅ Include comprehensive XML documentation
+- ✅ Use Unity.Mathematics types for optimal performance
+- ✅ Follow project naming conventions
+````
+
+---
+
+#### FOR TECH TASKS: Technical Improvements
+
+**INSTRUCTION:** Show measurable before/after metrics demonstrating improvement.
+
+**FORMAT:**
+
+```
+**Before:**
+- Metric 1: [value]
+- Metric 2: [value]
+
+**After:**
+- Metric 1: [improved value]
+- Metric 2: [improved value]
+
+**Impact:** [Summary with quantified improvement]
+
+**Changes Made:**
+- Change 1
+- Change 2
+- Change 3
+```
+
+**EXAMPLE:**
+
+```markdown
+### Technical Improvements
+
+**Before:**
+
+-   Baking time: 500ms for 100 spells
+-   Entity Inspector: Components hidden when inactive
+-   Structural changes during gameplay
+
+**After:**
+
+-   Baking time: 50ms for 100 spells (10x improvement)
+-   Entity Inspector: All components visible (disabled = grayed out)
+-   Zero structural changes during gameplay
+
+**Impact:** 10x performance improvement, simplified debugging, better memory locality
+
+**Changes Made:**
+
+-   Migrated all payload components to `IEnableableComponent`
+-   Replaced `AddComponent/RemoveComponent` with `SetComponentEnabled`
+-   Updated query filters to use `.WithEnabled<T>()`
+-   Added enableable component guidelines to DOTS architecture docs
+```
+
+---
+
+#### FOR BUG TASKS: Bug Fix Details
+
+**INSTRUCTION:** Explain issue, root cause, solution, and verification.
+
+**FORMAT:**
+
+```
+**Issue:** [What was broken]
+
+**Root Cause:** [Why it occurred - technical explanation]
+
+**Solution:** [How it was fixed]
+
+**Verification:**
+- ✅ Bug no longer reproducible
+- ✅ Regression test added
+- ✅ No side effects
+- ✅ Tested on platforms
+```
+
+**EXAMPLE:**
+
+```markdown
+### Bug Fix Details
+
+**Issue:** Status effects not applied, causing NullReferenceException when spell hits enemy
+
+**Root Cause:** `StatusEffectSystem` ran after `LifecycleSystem`, attempting to access destroyed spell entities
+
+**Solution:**
+
+-   Added `[UpdateBefore(typeof(LifecycleSystem))]` to `StatusEffectSystem`
+-   Added defensive null check for entity existence
+-   Created regression test to prevent future occurrence
+
+**Verification:**
+
+-   ✅ Bug no longer reproducible (tested 50+ times)
+-   ✅ Regression test added to `StatusEffectSystemTests.cs`
+-   ✅ No side effects detected in other systems
+-   ✅ Tested on Windows Standalone, Android, WebGL
+-   ✅ Stress tested with 200 concurrent spells
+```
+
+---
+
+## 📁 Files Created/Modified
+
+**INSTRUCTION:** List all files that were created or modified in this PR. Use directory tree format for multiple related files, or bullet list for scattered changes.
+
+**FORMAT - Directory Tree:**
+
+```
+Directory/
+├── File1.cs (description)
+├── File2.cs (description)
+└── Subdirectory/
+    └── File3.cs (description)
+```
+
+**FORMAT - Bullet List:**
+
+```
+- Path/To/File1.cs (description)
+- Path/To/File2.cs (description)
+```
+
+**EXAMPLE - Created:**
+
+```markdown
+## 📁 Files Created
+```
+
+Assets/Scripts/Components/Common/
+├── Velocity.cs
+├── Lifetime.cs
+└── SpellOwner.cs
+
+```
+
+```
+
+**EXAMPLE - Modified:**
+
+```markdown
+## 📁 Files Modified
+```
+
+Assets/Scripts/Components/Payloads/
+├── DamagePayload.cs (added IEnableableComponent)
+├── HealPayload.cs (added IEnableableComponent)
+└── StatusEffectPayload.cs (added IEnableableComponent)
+
+Assets/Scripts/Systems/
+├── SpellBakingSystem.cs (refactored)
+├── PayloadResolutionSystem.cs (updated queries)
+└── SpellCollisionSystem.cs (updated queries)
+
+.cursor/rules/concept/dots-architecture.mdc (added section)
+
+```
+
+```
+
+---
+
+## ✅ Definition of Done
+
+**INSTRUCTION:** Copy all Definition of Done items from the Notion task. Mark each item as completed [x]. This demonstrates that all acceptance criteria were met.
+
+**FORMAT:** Checklist with all items marked as complete
+
+**EXAMPLE:**
+
+```markdown
+-   [x] `Velocity.cs` created with `float3 Value` field
+-   [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
+-   [x] `SpellOwner.cs` created with `Entity OwnerEntity` field
+-   [x] All components implement `IComponentData`
+-   [x] XML documentation added to all components
+-   [x] Components compile without errors or warnings
+-   [x] Folder structure `Assets/Scripts/Components/Common/` created
+-   [x] All files follow PascalCase naming conventions
+-   [x] Tested in Unity Entity Inspector
+-   [x] Performance verified (<0.5ms for 100 entities)
+```
+
+---
+
+## 🔑 Key Technical Decisions
+
+**INSTRUCTION:** List 3-5 most important technical decisions made during implementation. Include WHY each decision was made (rationale).
+
+**FORMAT:**
+
+```
+1. **[Decision]** → [Rationale]
+2. **[Decision]** → [Rationale]
+3. **[Decision]** → [Rationale]
+```
+
+**EXAMPLE:**
+
+```markdown
+1. **`float3` instead of `Vector3`** → Burst-compatible and blittable
+2. **`double` for SpawnTime** → Prevents accumulation errors in long sessions
+3. **Lifetime uses absolute timestamp** → Cheaper than per-frame decrement
+4. **SpellOwner uses `Entity` type** → Type-safe and allows direct queries
+5. **`Common/` folder** → Clear organization for shared components
+```
+
+---
+
+## 🔗 References
+
+**INSTRUCTION:** Provide links to Notion task, parent story, and relevant documentation. Always include at minimum the task and story links.
+
+**FORMAT:**
+
+```
+- **Notion Task:** [SPWT-X](notion_url)
+- **Story:** [SPWS-X - Story Name](notion_url)
+- **Documentation:** [file_path or external_url]
+- **[Optional Category]:** [description](url)
+```
+
+**EXAMPLE:**
+
+```markdown
+-   **Notion Task:** [SPWT-1](https://www.notion.so/28f56d55129b80679d4cd8ccd971713e)
+-   **Story:** [SPWS-1 - Spell Data Architecture & Foundation](https://www.notion.so/28f56d55129b8021b9edc9556533eb0d)
+-   **Documentation:** `.cursor/rules/concept/dots-architecture.mdc`
+-   **Unity Docs:** [IComponentData](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-unmanaged.html)
+```
+
+---
+
+## 📝 Notes
+
+**INSTRUCTION:** Add any additional context, known limitations, follow-up work, or important information reviewers should know. If nothing special to note, include a brief summary.
+
+**FORMAT:** Free-form text, 1-3 sentences or bullet points
+
+**EXAMPLE:**
+
+```markdown
+These components are prerequisites for all other spell functionality. They unblock parallel development of generators, modifiers, and payloads.
+```
+
+**EXAMPLE - With Limitations:**
+
+```markdown
+Current implementation does not support dynamic lifetime extension. This is intentional for MVP and will be addressed in SPWT-67 if needed.
+```
+
+````
+
+---
+
+## Template Quality Checks
+
+Before using this template, verify:
+
+- [ ] Task ID (SPWT-X) and Story (SPWS-X) are correct
+- [ ] Appropriate task-type section selected (Feature/Tech/Bug)
+- [ ] "What Changed" provides clear high-level summary
+- [ ] Files section accurately lists all changes
+- [ ] All Definition of Done items copied and marked complete
+- [ ] 3-5 Key Technical Decisions with rationale
+- [ ] References include task, story, and relevant docs
+- [ ] Notes provide additional context if needed
+- [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
+- [ ] Markdown formatting is correct
+- [ ] All emoticons preserved (📋 🎯 📁 ✅ 🔑 🔗 📝)
+
+---
+
+## Complete Template Examples
+
+### Example 1: Feature Task PR
+
+```markdown
+## 📋 Task: SPWT-1
+
+**Story:** SPWS-1 - Spell Data Architecture & Foundation
+**Type:** Tech
+**Priority:** Critical
+
+---
+
+## 🎯 What Changed
+
+Implemented three fundamental unmanaged components that form the foundation of every spell entity in the ECS architecture.
+
+### Components Added
+
+- **`Velocity`** - 3D movement vector using `float3` for Burst compatibility
+- **`Lifetime`** - Spawn timestamp and duration for automatic cleanup
+- **`SpellOwner`** - Entity reference to caster for ownership tracking
+
+All components are:
+- ✅ Blittable and Burst-compatible
+- ✅ Include comprehensive XML documentation
+- ✅ Use Unity.Mathematics types for optimal performance
+- ✅ Follow project naming conventions
+
+---
+
+## 📁 Files Created
+
+````
+
+Assets/Scripts/Components/Common/
+├── Velocity.cs
+├── Lifetime.cs
+└── SpellOwner.cs
+
+```
+
+---
+
+## ✅ Definition of Done
+
+- [x] `Velocity.cs` created with `float3 Value` field
+- [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
+- [x] `SpellOwner.cs` created with `Entity OwnerEntity` field
+- [x] All components implement `IComponentData`
+- [x] XML documentation added to all components
+- [x] Components compile without errors or warnings
+- [x] Folder structure `Assets/Scripts/Components/Common/` created
+- [x] All files follow PascalCase naming conventions
+
+---
+
+## 🔑 Key Technical Decisions
+
+1. **`float3` instead of `Vector3`** → Burst-compatible and blittable
+2. **`double` for SpawnTime** → Prevents accumulation errors in long sessions
+3. **Lifetime uses absolute timestamp** → Cheaper than per-frame decrement
+4. **SpellOwner uses `Entity` type** → Type-safe and allows direct queries
+5. **`Common/` folder** → Clear organization for shared components
+
+---
+
+## 🔗 References
+
+- **Notion Task:** [SPWT-1](https://www.notion.so/28f56d55129b80679d4cd8ccd971713e)
+- **Story:** [SPWS-1 - Spell Data Architecture & Foundation](https://www.notion.so/28f56d55129b8021b9edc9556533eb0d)
+- **Documentation:** `.cursor/rules/concept/dots-architecture.mdc`
+
+---
+
+## 📝 Notes
+
+These components are prerequisites for all other spell functionality. They unblock parallel development of generators, modifiers, and payloads.
+```
+
+### Example 2: Tech Task PR
+
+```markdown
+## 📋 Task: SPWT-45
+
+**Story:** SPWS-6 - Performance Optimization  
+**Type:** Tech  
+**Priority:** High
+
+---
+
+## 🎯 What Changed
+
+Refactored SpellBakingSystem to use enableable component pattern, reducing baking time by 10x and simplifying debugging.
+
+### Technical Improvements
+
+**Before:**
+
+-   Baking time: 500ms for 100 spells
+-   Entity Inspector: Components hidden when inactive
+-   Structural changes during gameplay
+
+**After:**
+
+-   Baking time: 50ms for 100 spells (10x improvement)
+-   Entity Inspector: All components visible (disabled = grayed out)
+-   Zero structural changes during gameplay
+
+**Impact:** 10x performance improvement, simplified debugging, better memory locality
+
+**Changes Made:**
+
+-   Migrated all payload components to `IEnableableComponent`
+-   Replaced `AddComponent/RemoveComponent` with `SetComponentEnabled`
+-   Updated query filters to use `.WithEnabled<T>()`
+-   Added enableable component guidelines to DOTS architecture docs
+
+---
+
+## 📁 Files Modified
+```
+
+Assets/Scripts/Components/Payloads/
+├── DamagePayload.cs (added IEnableableComponent)
+├── HealPayload.cs (added IEnableableComponent)
+└── StatusEffectPayload.cs (added IEnableableComponent)
+
+Assets/Scripts/Systems/
+├── SpellBakingSystem.cs (refactored)
+├── PayloadResolutionSystem.cs (updated queries)
+└── SpellCollisionSystem.cs (updated queries)
+
+.cursor/rules/concept/dots-architecture.mdc (added section)
+
+```
+
+---
+
+## ✅ Definition of Done
+
+- [x] All spell components implement `IEnableableComponent`
+- [x] `SpellBakingSystem.cs` refactored to use `SetComponentEnabled()`
+- [x] Baking time reduced from 500ms to <50ms (verified with Profiler)
+- [x] All existing spell definitions work without modification
+- [x] Entity Inspector shows disabled components grayed out
+- [x] No structural changes during gameplay (verified in Systems Window)
+- [x] All existing tests pass
+- [x] DOTS Architecture documentation updated
+
+---
+
+## 🔑 Key Technical Decisions
+
+1. **IEnableableComponent pattern** → Avoids structural changes and archetype migrations
+2. **Add all components upfront** → Enable/disable state instead of add/remove
+3. **WithEnabled<T>() queries** → Explicitly filter for enabled components only
+4. **Backwards compatibility** → All existing spell JSONs work without changes
+5. **Documentation update** → Guidelines for when to use enableable components
+
+---
+
+## 🔗 References
+
+- **Notion Task:** [SPWT-45](notion_url)
+- **Story:** [SPWS-6 - Performance Optimization](notion_url)
+- **Unity Docs:** [Enableable Components](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-enableable.html)
+- **Documentation:** `.cursor/rules/concept/dots-architecture.mdc`
+
+---
+
+## 📝 Notes
+
+All spell definitions remain compatible. Performance improvement verified with Unity Profiler across multiple scenarios (stress test with 1000 entities).
+```
+
+### Example 3: Bug Task PR
+
+```markdown
+## 📋 Task: SPWT-23
+
+**Story:** SPWS-4 - Spell Payload System  
+**Type:** Bug  
+**Priority:** High
+
+---
+
+## 🎯 What Changed
+
+Fixed NullReferenceException when applying status effects by correcting system execution order.
+
+### Bug Fix Details
+
+**Issue:** Status effects not applied, causing NullReferenceException when spell hits enemy
+
+**Root Cause:** `StatusEffectSystem` ran after `LifecycleSystem`, attempting to access destroyed spell entities
+
+**Solution:**
+
+-   Added `[UpdateBefore(typeof(LifecycleSystem))]` to `StatusEffectSystem`
+-   Added defensive null check for entity existence
+-   Created regression test to prevent future occurrence
+
+**Verification:**
+
+-   ✅ Bug no longer reproducible (tested 50+ times)
+-   ✅ Regression test added to `StatusEffectSystemTests.cs`
+-   ✅ No side effects detected in other systems
+-   ✅ Tested on Windows Standalone, Android, WebGL
+-   ✅ Stress tested with 200 concurrent spells
+
+---
+
+## 📁 Files Modified
+```
+
+Assets/Scripts/Systems/
+├── StatusEffectSystem.cs (added UpdateBefore attribute, null check)
+└── StatusEffectSystemTests.cs (new regression test)
+
+```
+
+---
+
+## ✅ Definition of Done
+
+- [x] `StatusEffectSystem` runs before `LifecycleSystem`
+- [x] Bug no longer reproducible following original steps
+- [x] Status effects correctly applied before entity destruction
+- [x] No `NullReferenceException` in Console
+- [x] No orphaned components (verified with Memory Profiler)
+- [x] Tested on Windows, Android, WebGL
+- [x] Regression test added and passing
+- [x] Stress tested with 200+ concurrent spells
+
+---
+
+## 🔑 Key Technical Decisions
+
+1. **UpdateBefore attribute** → Explicit system ordering prevents race conditions
+2. **Defensive null check** → Protects against unexpected early destruction
+3. **Regression test** → Prevents future occurrence of this bug
+4. **Memory profiling** → Verified no leaked components remain
+
+---
+
+## 🔗 References
+
+- **Notion Task:** [SPWT-23](notion_url)
+- **Story:** [SPWS-4 - Spell Payload System](notion_url)
+- **Unity Docs:** [System Update Order](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/systems-update-order.html)
+- **Documentation:** `.cursor/rules/concept/dots-architecture.mdc#system-execution-order`
+
+---
+
+## 📝 Notes
+
+System execution order is now explicitly defined. All spell types (projectile, AoE, cone, self-cast) tested and working correctly.
+```
+
+---
+
+## Important Notes
+
+-   **Remove all INSTRUCTION/FORMAT/EXAMPLE labels** from final PR body
+-   **Select only ONE task-type section** (Feature/Tech/Bug) - delete the others
+-   **Mark all DoD items as complete** - only create PR when task is finished
+-   **Include rationale** for technical decisions (not just what, but WHY)
+-   **Verify all links** work before creating PR
+-   **Use correct emoticons** - they improve readability and scanning
+-   **Write for reviewers** - provide context they need to understand changes
+-   **Be specific** - concrete file paths, numbers, metrics
+-   **English only** - all PR content must be in English

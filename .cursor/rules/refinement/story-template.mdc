@@ -1,3 +1,8 @@
+---
+description: Provides the complete template structure and guidelines for creating User Stories (functional requirements with conceptual architecture that describe what needs to exist and why).
+alwaysApply: false
+---
+
 # User Story Template
 
 Copy this template structure when creating a User Story. Remove all INSTRUCTION/FORMAT/EXAMPLE labels and replace examples with real content.
@@ -14,9 +19,10 @@ Copy this template structure when creating a User Story. Remove all INSTRUCTION/
 **FORMAT:** As a [user type] / I want to [action] / So that [benefit]
 
 **EXAMPLE:**
-- **As a** Game Designer
-- **I want to** spawn spell entities from natural language descriptions
-- **So that** I can rapidly prototype and test spell mechanics without writing code
+
+-   **As a** Game Designer
+-   **I want to** spawn spell entities from natural language descriptions
+-   **So that** I can rapidly prototype and test spell mechanics without writing code
 
 ---
 
@@ -27,6 +33,7 @@ Copy this template structure when creating a User Story. Remove all INSTRUCTION/
 **FORMAT:** Use numbered list with specific, measurable criteria. Can use Gherkin (Given/When/Then) for complex scenarios.
 
 **EXAMPLE - Standard Format:**
+
 1. The system generates a valid spell entity from a JSON spell definition
 2. Spawned spell entities move according to their velocity component
 3. Spells automatically destroy after their configured lifetime expires
@@ -34,11 +41,12 @@ Copy this template structure when creating a User Story. Remove all INSTRUCTION/
 5. No memory leaks occur after spawning/destroying 100+ spell entities
 
 **EXAMPLE - Gherkin Format (for complex scenarios):**
-- **Given** a SpellDefinition with projectile generator and 5-second lifetime
-- **When** the spell is spawned at player position
-- **Then** the projectile moves forward at configured speed
-- **And** the entity is destroyed exactly 5 seconds after spawn
-- **And** no orphaned entities remain in the scene
+
+-   **Given** a SpellDefinition with projectile generator and 5-second lifetime
+-   **When** the spell is spawned at player position
+-   **Then** the projectile moves forward at configured speed
+-   **And** the entity is destroyed exactly 5 seconds after spawn
+-   **And** no orphaned entities remain in the scene
 
 ---
 
@@ -51,20 +59,22 @@ Copy this template structure when creating a User Story. Remove all INSTRUCTION/
 **FORMAT:** ComponentName (purpose: what data it represents)
 
 **EXAMPLE:**
-- `SpellLifetime` (purpose: tracks spawn timestamp and duration for automatic cleanup)
-- `ProjectileTag` (purpose: identifies entities as projectile-type spells for filtering)
-- `Velocity` (purpose: stores 3D movement vector for spell motion)
-- `DamageAmount` (purpose: stores damage value to apply on collision)
+
+-   `SpellLifetime` (purpose: tracks spawn timestamp and duration for automatic cleanup)
+-   `ProjectileTag` (purpose: identifies entities as projectile-type spells for filtering)
+-   `Velocity` (purpose: stores 3D movement vector for spell motion)
+-   `DamageAmount` (purpose: stores damage value to apply on collision)
 
 **Systems Needed:** (name and responsibility only)
 
 **FORMAT:** SystemName (responsibility: what it does, not how)
 
 **EXAMPLE:**
-- `SpellMovementSystem` (responsibility: updates position of all moving spell entities each frame)
-- `SpellLifecycleSystem` (responsibility: monitors lifetime and destroys expired spells)
-- `SpellCollisionSystem` (responsibility: detects spell impacts and triggers payload resolution)
-- `PayloadResolutionSystem` (responsibility: applies damage/effects when spells hit targets)
+
+-   `SpellMovementSystem` (responsibility: updates position of all moving spell entities each frame)
+-   `SpellLifecycleSystem` (responsibility: monitors lifetime and destroys expired spells)
+-   `SpellCollisionSystem` (responsibility: detects spell impacts and triggers payload resolution)
+-   `PayloadResolutionSystem` (responsibility: applies damage/effects when spells hit targets)
 
 **Data Flow:** (conceptual diagram using text/ASCII)
 
@@ -72,15 +82,17 @@ Copy this template structure when creating a User Story. Remove all INSTRUCTION/
 
 **EXAMPLE:**
 ```
-SpellDefinition (JSON) 
-  ↓ 
+
+SpellDefinition (JSON)
+↓
 SpellBakingSystem (converts JSON to components)
-  ↓
+↓
 Spell Entity (with components: Velocity, Lifetime, Payloads)
-  ↓
+↓
 SpellMovementSystem (updates position) → SpellCollisionSystem (detects hits)
-  ↓
+↓
 PayloadResolutionSystem (applies effects) → SpellLifecycleSystem (cleanup)
+
 ```
 
 **Key Architectural Decisions:**
@@ -140,12 +152,12 @@ PayloadResolutionSystem (applies effects) → SpellLifecycleSystem (cleanup)
 - **🎨 Design Files:**
     - [Miro: Spell System Architecture Diagram](URL)
     - [Figma: Spell Editor UI Mockup](URL)
-    
+
 - **📚 Documentation:**
     - [Spellwright: DOTS Architecture Rules](../concept/dots-architecture.mdc)
     - [Unity DOTS Manual: Entity Lifecycle](https://docs.unity3d.com/Packages/com.unity.entities@latest)
     - [Technical Spec: Spell Component Schema](URL)
-    
+
 - **🌐 External Resources:**
     - [Unity Sample: Megacity DOTS Architecture](https://github.com/Unity-Technologies/Megacity-Sample)
     - [Reference: Path of Exile Skill System](URL)
@@ -157,16 +169,16 @@ PayloadResolutionSystem (applies effects) → SpellLifecycleSystem (cleanup)
 
 Before presenting the Story, verify:
 
-- [ ] User story follows "As a... I want... So that..." format
-- [ ] Acceptance criteria are behavioral, testable, and focus on outcomes
-- [ ] Components section lists data structures with clear purposes (WHAT, not HOW)
-- [ ] Systems section lists behaviors with clear responsibilities (WHAT, not HOW)
-- [ ] Data flow diagram shows conceptual transformations (not function calls)
-- [ ] Architectural decisions include rationale (WHY, not just WHAT)
-- [ ] Integration points identify dependencies on other stories
-- [ ] Risks are categorized with emoji (🔴🟡🟠🔵) and include mitigation
-- [ ] References include design files, documentation, and external resources
-- [ ] NO implementation details (no code snippets, no file paths, no line numbers)
-- [ ] Uses correct Unity/DOTS terminology (Entity, Component, System, Archetype)
-- [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
-- [ ] All emoticons and markdown formatting preserved
+-   [ ] User story follows "As a... I want... So that..." format
+-   [ ] Acceptance criteria are behavioral, testable, and focus on outcomes
+-   [ ] Components section lists data structures with clear purposes (WHAT, not HOW)
+-   [ ] Systems section lists behaviors with clear responsibilities (WHAT, not HOW)
+-   [ ] Data flow diagram shows conceptual transformations (not function calls)
+-   [ ] Architectural decisions include rationale (WHY, not just WHAT)
+-   [ ] Integration points identify dependencies on other stories
+-   [ ] Risks are categorized with emoji (🔴🟡🟠🔵) and include mitigation
+-   [ ] References include design files, documentation, and external resources
+-   [ ] NO implementation details (no code snippets, no file paths, no line numbers)
+-   [ ] Uses correct Unity/DOTS terminology (Entity, Component, System, Archetype)
+-   [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
+-   [ ] All emoticons and markdown formatting preserved

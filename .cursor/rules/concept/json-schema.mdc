@@ -1,6 +1,8 @@
 ---
+description: Provides the complete JSON schema that defines the data contract between LLM and game engine, including validation rules, examples, and C# data structures for spell definitions.
 alwaysApply: false
 ---
+
 # JSON Schema for Spell Definition
 
 This file contains the complete JSON schema that defines the data contract between the LLM and the game engine in Spellwright. This is the mandatory format that every spell must follow.
@@ -9,247 +11,268 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "type": "object",
-  "properties": {
-    "spellName": {
-      "type": "string",
-      "description": "The descriptive name of the spell.",
-      "minLength": 1,
-      "maxLength": 100
-    },
-    "generator": {
-      "type": "object",
-      "description": "Defines the fundamental form and delivery method of the spell.",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["projectile", "cone", "self_cast", "area_of_effect"],
-          "description": "Type of spell generator."
+    "type": "object",
+    "properties": {
+        "spellName": {
+            "type": "string",
+            "description": "The descriptive name of the spell.",
+            "minLength": 1,
+            "maxLength": 100
         },
-        "speed": {
-          "type": "number",
-          "description": "Initial speed for projectiles (units/second).",
-          "minimum": 0,
-          "maximum": 1000
+        "generator": {
+            "type": "object",
+            "description": "Defines the fundamental form and delivery method of the spell.",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "projectile",
+                        "cone",
+                        "self_cast",
+                        "area_of_effect"
+                    ],
+                    "description": "Type of spell generator."
+                },
+                "speed": {
+                    "type": "number",
+                    "description": "Initial speed for projectiles (units/second).",
+                    "minimum": 0,
+                    "maximum": 1000
+                },
+                "lifetime": {
+                    "type": "number",
+                    "description": "Duration in seconds for projectiles or areas of effect.",
+                    "minimum": 0.1,
+                    "maximum": 60
+                },
+                "count": {
+                    "type": "integer",
+                    "description": "Number of projectiles to be fired.",
+                    "minimum": 1,
+                    "maximum": 100
+                },
+                "radius": {
+                    "type": "number",
+                    "description": "Radius for areas of effect or cones (units).",
+                    "minimum": 0.1,
+                    "maximum": 100
+                },
+                "angle": {
+                    "type": "number",
+                    "description": "Angle for cone-type generators (degrees).",
+                    "minimum": 1,
+                    "maximum": 360
+                }
+            },
+            "required": ["type"],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "type": { "const": "projectile" } }
+                    },
+                    "then": {
+                        "required": ["speed", "lifetime"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "type": { "const": "area_of_effect" } }
+                    },
+                    "then": {
+                        "required": ["radius", "lifetime"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "type": { "const": "cone" } }
+                    },
+                    "then": {
+                        "required": ["radius", "angle", "lifetime"]
+                    }
+                }
+            ]
         },
-        "lifetime": {
-          "type": "number",
-          "description": "Duration in seconds for projectiles or areas of effect.",
-          "minimum": 0.1,
-          "maximum": 60
+        "modifiers": {
+            "type": "array",
+            "description": "A list of behaviors that alter the basic functionality of the generator.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "homing",
+                            "chain",
+                            "pierce",
+                            "multi_shot",
+                            "on_impact_trigger",
+                            "fork"
+                        ],
+                        "description": "Type of modifier."
+                    },
+                    "turn_speed": {
+                        "type": "number",
+                        "description": "Turn speed for 'homing' modifier (units/second).",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "max_bounces": {
+                        "type": "integer",
+                        "description": "Maximum number of bounces for 'chain' modifier.",
+                        "minimum": 1,
+                        "maximum": 20
+                    },
+                    "pierce_count": {
+                        "type": "integer",
+                        "description": "Number of targets that can be pierced.",
+                        "minimum": 1,
+                        "maximum": 50
+                    },
+                    "fork_count": {
+                        "type": "integer",
+                        "description": "Number of projectiles generated on fork.",
+                        "minimum": 2,
+                        "maximum": 10
+                    },
+                    "fork_angle": {
+                        "type": "number",
+                        "description": "Spread angle for fork (degrees).",
+                        "minimum": 1,
+                        "maximum": 180
+                    },
+                    "spread_angle": {
+                        "type": "number",
+                        "description": "Spread angle for multi-shot (degrees).",
+                        "minimum": 0,
+                        "maximum": 180
+                    }
+                },
+                "required": ["type"],
+                "allOf": [
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "homing" } }
+                        },
+                        "then": {
+                            "required": ["turn_speed"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "chain" } }
+                        },
+                        "then": {
+                            "required": ["max_bounces"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "pierce" } }
+                        },
+                        "then": {
+                            "required": ["pierce_count"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "fork" } }
+                        },
+                        "then": {
+                            "required": ["fork_count", "fork_angle"]
+                        }
+                    }
+                ]
+            },
+            "maxItems": 10
         },
-        "count": {
-          "type": "integer",
-          "description": "Number of projectiles to be fired.",
-          "minimum": 1,
-          "maximum": 100
-        },
-        "radius": {
-          "type": "number",
-          "description": "Radius for areas of effect or cones (units).",
-          "minimum": 0.1,
-          "maximum": 100
-        },
-        "angle": {
-          "type": "number",
-          "description": "Angle for cone-type generators (degrees).",
-          "minimum": 1,
-          "maximum": 360
+        "payloads": {
+            "type": "array",
+            "description": "A list of effects that are applied on impact or activation.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "damage",
+                            "heal",
+                            "apply_status_effect",
+                            "spawn_entity"
+                        ],
+                        "description": "Type of payload."
+                    },
+                    "amount": {
+                        "type": "number",
+                        "description": "Amount of damage or healing.",
+                        "minimum": 0,
+                        "maximum": 10000
+                    },
+                    "elemental_type": {
+                        "type": "string",
+                        "enum": ["fire", "frost", "shock", "physical", "holy"],
+                        "description": "Elemental type of damage."
+                    },
+                    "effect_name": {
+                        "type": "string",
+                        "enum": ["slow", "burn", "stun", "poison"],
+                        "description": "Name of status effect to be applied."
+                    },
+                    "duration": {
+                        "type": "number",
+                        "description": "Duration for status effects (seconds).",
+                        "minimum": 0.1,
+                        "maximum": 60
+                    },
+                    "entity_prefab": {
+                        "type": "string",
+                        "description": "Name of entity prefab to be spawned."
+                    }
+                },
+                "required": ["type"],
+                "allOf": [
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "damage" } }
+                        },
+                        "then": {
+                            "required": ["amount", "elemental_type"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "heal" } }
+                        },
+                        "then": {
+                            "required": ["amount"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": { "const": "apply_status_effect" }
+                            }
+                        },
+                        "then": {
+                            "required": ["effect_name", "duration"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": { "const": "spawn_entity" }
+                            }
+                        },
+                        "then": {
+                            "required": ["entity_prefab"]
+                        }
+                    }
+                ]
+            },
+            "minItems": 1,
+            "maxItems": 10
         }
-      },
-      "required": ["type"],
-      "allOf": [
-        {
-          "if": {
-            "properties": { "type": { "const": "projectile" } }
-          },
-          "then": {
-            "required": ["speed", "lifetime"]
-          }
-        },
-        {
-          "if": {
-            "properties": { "type": { "const": "area_of_effect" } }
-          },
-          "then": {
-            "required": ["radius", "lifetime"]
-          }
-        },
-        {
-          "if": {
-            "properties": { "type": { "const": "cone" } }
-          },
-          "then": {
-            "required": ["radius", "angle", "lifetime"]
-          }
-        }
-      ]
     },
-    "modifiers": {
-      "type": "array",
-      "description": "A list of behaviors that alter the basic functionality of the generator.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["homing", "chain", "pierce", "multi_shot", "on_impact_trigger", "fork"],
-            "description": "Type of modifier."
-          },
-          "turn_speed": {
-            "type": "number",
-            "description": "Turn speed for 'homing' modifier (units/second).",
-            "minimum": 0,
-            "maximum": 100
-          },
-          "max_bounces": {
-            "type": "integer",
-            "description": "Maximum number of bounces for 'chain' modifier.",
-            "minimum": 1,
-            "maximum": 20
-          },
-          "pierce_count": {
-            "type": "integer",
-            "description": "Number of targets that can be pierced.",
-            "minimum": 1,
-            "maximum": 50
-          },
-          "fork_count": {
-            "type": "integer",
-            "description": "Number of projectiles generated on fork.",
-            "minimum": 2,
-            "maximum": 10
-          },
-          "fork_angle": {
-            "type": "number",
-            "description": "Spread angle for fork (degrees).",
-            "minimum": 1,
-            "maximum": 180
-          },
-          "spread_angle": {
-            "type": "number",
-            "description": "Spread angle for multi-shot (degrees).",
-            "minimum": 0,
-            "maximum": 180
-          }
-        },
-        "required": ["type"],
-        "allOf": [
-          {
-            "if": {
-              "properties": { "type": { "const": "homing" } }
-            },
-            "then": {
-              "required": ["turn_speed"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "chain" } }
-            },
-            "then": {
-              "required": ["max_bounces"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "pierce" } }
-            },
-            "then": {
-              "required": ["pierce_count"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "fork" } }
-            },
-            "then": {
-              "required": ["fork_count", "fork_angle"]
-            }
-          }
-        ]
-      },
-      "maxItems": 10
-    },
-    "payloads": {
-      "type": "array",
-      "description": "A list of effects that are applied on impact or activation.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["damage", "heal", "apply_status_effect", "spawn_entity"],
-            "description": "Type of payload."
-          },
-          "amount": {
-            "type": "number",
-            "description": "Amount of damage or healing.",
-            "minimum": 0,
-            "maximum": 10000
-          },
-          "elemental_type": {
-            "type": "string",
-            "enum": ["fire", "frost", "shock", "physical", "holy"],
-            "description": "Elemental type of damage."
-          },
-          "effect_name": {
-            "type": "string",
-            "enum": ["slow", "burn", "stun", "poison"],
-            "description": "Name of status effect to be applied."
-          },
-          "duration": {
-            "type": "number",
-            "description": "Duration for status effects (seconds).",
-            "minimum": 0.1,
-            "maximum": 60
-          },
-          "entity_prefab": {
-            "type": "string",
-            "description": "Name of entity prefab to be spawned."
-          }
-        },
-        "required": ["type"],
-        "allOf": [
-          {
-            "if": {
-              "properties": { "type": { "const": "damage" } }
-            },
-            "then": {
-              "required": ["amount", "elemental_type"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "heal" } }
-            },
-            "then": {
-              "required": ["amount"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "apply_status_effect" } }
-            },
-            "then": {
-              "required": ["effect_name", "duration"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "spawn_entity" } }
-            },
-            "then": {
-              "required": ["entity_prefab"]
-            }
-          }
-        ]
-      },
-      "minItems": 1,
-      "maxItems": 10
-    }
-  },
-  "required": ["spellName", "generator", "payloads"]
+    "required": ["spellName", "generator", "payloads"]
 }
 ```
 
@@ -259,20 +282,20 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "spellName": "Fireball",
-  "generator": {
-    "type": "projectile",
-    "speed": 30.0,
-    "lifetime": 5.0
-  },
-  "modifiers": [],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 25.0,
-      "elemental_type": "fire"
-    }
-  ]
+    "spellName": "Fireball",
+    "generator": {
+        "type": "projectile",
+        "speed": 30.0,
+        "lifetime": 5.0
+    },
+    "modifiers": [],
+    "payloads": [
+        {
+            "type": "damage",
+            "amount": 25.0,
+            "elemental_type": "fire"
+        }
+    ]
 }
 ```
 
@@ -280,25 +303,25 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "spellName": "Chain Lightning",
-  "generator": {
-    "type": "projectile",
-    "speed": 100.0,
-    "lifetime": 2.0
-  },
-  "modifiers": [
-    {
-      "type": "chain",
-      "max_bounces": 3
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 15.0,
-      "elemental_type": "shock"
-    }
-  ]
+    "spellName": "Chain Lightning",
+    "generator": {
+        "type": "projectile",
+        "speed": 100.0,
+        "lifetime": 2.0
+    },
+    "modifiers": [
+        {
+            "type": "chain",
+            "max_bounces": 3
+        }
+    ],
+    "payloads": [
+        {
+            "type": "damage",
+            "amount": 15.0,
+            "elemental_type": "shock"
+        }
+    ]
 }
 ```
 
@@ -306,30 +329,30 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "spellName": "Homing Fireball",
-  "generator": {
-    "type": "projectile",
-    "speed": 25.0,
-    "lifetime": 8.0
-  },
-  "modifiers": [
-    {
-      "type": "homing",
-      "turn_speed": 5.0
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 30.0,
-      "elemental_type": "fire"
+    "spellName": "Homing Fireball",
+    "generator": {
+        "type": "projectile",
+        "speed": 25.0,
+        "lifetime": 8.0
     },
-    {
-      "type": "apply_status_effect",
-      "effect_name": "burn",
-      "duration": 5.0
-    }
-  ]
+    "modifiers": [
+        {
+            "type": "homing",
+            "turn_speed": 5.0
+        }
+    ],
+    "payloads": [
+        {
+            "type": "damage",
+            "amount": 30.0,
+            "elemental_type": "fire"
+        },
+        {
+            "type": "apply_status_effect",
+            "effect_name": "burn",
+            "duration": 5.0
+        }
+    ]
 }
 ```
 
@@ -337,26 +360,26 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "spellName": "Frost Cone",
-  "generator": {
-    "type": "cone",
-    "radius": 10.0,
-    "angle": 60.0,
-    "lifetime": 1.5
-  },
-  "modifiers": [],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 18.0,
-      "elemental_type": "frost"
+    "spellName": "Frost Cone",
+    "generator": {
+        "type": "cone",
+        "radius": 10.0,
+        "angle": 60.0,
+        "lifetime": 1.5
     },
-    {
-      "type": "apply_status_effect",
-      "effect_name": "slow",
-      "duration": 3.0
-    }
-  ]
+    "modifiers": [],
+    "payloads": [
+        {
+            "type": "damage",
+            "amount": 18.0,
+            "elemental_type": "frost"
+        },
+        {
+            "type": "apply_status_effect",
+            "effect_name": "slow",
+            "duration": 3.0
+        }
+    ]
 }
 ```
 
@@ -364,25 +387,25 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "spellName": "Piercing Spear",
-  "generator": {
-    "type": "projectile",
-    "speed": 50.0,
-    "lifetime": 4.0
-  },
-  "modifiers": [
-    {
-      "type": "pierce",
-      "pierce_count": 5
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 20.0,
-      "elemental_type": "physical"
-    }
-  ]
+    "spellName": "Piercing Spear",
+    "generator": {
+        "type": "projectile",
+        "speed": 50.0,
+        "lifetime": 4.0
+    },
+    "modifiers": [
+        {
+            "type": "pierce",
+            "pierce_count": 5
+        }
+    ],
+    "payloads": [
+        {
+            "type": "damage",
+            "amount": 20.0,
+            "elemental_type": "physical"
+        }
+    ]
 }
 ```
 
@@ -390,30 +413,30 @@ This file contains the complete JSON schema that defines the data contract betwe
 
 ```json
 {
-  "spellName": "Arcane Missile Storm",
-  "generator": {
-    "type": "projectile",
-    "speed": 40.0,
-    "lifetime": 6.0
-  },
-  "modifiers": [
-    {
-      "type": "homing",
-      "turn_speed": 3.0
+    "spellName": "Arcane Missile Storm",
+    "generator": {
+        "type": "projectile",
+        "speed": 40.0,
+        "lifetime": 6.0
     },
-    {
-      "type": "fork",
-      "fork_count": 3,
-      "fork_angle": 30.0
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 12.0,
-      "elemental_type": "holy"
-    }
-  ]
+    "modifiers": [
+        {
+            "type": "homing",
+            "turn_speed": 3.0
+        },
+        {
+            "type": "fork",
+            "fork_count": 3,
+            "fork_angle": 30.0
+        }
+    ],
+    "payloads": [
+        {
+            "type": "damage",
+            "amount": 12.0,
+            "elemental_type": "holy"
+        }
+    ]
 }
 ```
 
@@ -425,19 +448,19 @@ When LLM doesn't specify values, use these defaults:
 
 ```json
 {
-  "projectile": {
-    "speed": 30.0,
-    "lifetime": 5.0
-  },
-  "area_of_effect": {
-    "radius": 5.0,
-    "lifetime": 2.0
-  },
-  "cone": {
-    "radius": 8.0,
-    "angle": 60.0,
-    "lifetime": 1.5
-  }
+    "projectile": {
+        "speed": 30.0,
+        "lifetime": 5.0
+    },
+    "area_of_effect": {
+        "radius": 5.0,
+        "lifetime": 2.0
+    },
+    "cone": {
+        "radius": 8.0,
+        "angle": 60.0,
+        "lifetime": 1.5
+    }
 }
 ```
 
@@ -445,19 +468,19 @@ When LLM doesn't specify values, use these defaults:
 
 ```json
 {
-  "homing": {
-    "turn_speed": 5.0
-  },
-  "chain": {
-    "max_bounces": 3
-  },
-  "pierce": {
-    "pierce_count": 3
-  },
-  "fork": {
-    "fork_count": 3,
-    "fork_angle": 30.0
-  }
+    "homing": {
+        "turn_speed": 5.0
+    },
+    "chain": {
+        "max_bounces": 3
+    },
+    "pierce": {
+        "pierce_count": 3
+    },
+    "fork": {
+        "fork_count": 3,
+        "fork_angle": 30.0
+    }
 }
 ```
 
@@ -465,15 +488,15 @@ When LLM doesn't specify values, use these defaults:
 
 ```json
 {
-  "damage": {
-    "amount": 20.0
-  },
-  "heal": {
-    "amount": 15.0
-  },
-  "apply_status_effect": {
-    "duration": 3.0
-  }
+    "damage": {
+        "amount": 20.0
+    },
+    "heal": {
+        "amount": 15.0
+    },
+    "apply_status_effect": {
+        "duration": 3.0
+    }
 }
 ```
 
@@ -605,14 +628,14 @@ public class SpellJsonParser
 
 ## Important Notes
 
--  This schema is the **mandatory contract** between LLM and game engine
--  **Always validate** against this schema before processing
--  Use **default values** when optional properties are not specified
--  Implement **custom validation rules** in addition to schema validation
--  The **spellName** field is mandatory and should be unique
--  The **generator** field is mandatory and must have **type** defined
--  The **payloads** array is mandatory and must have **at least one element**
--  The **modifiers** array is optional and can be empty
--  Conditional properties are validated using **allOf/if/then** in JSON Schema
--  Use **Newtonsoft.Json** or **System.Text.Json** for deserialization
--  Keep this schema **synchronized** with the LLM prompt
+-   This schema is the **mandatory contract** between LLM and game engine
+-   **Always validate** against this schema before processing
+-   Use **default values** when optional properties are not specified
+-   Implement **custom validation rules** in addition to schema validation
+-   The **spellName** field is mandatory and should be unique
+-   The **generator** field is mandatory and must have **type** defined
+-   The **payloads** array is mandatory and must have **at least one element**
+-   The **modifiers** array is optional and can be empty
+-   Conditional properties are validated using **allOf/if/then** in JSON Schema
+-   Use **Newtonsoft.Json** or **System.Text.Json** for deserialization
+-   Keep this schema **synchronized** with the LLM prompt
