@@ -11,9 +11,9 @@ This file defines mandatory standards for creating Pull Requests in the Spellwri
 
 **Activate when user requests:**
 
--   "create a PR", "open a pull request", "create pull request"
--   "open PR for SPWT-X" (Task)
--   "create PR from current branch"
+- "create a PR", "open a pull request", "create pull request"
+- "open PR for SPWT-X" (Task)
+- "create PR from current branch"
 
 ## Template Loading Strategy
 
@@ -34,38 +34,260 @@ This file defines mandatory standards for creating Pull Requests in the Spellwri
 ## Workflow Overview
 
 1. **Identify Context:**
-
     - Determine current branch (task branch: `tech/SPWS-X/SPWT-X`, `feature/SPWS-X/SPWT-X`, `bug/SPWS-X/SPWT-X`)
     - Determine target branch (story branch: `feature/develop/SPWS-X`)
     - Fetch task details from Notion if not already in context
+    - Get authenticated user info for assignee
 
 2. **Read Template:**
-
     - Read `.cursor/rules/general/pr-template.mdc`
     - Identify appropriate task-type section (Feature/Tech/Bug)
 
 3. **Generate PR Title:**
-
     - Follow Conventional Commits format from commit message
     - Use same format as commit: `type(scope): subject`
     - Examples: `feat(components): implement core spell components`, `fix(collision): prevent null reference`
 
-4. **Generate PR Body:**
+4. **Analyze and Assign Labels:**
+    - **Automatically assign labels** based on PR content and task information
+    - See "Automatic Label Assignment" section below for rules
+    - Apply 3-5 labels per PR (type, priority, area/spell/dots, optional status)
 
+5. **Generate PR Body:**
     - Follow template structure from `pr-template.mdc`
     - Remove INSTRUCTION/FORMAT/EXAMPLE labels
     - Populate with task-specific information
     - Include only relevant task-type section
 
-5. **Create PR:**
-
+6. **Create PR:**
     - Use GitHub MCP `create_pull_request` tool
     - Set `draft: false` (unless explicitly requested as draft)
     - Verify PR created successfully
 
-6. **Update Notion:**
+7. **Assign to Creator:**
+    - Use GitHub MCP `update_pull_request` to assign PR to creator
+    - Get creator username from `mcp_github_get_me` if needed
+    - Assignee = person responsible for the PR (always the creator)
+
+8. **Apply Labels:**
+    - Use GitHub CLI or API to add automatically determined labels
+    - Apply all labels in a single operation if possible
+
+9. **Update Notion:**
     - Use `notion-update-page` to set Pull Request property with PR URL
     - Confirm update successful
+
+## Automatic Label Assignment
+
+**CRITICAL:** Labels MUST be automatically assigned based on PR content and task information. The agent MUST analyze the PR and determine appropriate labels without asking the user.
+
+### Label Assignment Rules
+
+Apply **3-5 labels minimum** to every PR, following this structure:
+
+1. **1x Type Label** (MANDATORY)
+2. **1x Priority Label** (MANDATORY)
+3. **1-2x Context Labels** (area/spell/dots) (MANDATORY)
+4. **0-2x Additional Labels** (status/performance/etc) (OPTIONAL)
+
+### Type Label (MANDATORY - Choose ONE)
+
+Based on **branch type** or **commit type**:
+
+| Branch/Commit Pattern        | Label            | When to Use                              |
+| ---------------------------- | ---------------- | ---------------------------------------- |
+| `feature/` or `feat:`        | `type: feature`  | New functionality, components, systems   |
+| `bug/` or `fix:`             | `type: bug`      | Bug fixes, error corrections             |
+| `tech/` or `refactor:`       | `type: tech`     | Refactoring, tech debt, code cleanup     |
+| `docs:`                      | `type: docs`     | Documentation only changes               |
+| `test:`                      | `type: test`     | Test-related changes                     |
+| `.github/workflows/` changes | `type: ci/cd`    | CI/CD, workflows, rulesets               |
+| Breaking API changes         | `type: breaking` | Incompatible changes (add to other type) |
+
+### Priority Label (MANDATORY - Choose ONE)
+
+Based on **Notion task Priority** or **urgency**:
+
+| Notion Priority | Label                | When to Use                              |
+| --------------- | -------------------- | ---------------------------------------- |
+| High/Critical   | `priority: critical` | Blockers, critical bugs, security issues |
+| High            | `priority: high`     | Important features, high-impact bugs     |
+| Medium          | `priority: medium`   | Normal features, moderate bugs           |
+| Low             | `priority: low`      | Nice-to-have, minor improvements         |
+
+**Default:** If priority not specified in Notion, use `priority: medium`
+
+### Context Labels (MANDATORY - Choose 1-2)
+
+#### Spell System Labels
+
+Use when PR affects **spell-specific functionality**:
+
+| Label              | When to Use               | Keywords to Look For                                                     |
+| ------------------ | ------------------------- | ------------------------------------------------------------------------ |
+| `spell: generator` | Generators implementation | "Projectile", "Cone", "AoE", "Self-Cast", "spawn", "instantiate"         |
+| `spell: modifier`  | Modifiers implementation  | "Homing", "Chain", "Pierce", "Fork", "Split", "Bounce"                   |
+| `spell: payload`   | Payloads implementation   | "Damage", "Heal", "Status", "Effect", "DOT", "Buff", "Debuff"            |
+| `spell: component` | Spell components          | "Velocity", "Lifetime", "SpellOwner", "Target", spell-related components |
+
+#### DOTS/ECS Labels
+
+Use when PR affects **Unity DOTS/ECS architecture**:
+
+| Label             | When to Use            | Keywords to Look For                                              |
+| ----------------- | ---------------------- | ----------------------------------------------------------------- |
+| `dots: system`    | Systems implementation | "ISystem", "SystemBase", "OnUpdate", "OnCreate", system logic     |
+| `dots: component` | Components             | "IComponentData", "IBufferElementData", "IEnableableComponent"    |
+| `dots: job`       | Jobs                   | "IJobEntity", "IJobChunk", "IJobParallelFor", Burst jobs          |
+| `dots: burst`     | Burst optimization     | "Burst", "[BurstCompile]", optimization, SIMD                     |
+| `dots: entities`  | Entity management      | "EntityManager", "EntityQuery", "EntityCommandBuffer", archetypes |
+
+#### Area Labels
+
+Use when PR affects **specific game system area**:
+
+| Label                | When to Use          | Keywords to Look For                                             |
+| -------------------- | -------------------- | ---------------------------------------------------------------- |
+| `area: architecture` | Architecture changes | "architecture", "design pattern", "structure", major refactoring |
+| `area: input`        | Input system         | "Input System", "InputAction", "PlayerInput", controls           |
+| `area: physics`      | Physics              | "Physics", "collision", "trigger", "raycast", "overlap"          |
+| `area: rendering`    | Rendering/Graphics   | "rendering", "shader", "material", "VFX", "particle"             |
+| `area: networking`   | Networking           | "NetCode", "multiplayer", "RPC", "synchronization"               |
+| `area: ui`           | User Interface       | "UI", "Canvas", "Button", "UIToolkit", menu                      |
+| `area: audio`        | Audio                | "audio", "sound", "music", "AudioSource", "AudioClip"            |
+
+### Additional Labels (OPTIONAL - Choose 0-2)
+
+#### Status Labels
+
+| Label                   | When to Use                            |
+| ----------------------- | -------------------------------------- |
+| `status: blocked`       | PR depends on another PR/issue         |
+| `status: needs design`  | Requires architecture discussion       |
+| `status: needs testing` | Implementation done, waiting for tests |
+
+#### Performance Labels
+
+| Label            | When to Use                                     |
+| ---------------- | ----------------------------------------------- |
+| `quick win`      | Easy to implement, high impact (< 2 hours work) |
+| `performance`    | Optimization, performance improvements          |
+| `technical debt` | Addresses tech debt                             |
+
+#### Special Labels
+
+| Label              | When to Use                                               |
+| ------------------ | --------------------------------------------------------- |
+| `skip-title-check` | PR title doesn't follow Conventional Commits (use RARELY) |
+
+### Label Assignment Examples
+
+#### Example 1: Feature Task - Projectile Generator
+
+**Task:** Implement Projectile Generator System
+**Branch:** `feature/SPWS-1/SPWT-5`
+**Priority:** High
+**Files:** `ProjectileGeneratorSystem.cs`, `ProjectileSpawner.cs`
+
+**Assigned Labels:**
+
+```
+type: feature
+priority: high
+spell: generator
+dots: system
+```
+
+#### Example 2: Bug Fix - Collision Issue
+
+**Task:** Fix double-hit on pierce modifier
+**Branch:** `bug/SPWS-2/SPWT-12`
+**Priority:** Critical
+**Files:** `PierceModifierSystem.cs`
+
+**Assigned Labels:**
+
+```
+type: bug
+priority: critical
+spell: modifier
+area: physics
+```
+
+#### Example 3: Tech Task - Refactor Baking
+
+**Task:** Refactor JSON validation to separate class
+**Branch:** `tech/SPWS-1/SPWT-8`
+**Priority:** Medium
+**Files:** `SpellBakingSystem.cs`, `JsonValidator.cs`
+
+**Assigned Labels:**
+
+```
+type: tech
+priority: medium
+dots: system
+area: architecture
+technical debt
+```
+
+#### Example 4: CI/CD Workflow
+
+**Task:** Add Unity test workflow
+**Branch:** `tech/SPWS-3/SPWT-15`
+**Priority:** High
+**Files:** `.github/workflows/unity-tests.yml`
+
+**Assigned Labels:**
+
+```
+type: ci/cd
+priority: high
+type: test
+```
+
+### Label Assignment Algorithm
+
+**When creating PR, follow this algorithm:**
+
+```
+1. Analyze PR content:
+   - Read commit messages
+   - Read file paths
+   - Read PR description
+   - Read Notion task description
+
+2. Determine Type Label:
+   - Check branch prefix (feature/bug/tech)
+   - Check commit type (feat/fix/refactor)
+   - Check file locations (.github/workflows → ci/cd)
+
+3. Determine Priority Label:
+   - Read Notion task Priority property
+   - If not available, assess impact:
+     - Critical bugs → priority: critical
+     - Important features → priority: high
+     - Normal work → priority: medium
+     - Minor improvements → priority: low
+
+4. Determine Context Labels (1-2):
+   - Scan file names and paths for keywords
+   - Check PR description for technical terms
+   - Prioritize spell: labels if spell-related
+   - Add dots: labels for ECS architecture
+   - Add area: labels for system-specific work
+
+5. Determine Additional Labels (0-2):
+   - Check for performance optimizations → performance
+   - Check for tech debt resolution → technical debt
+   - Check for quick wins (small PRs) → quick win
+   - Check for blocking issues → status: blocked
+
+6. Validate:
+   - Ensure 3-5 labels total
+   - Ensure 1x type, 1x priority, 1-2x context
+   - Avoid redundant labels
+```
 
 ## PR Title Format
 
@@ -100,13 +322,13 @@ perf(movement): optimize projectile update loop
 
 The PR body follows a structured format with the following sections:
 
--   Task identification (SPWT-X, Story, Type, Priority)
--   What Changed (high-level summary + task-type-specific section)
--   Files Created/Modified (directory tree or list)
--   Definition of Done (copy from Notion, mark complete)
--   Key Technical Decisions (3-5 with rationale)
--   References (Notion links + docs)
--   Notes (additional context)
+- Task identification (SPWT-X, Story, Type, Priority)
+- What Changed (high-level summary + task-type-specific section)
+- Files Created/Modified (directory tree or list)
+- Definition of Done (copy from Notion, mark complete)
+- Key Technical Decisions (3-5 with rationale)
+- References (Notion links + docs)
+- Notes (additional context)
 
 ### Task-Type Sections
 
@@ -122,45 +344,59 @@ Before creating PR, verify:
 
 ### Title Validation
 
--   [ ] Follows Conventional Commits format
--   [ ] Type matches commit type (feat/fix/refactor/etc.)
--   [ ] Scope is specific and relevant
--   [ ] Subject is concise (<72 chars) and descriptive
--   [ ] Lowercase, no period at end
+- [ ] Follows Conventional Commits format
+- [ ] Type matches commit type (feat/fix/refactor/etc.)
+- [ ] Scope is specific and relevant
+- [ ] Subject is concise (<72 chars) and descriptive
+- [ ] Lowercase, no period at end
+
+### Label Assignment Validation
+
+- [ ] **Type label assigned** (1x mandatory: type: feature/bug/tech/docs/test/ci-cd/breaking)
+- [ ] **Priority label assigned** (1x mandatory: priority: critical/high/medium/low)
+- [ ] **Context labels assigned** (1-2x mandatory: spell:/dots:/area:)
+- [ ] **Optional labels considered** (0-2x: status:/performance/technical debt/quick win)
+- [ ] **Total 3-5 labels** applied
+- [ ] Labels match PR content and file changes
+- [ ] No redundant or conflicting labels
+
+### Assignee Validation
+
+- [ ] **PR creator assigned as Assignee** (mandatory)
+- [ ] Assignee username verified via `mcp_github_get_me`
 
 ### Body Validation
 
--   [ ] Includes Task ID (SPWT-X) and Story reference (SPWS-X)
--   [ ] Type and Priority specified
--   [ ] "What Changed" section explains high-level changes
--   [ ] Task-type-specific section included (Components/Improvements/Bug Fix)
--   [ ] Files section lists created/modified files
--   [ ] Definition of Done copied from task and marked complete
--   [ ] Key Technical Decisions include 3-5 important choices with rationale
--   [ ] References include Notion task, story, and relevant docs
--   [ ] Notes section provides additional context if needed
+- [ ] Includes Task ID (SPWT-X) and Story reference (SPWS-X)
+- [ ] Type and Priority specified
+- [ ] "What Changed" section explains high-level changes
+- [ ] Task-type-specific section included (Components/Improvements/Bug Fix)
+- [ ] Files section lists created/modified files
+- [ ] Definition of Done copied from task and marked complete
+- [ ] Key Technical Decisions include 3-5 important choices with rationale
+- [ ] References include Notion task, story, and relevant docs
+- [ ] Notes section provides additional context if needed
 
 ### Content Quality
 
--   [ ] All sections have real content (no placeholders)
--   [ ] Technical terminology is correct (Unity/DOTS)
--   [ ] File paths are accurate and complete
--   [ ] Metrics included when relevant (performance improvements)
--   [ ] All checkboxes in DoD marked as complete
--   [ ] Links to Notion pages are valid
--   [ ] Markdown formatting is correct
+- [ ] All sections have real content (no placeholders)
+- [ ] Technical terminology is correct (Unity/DOTS)
+- [ ] File paths are accurate and complete
+- [ ] Metrics included when relevant (performance improvements)
+- [ ] All checkboxes in DoD marked as complete
+- [ ] Links to Notion pages are valid
+- [ ] Markdown formatting is correct
 
 ### Notion Integration
 
--   [ ] PR URL added to Notion task "Pull Request" property
--   [ ] Task status updated if needed (e.g., "In Review")
+- [ ] PR URL added to Notion task "Pull Request" property
+- [ ] Task status updated if needed (e.g., "In Review")
 
 ## Integration with Notion Tasks
 
 ### After PR Creation
 
 1. **Update Notion Task:**
-
     - Use `notion-update-page` with task ID
     - Set Pull Request property: `<PR URL>`
     - Example: `https://github.com/unknown-studios-code/spellwright/pull/1`
@@ -209,8 +445,8 @@ refactor(baking): migrate to enableable component pattern
 ```markdown
 ## ✅ Definition of Done
 
--   [ ] Code implemented
--   [ ] Tested
+- [ ] Code implemented
+- [ ] Tested
 ```
 
 ### ✅ Do: Complete Definition of Done
@@ -218,14 +454,14 @@ refactor(baking): migrate to enableable component pattern
 ```markdown
 ## ✅ Definition of Done
 
--   [x] `Velocity.cs` created with `float3 Value` field
--   [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
--   [x] XML documentation added to all components
--   [x] Components compile without errors
--   [x] Tested in Unity Entity Inspector
--   [x] Performance verified (<0.5ms for 100 entities)
--   [x] All existing tests passing
--   [x] Code review completed
+- [x] `Velocity.cs` created with `float3 Value` field
+- [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
+- [x] XML documentation added to all components
+- [x] Components compile without errors
+- [x] Tested in Unity Entity Inspector
+- [x] Performance verified (<0.5ms for 100 entities)
+- [x] All existing tests passing
+- [x] Code review completed
 ```
 
 ### ❌ Don't: Missing Technical Context
@@ -245,9 +481,9 @@ Implemented three fundamental unmanaged components that form the foundation of e
 
 ### Components Added
 
--   **`Velocity`** - 3D movement vector using `float3` for Burst compatibility
--   **`Lifetime`** - Spawn timestamp and duration for automatic cleanup
--   **`SpellOwner`** - Entity reference to caster for ownership tracking
+- **`Velocity`** - 3D movement vector using `float3` for Burst compatibility
+- **`Lifetime`** - Spawn timestamp and duration for automatic cleanup
+- **`SpellOwner`** - Entity reference to caster for ownership tracking
 
 All components are blittable, Burst-compatible, and include comprehensive XML documentation.
 ```
@@ -258,37 +494,51 @@ All components are blittable, Burst-compatible, and include comprehensive XML do
 
 Use `draft: true` when:
 
--   Work is incomplete but you want early feedback
--   PR is for discussion/review of approach before full implementation
--   User explicitly requests draft PR
--   Task is blocked and you want to show progress
+- Work is incomplete but you want early feedback
+- PR is for discussion/review of approach before full implementation
+- User explicitly requests draft PR
+- Task is blocked and you want to show progress
 
 ### When to Create Regular PRs
 
 Use `draft: false` (default) when:
 
--   All Definition of Done items are complete
--   Code is ready for final review and merge
--   Tests are passing
--   Documentation is complete
+- All Definition of Done items are complete
+- Code is ready for final review and merge
+- Tests are passing
+- Documentation is complete
 
 ## Important Notes
 
--   **Mandatory Template** - All PRs MUST use the template structure
--   **Conventional Commits** - PR title MUST follow commit message format
--   **Complete DoD** - All Definition of Done items MUST be checked before creating PR
--   **Notion Integration** - PR URL MUST be added to Notion task property
--   **English Only** - All PR content must be in English
--   **Technical Accuracy** - Verify all file paths, component names, and technical details
--   **Quality Review** - Use checklist before creating PR
--   **Link Validation** - Ensure all Notion links are accessible
+- **Mandatory Template** - All PRs MUST use the template structure
+- **Conventional Commits** - PR title MUST follow commit message format
+- **Automatic Labels** - Agent MUST assign 3-5 labels automatically based on content analysis (never ask user)
+- **Automatic Assignee** - Agent MUST assign PR creator as Assignee (use `mcp_github_get_me`)
+- **Complete DoD** - All Definition of Done items MUST be checked before creating PR
+- **Notion Integration** - PR URL MUST be added to Notion task property
+- **English Only** - All PR content must be in English
+- **Technical Accuracy** - Verify all file paths, component names, and technical details
+- **Quality Review** - Use checklist before creating PR
+- **Link Validation** - Ensure all Notion links are accessible
+- **Label Analysis** - Analyze file changes, commit messages, and task description to determine labels
+- **Priority from Notion** - Use Notion task Priority property for priority label (default to medium if missing)
 
 ## GitHub MCP Integration
 
-### Creating PR via MCP
+### Complete PR Creation Flow
+
+**Step 1: Get Current User (for Assignee)**
 
 ```javascript
-mcp_github_create_pull_request({
+// Get authenticated user information
+const user = await mcp_github_get_me();
+// user.login contains the username for assignee
+```
+
+**Step 2: Create Pull Request**
+
+```javascript
+const pr = await mcp_github_create_pull_request({
     owner: "unknown-studios-code",
     repo: "spellwright",
     title: "feat(components): implement core spell components (Velocity, Lifetime, SpellOwner)",
@@ -296,6 +546,69 @@ mcp_github_create_pull_request({
     base: "feature/develop/SPWS-1",
     body: "[Full PR body following template]",
     draft: false,
+});
+// pr.number contains the PR number for next steps
+```
+
+**Step 3: Assign to Creator**
+
+```javascript
+await mcp_github_update_pull_request({
+    owner: "unknown-studios-code",
+    repo: "spellwright",
+    pullNumber: pr.number,
+    assignees: [user.login], // Assign to PR creator
+});
+```
+
+**Step 4: Add Labels**
+
+```bash
+# Using GitHub CLI (recommended for batch operations)
+gh pr edit <PR_NUMBER> --add-label "type: feature,priority: high,spell: generator,dots: system"
+```
+
+Or via terminal command:
+
+```bash
+gh pr edit 3 --add-label "type: feature" --add-label "priority: high" --add-label "spell: generator" --add-label "dots: system"
+```
+
+### Complete Example
+
+```javascript
+// 1. Get current user
+const user = await mcp_github_get_me();
+
+// 2. Create PR
+const pr = await mcp_github_create_pull_request({
+    owner: "unknown-studios-code",
+    repo: "spellwright",
+    title: "feat(components): implement core spell components (Velocity, Lifetime, SpellOwner)",
+    head: "tech/SPWS-1/SPWT-1",
+    base: "feature/develop/SPWS-1",
+    body: "[Full PR body]",
+    draft: false,
+});
+
+// 3. Assign to creator
+await mcp_github_update_pull_request({
+    owner: "unknown-studios-code",
+    repo: "spellwright",
+    pullNumber: pr.number,
+    assignees: [user.login],
+});
+
+// 4. Add labels (via GitHub CLI)
+gh pr edit ${pr.number} --add-label "type: feature,priority: high,spell: generator,dots: system"
+
+// 5. Update Notion with PR URL
+await notion_update_page({
+    page_id: "[task_id]",
+    command: "update_properties",
+    properties: {
+        "Pull Request": pr.html_url
+    }
 });
 ```
 
@@ -309,18 +622,29 @@ If PR creation fails:
 4. Verify GitHub token permissions
 5. Fallback: Provide manual PR creation URL to user
 
+If assignee or label assignment fails:
+
+1. Log the error but continue (non-critical)
+2. Inform user that manual assignment may be needed
+3. Provide GitHub CLI commands for manual fix
+
 ## Quick Reference
 
 **When user says:**
 
--   "create a PR" → Read `pr-template.mdc`, fetch task from Notion, generate title/body, create PR, update Notion
--   "open PR for SPWT-5" → Read `pr-template.mdc`, fetch SPWT-5, generate PR, create, update Notion
--   "create draft PR" → Same flow but set `draft: true`
+- "create a PR" → Read `pr-template.mdc`, fetch task from Notion, analyze content, assign labels automatically, assign to creator, generate title/body, create PR, update Notion
+- "open PR for SPWT-5" → Read `pr-template.mdc`, fetch SPWT-5, analyze content, assign labels, generate PR, create, assign, update Notion
+- "create draft PR" → Same flow but set `draft: true`
 
 **Always remember:**
 
--   **Read template file first:** `.cursor/rules/general/pr-template.mdc`
--   PR Title = Commit message format (Conventional Commits)
--   PR Body = Structured template (remove INSTRUCTION/FORMAT/EXAMPLE labels)
--   Update Notion = Add PR URL to task property after creation
--   Quality matters = Use checklist before creating
+- **Read template file first:** `.cursor/rules/general/pr-template.mdc`
+- **Get current user:** Use `mcp_github_get_me` for assignee
+- **Analyze content:** Determine labels based on PR content (3-5 labels)
+- **Assign automatically:** Don't ask user for labels or assignee
+- PR Title = Commit message format (Conventional Commits)
+- PR Body = Structured template (remove INSTRUCTION/FORMAT/EXAMPLE labels)
+- Assignee = PR creator (always)
+- Labels = Automatic based on content analysis (type + priority + context + optional)
+- Update Notion = Add PR URL to task property after creation
+- Quality matters = Use checklist before creating

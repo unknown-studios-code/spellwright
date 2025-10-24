@@ -17,25 +17,25 @@ Spellwright relies on three fundamental pillars that work in synergy:
 
 ### 1. Data-Oriented Runtime (DOTS/ECS)
 
--   Built on Unity's Data-Oriented Technology Stack
--   Ensures high-performance execution and scalability
--   Enables processing hundreds or thousands of spells simultaneously
--   Uses Entity Component System (ECS) for data organization
--   **Performance by default** through cache locality and parallel processing
+- Built on Unity's Data-Oriented Technology Stack
+- Ensures high-performance execution and scalability
+- Enables processing hundreds or thousands of spells simultaneously
+- Uses Entity Component System (ECS) for data organization
+- **Performance by default** through cache locality and parallel processing
 
 ### 2. AI Interpretation Layer (LLM)
 
--   Uses Large Language Models to interpret natural language
--   Acts as a "compiler" that translates human intent into structured data
--   Generates rigidly structured and validated JSON output
--   Implements three-layer validation (API Function Calling, Few-Shot Prompting, Client-side)
+- Uses Large Language Models to interpret natural language
+- Acts as a "compiler" that translates human intent into structured data
+- Generates rigidly structured and validated JSON output
+- Implements three-layer validation (API Function Calling, Few-Shot Prompting, Client-side)
 
 ### 3. Procedural Assembly System
 
--   Bridge between AI and game engine
--   Receives structured JSON and dynamically assembles ECS entities
--   Uses the Generator/Modifier/Payload pattern
--   Baking system converts JSON to optimized ECS components
+- Bridge between AI and game engine
+- Receives structured JSON and dynamically assembles ECS entities
+- Uses the Generator/Modifier/Payload pattern
+- Baking system converts JSON to optimized ECS components
 
 ## Conceptual Model: Generator/Modifier/Payload
 
@@ -45,29 +45,29 @@ Every spell in Spellwright is defined by three main components:
 
 Defines how the spell originates and moves:
 
--   **Projectile** - Moves in a straight or curved line
--   **Cone** - Cone-shaped area of effect
--   **Area of Effect** - Circular area of effect
--   **Self Cast** - Effect applied to the caster themselves
+- **Projectile** - Moves in a straight or curved line
+- **Cone** - Cone-shaped area of effect
+- **Area of Effect** - Circular area of effect
+- **Self Cast** - Effect applied to the caster themselves
 
 ### Modifier (Optional - Zero or more per spell)
 
 Alters the basic behavior of the generator:
 
--   **Homing** - Automatically pursues targets
--   **Chain** - Jumps between multiple enemies
--   **Pierce** - Pierces through targets
--   **Fork** - Splits into multiple projectiles
--   **Multi-shot** - Fires multiple projectiles at once
+- **Homing** - Automatically pursues targets
+- **Chain** - Jumps between multiple enemies
+- **Pierce** - Pierces through targets
+- **Fork** - Splits into multiple projectiles
+- **Multi-shot** - Fires multiple projectiles at once
 
 ### Payload (Mandatory - One or more per spell)
 
 Defines the effects applied on impact:
 
--   **Damage** - Causes damage of a specific elemental type
--   **Heal** - Restores hit points
--   **Apply Status** - Applies status effects (burn, slow, stun)
--   **Spawn Entity** - Generates new entities on impact
+- **Damage** - Causes damage of a specific elemental type
+- **Heal** - Restores hit points
+- **Apply Status** - Applies status effects (burn, slow, stun)
+- **Spawn Entity** - Generates new entities on impact
 
 ## Unity Project Structure
 
@@ -111,26 +111,26 @@ Assets/
 
 ### Performance by Default
 
--   **ISystem** is mandatory for all spell simulation logic (movement, collision, lifetime)
--   **SystemBase** is used only for one-time configuration tasks (JSON baking)
--   **Unmanaged components** are mandatory for runtime entities (no managed types)
--   **Burst Compiler** is applied to all simulation systems
--   **Zero GC** in hot paths - no memory allocations during spell execution
+- **ISystem** is mandatory for all spell simulation logic (movement, collision, lifetime)
+- **SystemBase** is used only for one-time configuration tasks (JSON baking)
+- **Unmanaged components** are mandatory for runtime entities (no managed types)
+- **Burst Compiler** is applied to all simulation systems
+- **Zero GC** in hot paths - no memory allocations during spell execution
 
 ### Clear Separation of Responsibilities
 
--   **SystemBase** → JSON baking, initial configuration (convenience, managed data)
--   **ISystem** → Frame-by-frame spell simulation (performance, Burst-compatible)
--   **Jobs** → Parallel processing of heavy logic (IJobEntity)
--   **EntityCommandBuffer** → All structural changes (batched for efficiency)
+- **SystemBase** → JSON baking, initial configuration (convenience, managed data)
+- **ISystem** → Frame-by-frame spell simulation (performance, Burst-compatible)
+- **Jobs** → Parallel processing of heavy logic (IJobEntity)
+- **EntityCommandBuffer** → All structural changes (batched for efficiency)
 
 ### Component Design
 
--   Use only **blittable types**: int, float, bool, float3, Entity
--   **Never** use: string, class, List<T>, Dictionary<K,V>, or any managed type
--   Use **FixedString** for text (e.g., FixedString64Bytes)
--   Use **DynamicBuffer<T>** for variable-size collections (e.g., multiple payloads)
--   Keep components **small and focused** (Single Responsibility Principle)
+- Use only **blittable types**: int, float, bool, float3, Entity
+- **Never** use: string, class, List<T>, Dictionary<K,V>, or any managed type
+- Use **FixedString** for text (e.g., FixedString64Bytes)
+- Use **DynamicBuffer<T>** for variable-size collections (e.g., multiple payloads)
+- Keep components **small and focused** (Single Responsibility Principle)
 
 ## When to Consult Specific Concept Files
 
@@ -138,43 +138,43 @@ The following files contain detailed implementation references and should be loa
 
 ### `@dots-architecture.mdc` - When:
 
--   Implementing new ECS systems (ISystem/SystemBase)
--   Working with EntityCommandBuffer
--   Creating Jobs for parallel processing
--   Defining system execution order
--   Need code examples for DOTS patterns
+- Implementing new ECS systems (ISystem/SystemBase)
+- Working with EntityCommandBuffer
+- Creating Jobs for parallel processing
+- Defining system execution order
+- Need code examples for DOTS patterns
 
 ### `@json-schema.mdc` - When:
 
--   Working with LLM API integration
--   Validating spell JSON
--   Adding new spell properties
--   Need complete schema definition
--   Creating or modifying spell JSON examples
+- Working with LLM API integration
+- Validating spell JSON
+- Adding new spell properties
+- Need complete schema definition
+- Creating or modifying spell JSON examples
 
 ### `@llm-integration.mdc` - When:
 
--   Implementing API communication
--   Setting up async/await patterns
--   Configuring validation layers
--   Handling network errors and retries
--   Working with Function Calling/Few-Shot prompting
+- Implementing API communication
+- Setting up async/await patterns
+- Configuring validation layers
+- Handling network errors and retries
+- Working with Function Calling/Few-Shot prompting
 
 ### `@spell-components.mdc` - When:
 
--   Implementing new Generator types
--   Creating new Modifier behaviors
--   Adding new Payload effects
--   Need full system implementation examples
--   Understanding component-to-system mapping
+- Implementing new Generator types
+- Creating new Modifier behaviors
+- Adding new Payload effects
+- Need full system implementation examples
+- Understanding component-to-system mapping
 
 ### `@debugging-tools.mdc` - When:
 
--   Debugging spell behavior issues
--   Profiling performance bottlenecks
--   Inspecting entities at runtime
--   Need thread-safe logging patterns
--   Setting up visualization/Gizmos
+- Debugging spell behavior issues
+- Profiling performance bottlenecks
+- Inspecting entities at runtime
+- Need thread-safe logging patterns
+- Setting up visualization/Gizmos
 
 ## Design Principles
 
@@ -190,28 +190,28 @@ When facing complex conceptual questions that other rule files cannot fully answ
 
 This comprehensive document provides:
 
--   **In-depth architectural rationale** - Detailed explanations of why design decisions were made
--   **Performance theory** - Deep dive into cache locality, memory layout, and CPU optimization
--   **Complete system integration** - How all pillars work together in detail
--   **Expanded examples** - Full end-to-end spell creation workflows
--   **Academic references** - Citations and technical justifications
--   **Advanced patterns** - Complex ECS patterns and their trade-offs
+- **In-depth architectural rationale** - Detailed explanations of why design decisions were made
+- **Performance theory** - Deep dive into cache locality, memory layout, and CPU optimization
+- **Complete system integration** - How all pillars work together in detail
+- **Expanded examples** - Full end-to-end spell creation workflows
+- **Academic references** - Citations and technical justifications
+- **Advanced patterns** - Complex ECS patterns and their trade-offs
 
 **When to consult the detailed document:**
 
--   When rule files provide "what" and "how" but you need to understand "why"
--   When facing architectural decisions not covered in other rule files
--   When you need to understand the theoretical foundation of a design pattern
--   When debugging complex integration issues between systems
--   When extending the architecture with new features
+- When rule files provide "what" and "how" but you need to understand "why"
+- When facing architectural decisions not covered in other rule files
+- When you need to understand the theoretical foundation of a design pattern
+- When debugging complex integration issues between systems
+- When extending the architecture with new features
 
 ## Important Notes
 
--   This project requires intermediate to advanced knowledge of Unity DOTS/ECS
--   DOTS usage is not optional - it's fundamental to the architecture
--   All implementation must follow established performance patterns
--   The Generator/Modifier/Payload model must be strictly respected
--   JSON validation is critical - never blindly trust LLM output
--   Always maintain separation between data (components) and logic (systems)
--   For implementation details, consult specific concept files on-demand
--   For deep conceptual understanding, refer to the detailed architecture document
+- This project requires intermediate to advanced knowledge of Unity DOTS/ECS
+- DOTS usage is not optional - it's fundamental to the architecture
+- All implementation must follow established performance patterns
+- The Generator/Modifier/Payload model must be strictly respected
+- JSON validation is critical - never blindly trust LLM output
+- Always maintain separation between data (components) and logic (systems)
+- For implementation details, consult specific concept files on-demand
+- For deep conceptual understanding, refer to the detailed architecture document

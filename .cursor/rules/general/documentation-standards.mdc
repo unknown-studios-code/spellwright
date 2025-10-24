@@ -24,37 +24,37 @@ public class ExampleClass { }
 
 **Never use:**
 
--   Single-line comments `//` for API documentation
--   Multi-line comments `/* */` for API documentation
--   Inline comments for public member descriptions
+- Single-line comments `//` for API documentation
+- Multi-line comments `/* */` for API documentation
+- Inline comments for public member descriptions
 
 ### 2. Mandatory Documentation Targets
 
 **MUST be documented:**
 
--   ✅ All public classes, structs, and interfaces
--   ✅ All public and internal methods
--   ✅ All public properties and fields
--   ✅ All ECS components (IComponentData)
--   ✅ All ECS systems (ISystem, SystemBase)
--   ✅ All Jobs (IJob, IJobEntity)
--   ✅ All enum types and their values
--   ✅ All delegates and events
+- ✅ All public classes, structs, and interfaces
+- ✅ All public and internal methods
+- ✅ All public properties and fields
+- ✅ All ECS components (IComponentData)
+- ✅ All ECS systems (ISystem, SystemBase)
+- ✅ All Jobs (IJob, IJobEntity)
+- ✅ All enum types and their values
+- ✅ All delegates and events
 
 **Optional documentation:**
 
--   Private methods (recommended for complex logic)
--   Private fields (only if non-obvious purpose)
+- Private methods (recommended for complex logic)
+- Private fields (only if non-obvious purpose)
 
 ### 3. Documentation Completeness
 
 **Minimum required tags:**
 
--   `<summary>` - Brief description (1-3 sentences)
--   `<param>` - For each method parameter
--   `<returns>` - For methods with non-void return
--   `<exception>` - For methods that can throw exceptions
--   `<remarks>` - For important implementation details (when needed)
+- `<summary>` - Brief description (1-3 sentences)
+- `<param>` - For each method parameter
+- `<returns>` - For methods with non-void return
+- `<exception>` - For methods that can throw exceptions
+- `<remarks>` - For important implementation details (when needed)
 
 ## Standard XML Tags Reference
 
@@ -73,10 +73,10 @@ public struct ProjectileComponent : IComponentData { }
 
 **Rules:**
 
--   Keep it concise (1-3 sentences)
--   Start with active verbs: "Represents", "Defines", "Calculates", "Processes"
--   Avoid redundancy: Don't repeat the member name
--   Use present tense
+- Keep it concise (1-3 sentences)
+- Start with active verbs: "Represents", "Defines", "Calculates", "Processes"
+- Avoid redundancy: Don't repeat the member name
+- Use present tense
 
 **❌ Bad:**
 
@@ -109,10 +109,10 @@ public void MoveEntity(Entity entity, float3 offset) { }
 
 **Rules:**
 
--   One `<param>` tag per parameter
--   Match parameter name exactly
--   Describe purpose and valid values
--   Start with "The" or "A/An"
+- One `<param>` tag per parameter
+- Match parameter name exactly
+- Describe purpose and valid values
+- Start with "The" or "A/An"
 
 #### `<returns>`
 
@@ -129,9 +129,9 @@ public float CalculateDamage(float baseDamage) { }
 
 **Rules:**
 
--   Describe what is returned, not just the type
--   Include range or possible values when relevant
--   Mention null conditions for reference types
+- Describe what is returned, not just the type
+- Include range or possible values when relevant
+- Mention null conditions for reference types
 
 #### `<exception>`
 
@@ -209,9 +209,9 @@ Reference to another code element.
 
 **Rules:**
 
--   Use fully qualified names when ambiguous: `<see cref="UnityEngine.Transform"/>`
--   For generics, use curly braces: `<see cref="DynamicBuffer{T}"/>`
--   Works with: classes, methods, properties, fields, enums
+- Use fully qualified names when ambiguous: `<see cref="UnityEngine.Transform"/>`
+- For generics, use curly braces: `<see cref="DynamicBuffer{T}"/>`
+- Works with: classes, methods, properties, fields, enums
 
 #### `<seealso cref=""/>` - Related Links
 
@@ -304,9 +304,9 @@ public class SpellCastingInput : MonoBehaviour
 
 **Rules:**
 
--   Document Unity Inspector fields with `<remarks>` for configuration notes
--   Mention required components and dependencies
--   List Unity messages (Awake, Start, Update, etc.) if not obvious
+- Document Unity Inspector fields with `<remarks>` for configuration notes
+- Mention required components and dependencies
+- List Unity messages (Awake, Start, Update, etc.) if not obvious
 
 ### ECS Components (IComponentData)
 
@@ -335,10 +335,10 @@ public struct Lifetime : IComponentData
 
 **Required information:**
 
--   What the component represents
--   Which systems read/write it
--   Performance characteristics (blittable, burst-compatible)
--   Data constraints and valid ranges
+- What the component represents
+- Which systems read/write it
+- Performance characteristics (blittable, burst-compatible)
+- Data constraints and valid ranges
 
 ### ECS Systems (ISystem)
 
@@ -377,12 +377,12 @@ public partial struct ProjectileMovementSystem : ISystem
 
 **Required information:**
 
--   What the system does (verb: "Processes", "Updates", "Handles")
--   Which components it queries
--   System group and update order
--   Burst compilation status
--   Threading model (parallel/sequential)
--   Performance characteristics
+- What the system does (verb: "Processes", "Updates", "Handles")
+- Which components it queries
+- System group and update order
+- Burst compilation status
+- Threading model (parallel/sequential)
+- Performance characteristics
 
 ### ECS Jobs (IJobEntity)
 
@@ -418,10 +418,10 @@ public partial struct MoveProjectilesJob : IJobEntity
 
 **Required information:**
 
--   Job purpose and execution model
--   Burst compilation status
--   Component access (Read/Write/Read-only)
--   Thread safety considerations
+- Job purpose and execution model
+- Burst compilation status
+- Component access (Read/Write/Read-only)
+- Thread safety considerations
 
 ## Spellwright Architecture Documentation
 
@@ -508,13 +508,13 @@ Always document performance characteristics for DOTS code:
 
 **Include when relevant:**
 
--   Time complexity (Big O notation)
--   Memory allocation characteristics (zero GC)
--   Burst compilation status
--   Threading model
--   Cache efficiency
--   Target performance metrics
--   Unity Profiler category
+- Time complexity (Big O notation)
+- Memory allocation characteristics (zero GC)
+- Burst compilation status
+- Threading model
+- Cache efficiency
+- Target performance metrics
+- Unity Profiler category
 
 ## Validation and Constraints
 
@@ -569,24 +569,24 @@ For systems that use jobs or parallel processing:
 
 Before committing code, verify:
 
--   [ ] All public types have `<summary>` tags
--   [ ] All method parameters have `<param>` tags
--   [ ] All non-void methods have `<returns>` tags
--   [ ] All exceptions are documented with `<exception>` tags
--   [ ] Cross-references use `<see cref=""/>` with correct syntax
--   [ ] ECS components document which systems use them
--   [ ] ECS systems document update order and burst compilation
--   [ ] Performance-critical code includes performance remarks
--   [ ] Unity-specific attributes are explained
--   [ ] No spelling or grammar errors in documentation
+- [ ] All public types have `<summary>` tags
+- [ ] All method parameters have `<param>` tags
+- [ ] All non-void methods have `<returns>` tags
+- [ ] All exceptions are documented with `<exception>` tags
+- [ ] Cross-references use `<see cref=""/>` with correct syntax
+- [ ] ECS components document which systems use them
+- [ ] ECS systems document update order and burst compilation
+- [ ] Performance-critical code includes performance remarks
+- [ ] Unity-specific attributes are explained
+- [ ] No spelling or grammar errors in documentation
 
 ## Tools and Validation
 
 ### IDE Integration
 
--   Visual Studio: Enable XML documentation warnings (CS1591)
--   Rider: Enable "Missing XML comment" inspections
--   VS Code: Install C# XML Documentation extension
+- Visual Studio: Enable XML documentation warnings (CS1591)
+- Rider: Enable "Missing XML comment" inspections
+- VS Code: Install C# XML Documentation extension
 
 ### Build-Time Validation
 
@@ -596,10 +596,10 @@ Documentation warnings should be treated as errors in CI/CD pipeline.
 
 When using AI to generate documentation:
 
--   Always review for technical accuracy
--   Verify code references are correct
--   Ensure performance claims are validated
--   Check Unity/DOTS terminology is correct
+- Always review for technical accuracy
+- Verify code references are correct
+- Ensure performance claims are validated
+- Check Unity/DOTS terminology is correct
 
 ## Examples by Component Type
 
@@ -754,13 +754,13 @@ public float Speed { get; set; }
 
 ## Important Notes
 
--   Documentation is **mandatory**, not optional
--   Write for developers who are unfamiliar with the code
--   Keep documentation synchronized with code changes
--   Document **why**, not just **what** - explain design decisions
--   Use proper XML syntax - validate with IDE tools
--   Performance documentation is critical for DOTS code
--   All documentation must be in **English**
--   Document public API surface area completely
--   Private implementation details are optional but encouraged
--   Update documentation when refactoring code
+- Documentation is **mandatory**, not optional
+- Write for developers who are unfamiliar with the code
+- Keep documentation synchronized with code changes
+- Document **why**, not just **what** - explain design decisions
+- Use proper XML syntax - validate with IDE tools
+- Performance documentation is critical for DOTS code
+- All documentation must be in **English**
+- Document public API surface area completely
+- Private implementation details are optional but encouraged
+- Update documentation when refactoring code

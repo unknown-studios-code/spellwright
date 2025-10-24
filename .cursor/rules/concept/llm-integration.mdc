@@ -469,15 +469,15 @@ public async Task<string> CreateSpellJsonAsync(string userPrompt)
 
 ## Important Notes
 
--   **Asynchronous communication** is mandatory - never block main thread
--   Use **Function Calling** from API as first line of defense
--   **Few-shot prompting** is essential for semantic accuracy
--   **Always validate** JSON on client before processing
--   Implement **detailed logging** to facilitate debugging
--   Use **retry with exponential backoff** for temporary errors
--   **Never hardcode** API keys - use external configuration
--   Define **appropriate timeouts** (e.g., 30 seconds)
--   Handle **all error types** explicitly
--   Consult the `json-schema.mdc` file for complete JSON schema
--   Keep few-shot examples **updated** with new spell types
--   Use **CancellationToken** to allow cancellation of long requests
+- **Asynchronous communication** is mandatory - never block main thread
+- Use **Function Calling** from API as first line of defense
+- **Few-shot prompting** is essential for semantic accuracy
+- **Always validate** JSON on client before processing
+- Implement **detailed logging** to facilitate debugging
+- Use **retry with exponential backoff** for temporary errors
+- **Never hardcode** API keys - use external configuration
+- Define **appropriate timeouts** (e.g., 30 seconds)
+- Handle **all error types** explicitly
+- Consult the `json-schema.mdc` file for complete JSON schema
+- Keep few-shot examples **updated** with new spell types
+- Use **CancellationToken** to allow cancellation of long requests

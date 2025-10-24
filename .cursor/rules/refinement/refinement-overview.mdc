@@ -83,11 +83,11 @@ All templates use a three-part structure to guide you:
 
 **⚠️ CRITICAL RULE:** In your final output, you MUST:
 
--   **REMOVE** all "INSTRUCTION:" labels
--   **REMOVE** all "FORMAT:" labels
--   **REMOVE** all "EXAMPLE:" labels
--   **REPLACE** example content with real project-specific content
--   **KEEP** the section structure and formatting
+- **REMOVE** all "INSTRUCTION:" labels
+- **REMOVE** all "FORMAT:" labels
+- **REMOVE** all "EXAMPLE:" labels
+- **REPLACE** example content with real project-specific content
+- **KEEP** the section structure and formatting
 
 ### Example Transformation
 
@@ -123,24 +123,24 @@ If information is missing, ASK before generating:
 
 **For Epics:**
 
--   "What problem does this solve?"
--   "Who is the target user?"
--   "What's the expected business impact?"
--   "What are the scope boundaries?"
+- "What problem does this solve?"
+- "Who is the target user?"
+- "What's the expected business impact?"
+- "What are the scope boundaries?"
 
 **For Stories:**
 
--   "Who is the primary user of this feature?"
--   "What specific behavior should be observable when complete?"
--   "How does this connect to other stories?"
--   "What is the parent Epic?"
+- "Who is the primary user of this feature?"
+- "What specific behavior should be observable when complete?"
+- "How does this connect to other stories?"
+- "What is the parent Epic?"
 
 **For Tasks:**
 
--   "Which parent Story (SPWS-X) does this belong to?"
--   "What specific files or systems will be modified?"
--   "Are there known dependencies or blockers?"
--   "What's the expected performance target?"
+- "Which parent Story (SPWS-X) does this belong to?"
+- "What specific files or systems will be modified?"
+- "Are there known dependencies or blockers?"
+- "What's the expected performance target?"
 
 ---
 
@@ -152,10 +152,10 @@ Use this framework to prioritize Epics, Stories, and Feature/Tech Tasks.
 
 #### **Critical (Must Have)**
 
--   **Definition:** Absolutely essential. Release cannot exist without this. Blocks all other work.
--   **Epic Examples:** Core system architecture, foundational infrastructure, critical dependencies
--   **Story Examples:** Core data architecture, fundamental systems, essential infrastructure
--   **Task Examples:** Core data structures, fundamental components, essential infrastructure setup
+- **Definition:** Absolutely essential. Release cannot exist without this. Blocks all other work.
+- **Epic Examples:** Core system architecture, foundational infrastructure, critical dependencies
+- **Story Examples:** Core data architecture, fundamental systems, essential infrastructure
+- **Task Examples:** Core data structures, fundamental components, essential infrastructure setup
 
 **Criteria for Critical:**
 
@@ -165,10 +165,10 @@ Use this framework to prioritize Epics, Stories, and Feature/Tech Tasks.
 
 #### **High (Must Have)**
 
--   **Definition:** Essential for release to function properly. Product/feature cannot ship without this.
--   **Epic Examples:** Core features, key user workflows, critical integrations
--   **Story Examples:** Primary feature systems, key integrations, critical workflows
--   **Task Examples:** Primary systems implementation, key integration points, core feature logic
+- **Definition:** Essential for release to function properly. Product/feature cannot ship without this.
+- **Epic Examples:** Core features, key user workflows, critical integrations
+- **Story Examples:** Primary feature systems, key integrations, critical workflows
+- **Task Examples:** Primary systems implementation, key integration points, core feature logic
 
 **Criteria for High:**
 
@@ -179,10 +179,10 @@ Use this framework to prioritize Epics, Stories, and Feature/Tech Tasks.
 
 #### **Medium (Should Have)**
 
--   **Definition:** Important but not blocking. Release can function with workaround or simplified version.
--   **Epic Examples:** Enhanced validation, additional content types, quality-of-life improvements
--   **Story Examples:** Enhanced validation, additional feature variants, quality improvements
--   **Task Examples:** Additional feature variants, enhanced error handling, enhanced validation
+- **Definition:** Important but not blocking. Release can function with workaround or simplified version.
+- **Epic Examples:** Enhanced validation, additional content types, quality-of-life improvements
+- **Story Examples:** Enhanced validation, additional feature variants, quality improvements
+- **Task Examples:** Additional feature variants, enhanced error handling, enhanced validation
 
 **Criteria for Medium:**
 
@@ -192,10 +192,10 @@ Use this framework to prioritize Epics, Stories, and Feature/Tech Tasks.
 
 #### **Low (Could Have)**
 
--   **Definition:** Desirable but can be deferred. Enhancement or polish.
--   **Epic Examples:** Advanced features, editor tooling, polish and optimization
--   **Story Examples:** Advanced features, editor tooling, optimization and polish
--   **Task Examples:** Advanced features, extended logging, editor conveniences
+- **Definition:** Desirable but can be deferred. Enhancement or polish.
+- **Epic Examples:** Advanced features, editor tooling, polish and optimization
+- **Story Examples:** Advanced features, editor tooling, optimization and polish
+- **Task Examples:** Advanced features, extended logging, editor conveniences
 
 **Criteria for Low:**
 
@@ -213,27 +213,27 @@ Use this framework ONLY for Bug Tasks.
 
 #### **Critical**
 
--   **Definition:** Showstopper that prevents use of feature or causes data loss/corruption
--   **Examples:** Crashes on launch, complete feature broken, data corruption, security vulnerability
--   **Criteria:** Crashes, data loss, security issue, no workaround possible
+- **Definition:** Showstopper that prevents use of feature or causes data loss/corruption
+- **Examples:** Crashes on launch, complete feature broken, data corruption, security vulnerability
+- **Criteria:** Crashes, data loss, security issue, no workaround possible
 
 #### **High**
 
--   **Definition:** Major bug that blocks core functionality with no reasonable workaround
--   **Examples:** Crashes in common scenarios, core feature broken, no workaround available
--   **Criteria:** Blocks main workflow, high frequency, no workaround
+- **Definition:** Major bug that blocks core functionality with no reasonable workaround
+- **Examples:** Crashes in common scenarios, core feature broken, no workaround available
+- **Criteria:** Blocks main workflow, high frequency, no workaround
 
 #### **Medium**
 
--   **Definition:** Important bug that degrades experience but has a workaround
--   **Examples:** Degraded UX, edge case behavior, non-blocking but noticeable
--   **Criteria:** Has workaround, impacts experience, moderate frequency
+- **Definition:** Important bug that degrades experience but has a workaround
+- **Examples:** Degraded UX, edge case behavior, non-blocking but noticeable
+- **Criteria:** Has workaround, impacts experience, moderate frequency
 
 #### **Low**
 
--   **Definition:** Minor cosmetic issue or rare edge case with minimal impact
--   **Examples:** Visual glitch, rare scenario, polish issues
--   **Criteria:** Cosmetic, rare, minimal user impact
+- **Definition:** Minor cosmetic issue or rare edge case with minimal impact
+- **Examples:** Visual glitch, rare scenario, polish issues
+- **Criteria:** Cosmetic, rare, minimal user impact
 
 ---
 
@@ -245,40 +245,40 @@ Use these emoji-based categories for ALL risk sections:
 
 🔴 **Technical Risk**
 
--   **Definition:** Architecture, technology, or performance challenges
--   **Examples:** Scalability concerns, algorithm complexity, integration challenges
--   **When to use:** Unknown technical feasibility, new technology, performance concerns
+- **Definition:** Architecture, technology, or performance challenges
+- **Examples:** Scalability concerns, algorithm complexity, integration challenges
+- **When to use:** Unknown technical feasibility, new technology, performance concerns
 
 🟡 **Dependency Risk**
 
--   **Definition:** Blocked by other work, external factors, or team dependencies
--   **Examples:** Waiting for other story, API availability, third-party library
--   **When to use:** External blockers, dependency on other work, vendor dependencies
+- **Definition:** Blocked by other work, external factors, or team dependencies
+- **Examples:** Waiting for other story, API availability, third-party library
+- **When to use:** External blockers, dependency on other work, vendor dependencies
 
 🟠 **Knowledge/Scope Risk**
 
--   **Definition:** Team expertise gaps, unclear boundaries, or scope creep potential
--   **Examples:** Unfamiliar tech stack, vague requirements, expanding scope
--   **When to use:** Learning curve, requirement ambiguity, scope uncertainty
+- **Definition:** Team expertise gaps, unclear boundaries, or scope creep potential
+- **Examples:** Unfamiliar tech stack, vague requirements, expanding scope
+- **When to use:** Learning curve, requirement ambiguity, scope uncertainty
 
 🔵 **Timeline/Integration Risk**
 
--   **Definition:** Schedule concerns, integration conflicts, or coordination challenges
--   **Examples:** Tight deadline, conflicting changes, team coordination
--   **When to use:** Time pressure, merge conflicts, cross-team coordination
+- **Definition:** Schedule concerns, integration conflicts, or coordination challenges
+- **Examples:** Tight deadline, conflicting changes, team coordination
+- **When to use:** Time pressure, merge conflicts, cross-team coordination
 
 ### Risk Format
 
 ```markdown
--   🔴 **[Risk Category]:** [Brief description of risk]
-    -   Mitigation: [How to address or reduce risk]
+- 🔴 **[Risk Category]:** [Brief description of risk]
+  - Mitigation: [How to address or reduce risk]
 ```
 
 **Example:**
 
 ```markdown
--   🔴 **Performance Risk:** System may not scale to 1000 entities
-    -   Mitigation: Early stress testing with 2000 entities, profile before implementation
+- 🔴 **Performance Risk:** System may not scale to 1000 entities
+  - Mitigation: Early stress testing with 2000 entities, profile before implementation
 ```
 
 ---
@@ -296,22 +296,22 @@ Use these emoji-based categories for ALL risk sections:
 
 ### Required Properties (All Types)
 
--   **ID** (Auto-increment) - Auto-generated (SPWE-X, SPWS-X, SPWT-X)
--   **Name** (Title) - Copy artifact title
--   **Priority** (Select) - Use appropriate framework (MoSCoW or Bug Severity)
--   **Status** (Status) - Default: "Not started"
--   **Assignee** (Person) - Assign appropriate role
+- **ID** (Auto-increment) - Auto-generated (SPWE-X, SPWS-X, SPWT-X)
+- **Name** (Title) - Copy artifact title
+- **Priority** (Select) - Use appropriate framework (MoSCoW or Bug Severity)
+- **Status** (Status) - Default: "Not started"
+- **Assignee** (Person) - Assign appropriate role
 
 ### Hierarchy Properties
 
--   **Epic** has: Stories (Relation) → links to child stories
--   **Story** has: Epic (Relation) → links to parent epic, Tasks (Relation) → links to child tasks
--   **Task** has: Story (Relation) → links to parent story
+- **Epic** has: Stories (Relation) → links to child stories
+- **Story** has: Epic (Relation) → links to parent epic, Tasks (Relation) → links to child tasks
+- **Task** has: Story (Relation) → links to parent story
 
 ### Workflow Properties
 
--   **Branch** (URL) - Add GitHub branch URL when development starts
--   **Pull Request** (URL) - Add GitHub PR URL when PR created
+- **Branch** (URL) - Add GitHub branch URL when development starts
+- **Pull Request** (URL) - Add GitHub PR URL when PR created
 
 ---
 
@@ -321,36 +321,36 @@ Before presenting ANY artifact, validate:
 
 ### Universal Checks
 
--   [ ] All sections have real content (no placeholders)
--   [ ] INSTRUCTION/FORMAT/EXAMPLE labels removed
--   [ ] Unity/DOTS terminology used correctly
--   [ ] Risks categorized with emoji (🔴🟡🟠🔵)
--   [ ] All emoticons and markdown formatting preserved
--   [ ] Written in English
+- [ ] All sections have real content (no placeholders)
+- [ ] INSTRUCTION/FORMAT/EXAMPLE labels removed
+- [ ] Unity/DOTS terminology used correctly
+- [ ] Risks categorized with emoji (🔴🟡🟠🔵)
+- [ ] All emoticons and markdown formatting preserved
+- [ ] Written in English
 
 ### Content-Specific Checks
 
 **Epics:**
 
--   [ ] Problem statement includes quantifiable impact
--   [ ] Hypothesis connects action → outcome → measurement
--   [ ] Scope clearly separates IN vs OUT
--   [ ] Metrics are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
+- [ ] Problem statement includes quantifiable impact
+- [ ] Hypothesis connects action → outcome → measurement
+- [ ] Scope clearly separates IN vs OUT
+- [ ] Metrics are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
 
 **Stories:**
 
--   [ ] User story follows "As a... I want... So that..." format
--   [ ] Acceptance criteria are behavioral and testable
--   [ ] No implementation details (code snippets, file paths)
--   [ ] Architectural decisions include rationale (why, not just what)
+- [ ] User story follows "As a... I want... So that..." format
+- [ ] Acceptance criteria are behavioral and testable
+- [ ] No implementation details (code snippets, file paths)
+- [ ] Architectural decisions include rationale (why, not just what)
 
 **Tasks:**
 
--   [ ] File paths are exact and follow project structure
--   [ ] Definition of Done includes code, tests, docs, PR workflow
--   [ ] For bugs: reproduction steps are detailed and exact
--   [ ] For tech tasks: quantifiable improvement metric provided
--   [ ] Performance targets included when relevant
+- [ ] File paths are exact and follow project structure
+- [ ] Definition of Done includes code, tests, docs, PR workflow
+- [ ] For bugs: reproduction steps are detailed and exact
+- [ ] For tech tasks: quantifiable improvement metric provided
+- [ ] Performance targets included when relevant
 
 ---
 
@@ -371,24 +371,24 @@ Before presenting ANY artifact, validate:
 
 ### For AI Agent
 
--   **Always remove** INSTRUCTION, FORMAT, and EXAMPLE labels from output
--   **Focus on specificity** - concrete numbers, real file paths, actual system names
--   **Ask clarifying questions** if information is missing
--   **Read template file** when user requests artifact creation
--   **Validate before presenting** using appropriate Quality Checks
--   **Configure Notion via MCP** - never copy properties section to description
+- **Always remove** INSTRUCTION, FORMAT, and EXAMPLE labels from output
+- **Focus on specificity** - concrete numbers, real file paths, actual system names
+- **Ask clarifying questions** if information is missing
+- **Read template file** when user requests artifact creation
+- **Validate before presenting** using appropriate Quality Checks
+- **Configure Notion via MCP** - never copy properties section to description
 
 ### Content Guidelines
 
--   **Epic:** Business language for stakeholders (executives, PMs, business analysts)
--   **Story:** Conceptual architecture for PMs, Solution Architects, Tech Leads
--   **Task:** Implementation details for Developers who will write the code
+- **Epic:** Business language for stakeholders (executives, PMs, business analysts)
+- **Story:** Conceptual architecture for PMs, Solution Architects, Tech Leads
+- **Task:** Implementation details for Developers who will write the code
 
 ### List Formatting Standards
 
--   Use **numbered lists** (`1. 2. 3.`) for sequential/ordered items
--   Use **simple bullets** (`-`) for unordered items
--   **No checkboxes** (`- [ ]`) in artifact descriptions
+- Use **numbered lists** (`1. 2. 3.`) for sequential/ordered items
+- Use **simple bullets** (`-`) for unordered items
+- **No checkboxes** (`- [ ]`) in artifact descriptions
 
 ---
 
@@ -396,14 +396,14 @@ Before presenting ANY artifact, validate:
 
 **When user says:**
 
--   "Create an epic for [feature]" → Read `epic-template.mdc`, use MoSCoW (Epic)
--   "Create a story for [feature]" → Read `story-template.mdc`, use MoSCoW (Story)
--   "Create a feature task for [feature]" → Read `task-templates.mdc`, use MoSCoW (Task)
--   "Create a tech task for [improvement]" → Read `task-templates.mdc`, use MoSCoW (Task)
--   "Create a bug task for [bug]" → Read `task-templates.mdc`, use Bug Severity
+- "Create an epic for [feature]" → Read `epic-template.mdc`, use MoSCoW (Epic)
+- "Create a story for [feature]" → Read `story-template.mdc`, use MoSCoW (Story)
+- "Create a feature task for [feature]" → Read `task-templates.mdc`, use MoSCoW (Task)
+- "Create a tech task for [improvement]" → Read `task-templates.mdc`, use MoSCoW (Task)
+- "Create a bug task for [bug]" → Read `task-templates.mdc`, use Bug Severity
 
 **Always remember:**
 
--   Epic = PROBLEM + BUSINESS VALUE (for stakeholders)
--   Story = WHAT + WHY (conceptual architecture)
--   Task = HOW (specific implementation with code)
+- Epic = PROBLEM + BUSINESS VALUE (for stakeholders)
+- Story = WHAT + WHY (conceptual architecture)
+- Task = HOW (specific implementation with code)

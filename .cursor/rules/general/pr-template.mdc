@@ -19,8 +19,8 @@ Copy this template structure when creating a Pull Request. Remove all INSTRUCTIO
 **FORMAT:** Task ID, Story reference, Type, Priority
 
 **EXAMPLE:**
-**Story:** SPWS-1 - Spell Data Architecture & Foundation  
-**Type:** Tech  
+**Story:** SPWS-1 - Spell Data Architecture & Foundation
+**Type:** Tech
 **Priority:** Critical
 
 ---
@@ -46,15 +46,15 @@ Copy this template structure when creating a Pull Request. Remove all INSTRUCTIO
 **FORMAT:**
 ```
 
--   **`ComponentName`** - Brief description of purpose
--   **`SystemName`** - Brief description of responsibility
--   **`AssetName`** - Brief description
+- **`ComponentName`** - Brief description of purpose
+- **`SystemName`** - Brief description of responsibility
+- **`AssetName`** - Brief description
 
 All [components/systems/features] are:
 
--   ✅ Quality criterion 1
--   ✅ Quality criterion 2
--   ✅ Quality criterion 3
+- ✅ Quality criterion 1
+- ✅ Quality criterion 2
+- ✅ Quality criterion 3
 
 ````
 
@@ -105,24 +105,24 @@ All components are:
 
 **Before:**
 
--   Baking time: 500ms for 100 spells
--   Entity Inspector: Components hidden when inactive
--   Structural changes during gameplay
+- Baking time: 500ms for 100 spells
+- Entity Inspector: Components hidden when inactive
+- Structural changes during gameplay
 
 **After:**
 
--   Baking time: 50ms for 100 spells (10x improvement)
--   Entity Inspector: All components visible (disabled = grayed out)
--   Zero structural changes during gameplay
+- Baking time: 50ms for 100 spells (10x improvement)
+- Entity Inspector: All components visible (disabled = grayed out)
+- Zero structural changes during gameplay
 
 **Impact:** 10x performance improvement, simplified debugging, better memory locality
 
 **Changes Made:**
 
--   Migrated all payload components to `IEnableableComponent`
--   Replaced `AddComponent/RemoveComponent` with `SetComponentEnabled`
--   Updated query filters to use `.WithEnabled<T>()`
--   Added enableable component guidelines to DOTS architecture docs
+- Migrated all payload components to `IEnableableComponent`
+- Replaced `AddComponent/RemoveComponent` with `SetComponentEnabled`
+- Updated query filters to use `.WithEnabled<T>()`
+- Added enableable component guidelines to DOTS architecture docs
 ```
 
 ---
@@ -158,17 +158,17 @@ All components are:
 
 **Solution:**
 
--   Added `[UpdateBefore(typeof(LifecycleSystem))]` to `StatusEffectSystem`
--   Added defensive null check for entity existence
--   Created regression test to prevent future occurrence
+- Added `[UpdateBefore(typeof(LifecycleSystem))]` to `StatusEffectSystem`
+- Added defensive null check for entity existence
+- Created regression test to prevent future occurrence
 
 **Verification:**
 
--   ✅ Bug no longer reproducible (tested 50+ times)
--   ✅ Regression test added to `StatusEffectSystemTests.cs`
--   ✅ No side effects detected in other systems
--   ✅ Tested on Windows Standalone, Android, WebGL
--   ✅ Stress tested with 200 concurrent spells
+- ✅ Bug no longer reproducible (tested 50+ times)
+- ✅ Regression test added to `StatusEffectSystemTests.cs`
+- ✅ No side effects detected in other systems
+- ✅ Tested on Windows Standalone, Android, WebGL
+- ✅ Stress tested with 200 concurrent spells
 ```
 
 ---
@@ -242,16 +242,16 @@ Assets/Scripts/Systems/
 **EXAMPLE:**
 
 ```markdown
--   [x] `Velocity.cs` created with `float3 Value` field
--   [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
--   [x] `SpellOwner.cs` created with `Entity OwnerEntity` field
--   [x] All components implement `IComponentData`
--   [x] XML documentation added to all components
--   [x] Components compile without errors or warnings
--   [x] Folder structure `Assets/Scripts/Components/Common/` created
--   [x] All files follow PascalCase naming conventions
--   [x] Tested in Unity Entity Inspector
--   [x] Performance verified (<0.5ms for 100 entities)
+- [x] `Velocity.cs` created with `float3 Value` field
+- [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
+- [x] `SpellOwner.cs` created with `Entity OwnerEntity` field
+- [x] All components implement `IComponentData`
+- [x] XML documentation added to all components
+- [x] Components compile without errors or warnings
+- [x] Folder structure `Assets/Scripts/Components/Common/` created
+- [x] All files follow PascalCase naming conventions
+- [x] Tested in Unity Entity Inspector
+- [x] Performance verified (<0.5ms for 100 entities)
 ```
 
 ---
@@ -296,10 +296,10 @@ Assets/Scripts/Systems/
 **EXAMPLE:**
 
 ```markdown
--   **Notion Task:** [SPWT-1](https://www.notion.so/28f56d55129b80679d4cd8ccd971713e)
--   **Story:** [SPWS-1 - Spell Data Architecture & Foundation](https://www.notion.so/28f56d55129b8021b9edc9556533eb0d)
--   **Documentation:** `.cursor/rules/concept/dots-architecture.mdc`
--   **Unity Docs:** [IComponentData](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-unmanaged.html)
+- **Notion Task:** [SPWT-1](https://www.notion.so/28f56d55129b80679d4cd8ccd971713e)
+- **Story:** [SPWS-1 - Spell Data Architecture & Foundation](https://www.notion.so/28f56d55129b8021b9edc9556533eb0d)
+- **Documentation:** `.cursor/rules/concept/dots-architecture.mdc`
+- **Unity Docs:** [IComponentData](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-unmanaged.html)
 ```
 
 ---
@@ -429,8 +429,8 @@ These components are prerequisites for all other spell functionality. They unblo
 ```markdown
 ## 📋 Task: SPWT-45
 
-**Story:** SPWS-6 - Performance Optimization  
-**Type:** Tech  
+**Story:** SPWS-6 - Performance Optimization
+**Type:** Tech
 **Priority:** High
 
 ---
@@ -443,24 +443,24 @@ Refactored SpellBakingSystem to use enableable component pattern, reducing bakin
 
 **Before:**
 
--   Baking time: 500ms for 100 spells
--   Entity Inspector: Components hidden when inactive
--   Structural changes during gameplay
+- Baking time: 500ms for 100 spells
+- Entity Inspector: Components hidden when inactive
+- Structural changes during gameplay
 
 **After:**
 
--   Baking time: 50ms for 100 spells (10x improvement)
--   Entity Inspector: All components visible (disabled = grayed out)
--   Zero structural changes during gameplay
+- Baking time: 50ms for 100 spells (10x improvement)
+- Entity Inspector: All components visible (disabled = grayed out)
+- Zero structural changes during gameplay
 
 **Impact:** 10x performance improvement, simplified debugging, better memory locality
 
 **Changes Made:**
 
--   Migrated all payload components to `IEnableableComponent`
--   Replaced `AddComponent/RemoveComponent` with `SetComponentEnabled`
--   Updated query filters to use `.WithEnabled<T>()`
--   Added enableable component guidelines to DOTS architecture docs
+- Migrated all payload components to `IEnableableComponent`
+- Replaced `AddComponent/RemoveComponent` with `SetComponentEnabled`
+- Updated query filters to use `.WithEnabled<T>()`
+- Added enableable component guidelines to DOTS architecture docs
 
 ---
 
@@ -525,8 +525,8 @@ All spell definitions remain compatible. Performance improvement verified with U
 ```markdown
 ## 📋 Task: SPWT-23
 
-**Story:** SPWS-4 - Spell Payload System  
-**Type:** Bug  
+**Story:** SPWS-4 - Spell Payload System
+**Type:** Bug
 **Priority:** High
 
 ---
@@ -543,17 +543,17 @@ Fixed NullReferenceException when applying status effects by correcting system e
 
 **Solution:**
 
--   Added `[UpdateBefore(typeof(LifecycleSystem))]` to `StatusEffectSystem`
--   Added defensive null check for entity existence
--   Created regression test to prevent future occurrence
+- Added `[UpdateBefore(typeof(LifecycleSystem))]` to `StatusEffectSystem`
+- Added defensive null check for entity existence
+- Created regression test to prevent future occurrence
 
 **Verification:**
 
--   ✅ Bug no longer reproducible (tested 50+ times)
--   ✅ Regression test added to `StatusEffectSystemTests.cs`
--   ✅ No side effects detected in other systems
--   ✅ Tested on Windows Standalone, Android, WebGL
--   ✅ Stress tested with 200 concurrent spells
+- ✅ Bug no longer reproducible (tested 50+ times)
+- ✅ Regression test added to `StatusEffectSystemTests.cs`
+- ✅ No side effects detected in other systems
+- ✅ Tested on Windows Standalone, Android, WebGL
+- ✅ Stress tested with 200 concurrent spells
 
 ---
 
@@ -608,12 +608,12 @@ System execution order is now explicitly defined. All spell types (projectile, A
 
 ## Important Notes
 
--   **Remove all INSTRUCTION/FORMAT/EXAMPLE labels** from final PR body
--   **Select only ONE task-type section** (Feature/Tech/Bug) - delete the others
--   **Mark all DoD items as complete** - only create PR when task is finished
--   **Include rationale** for technical decisions (not just what, but WHY)
--   **Verify all links** work before creating PR
--   **Use correct emoticons** - they improve readability and scanning
--   **Write for reviewers** - provide context they need to understand changes
--   **Be specific** - concrete file paths, numbers, metrics
--   **English only** - all PR content must be in English
+- **Remove all INSTRUCTION/FORMAT/EXAMPLE labels** from final PR body
+- **Select only ONE task-type section** (Feature/Tech/Bug) - delete the others
+- **Mark all DoD items as complete** - only create PR when task is finished
+- **Include rationale** for technical decisions (not just what, but WHY)
+- **Verify all links** work before creating PR
+- **Use correct emoticons** - they improve readability and scanning
+- **Write for reviewers** - provide context they need to understand changes
+- **Be specific** - concrete file paths, numbers, metrics
+- **English only** - all PR content must be in English

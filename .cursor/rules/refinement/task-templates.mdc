@@ -60,10 +60,10 @@ Use for new gameplay/user-facing functionality.
 
 **EXAMPLE:**
 
--   `Assets/Scripts/Components/Modifiers/HomingTag.cs` - Empty tag component for filtering homing spells
--   `Assets/Scripts/Components/Modifiers/HomingData.cs` - Data component with TurnSpeed and Target entity
--   `Assets/Scripts/Systems/Modifiers/HomingSystem.cs` - ISystem that schedules HomingJob each frame
--   `Assets/Scripts/Jobs/Modifiers/HomingJob.cs` - IJobEntity that calculates direction to target
+- `Assets/Scripts/Components/Modifiers/HomingTag.cs` - Empty tag component for filtering homing spells
+- `Assets/Scripts/Components/Modifiers/HomingData.cs` - Data component with TurnSpeed and Target entity
+- `Assets/Scripts/Systems/Modifiers/HomingSystem.cs` - ISystem that schedules HomingJob each frame
+- `Assets/Scripts/Jobs/Modifiers/HomingJob.cs` - IJobEntity that calculates direction to target
 
 **Key Prefabs/Assets:**
 
@@ -71,8 +71,8 @@ Use for new gameplay/user-facing functionality.
 
 **EXAMPLE:**
 
--   `Assets/Resources/TestSpells/HomingFireball.json` - Test spell definition with homing modifier
--   `Assets/Prefabs/VFX/HomingTrail.prefab` - Visual effect for homing projectiles (optional)
+- `Assets/Resources/TestSpells/HomingFireball.json` - Test spell definition with homing modifier
+- `Assets/Prefabs/VFX/HomingTrail.prefab` - Visual effect for homing projectiles (optional)
 
 **Inspector Values:**
 
@@ -80,8 +80,8 @@ Use for new gameplay/user-facing functionality.
 
 **EXAMPLE:**
 
--   In `HomingData.cs`, expose `float TurnSpeed = 5.0f` (degrees per second)
--   In `SpellDefinition` JSON schema, add `"turn_speed"` field to homing modifier (range: 0.1-50.0)
+- In `HomingData.cs`, expose `float TurnSpeed = 5.0f` (degrees per second)
+- In `SpellDefinition` JSON schema, add `"turn_speed"` field to homing modifier (range: 0.1-50.0)
 
 **Implementation Notes:**
 
@@ -89,12 +89,12 @@ Use for new gameplay/user-facing functionality.
 
 **EXAMPLE:**
 
--   Use `math.slerp()` for smooth rotation between current direction and target direction
--   Query for closest enemy with `SystemAPI.Query<LocalTransform>().WithAll<EnemyTag>()`
--   Apply Burst compilation `[BurstCompile]` to both system and job
--   Use `EntityCommandBuffer.ParallelWriter` if creating/destroying entities in job
--   Target acquisition happens once per spell spawn, not every frame
--   If target is destroyed, projectile continues in current direction (no retargeting)
+- Use `math.slerp()` for smooth rotation between current direction and target direction
+- Query for closest enemy with `SystemAPI.Query<LocalTransform>().WithAll<EnemyTag>()`
+- Apply Burst compilation `[BurstCompile]` to both system and job
+- Use `EntityCommandBuffer.ParallelWriter` if creating/destroying entities in job
+- Target acquisition happens once per spell spawn, not every frame
+- If target is destroyed, projectile continues in current direction (no retargeting)
 
 **Dependencies:**
 
@@ -102,9 +102,9 @@ Use for new gameplay/user-facing functionality.
 
 **EXAMPLE:**
 
--   Requires `SpellMovementSystem` from **SPWT-2** (must apply velocity after homing calculations)
--   Requires `SpellBakingSystem` from **SPWT-1** to support modifier deserialization
--   Requires enemy entities to have `EnemyTag` component for targeting queries
+- Requires `SpellMovementSystem` from **SPWT-2** (must apply velocity after homing calculations)
+- Requires `SpellBakingSystem` from **SPWT-1** to support modifier deserialization
+- Requires enemy entities to have `EnemyTag` component for targeting queries
 
 ---
 
@@ -116,21 +116,21 @@ Use for new gameplay/user-facing functionality.
 
 **Risk Categories:**
 
--   🔴 **Technical Risk:** Architecture or technology challenges
--   🟡 **Dependency Risk:** Blocked by other work or external factors
--   🟠 **Integration Risk:** Conflicts with other systems
--   🔵 **Testing Risk:** Difficult to validate or reproduce
+- 🔴 **Technical Risk:** Architecture or technology challenges
+- 🟡 **Dependency Risk:** Blocked by other work or external factors
+- 🟠 **Integration Risk:** Conflicts with other systems
+- 🔵 **Testing Risk:** Difficult to validate or reproduce
 
 **EXAMPLE:**
 
--   🔴 **Performance Risk:** Querying all enemies every frame could be expensive with 100+ enemies
-    -   Mitigation: Cache closest enemy during spawn, use spatial partitioning if needed
--   🟡 **Edge Case:** Target enemy destroyed mid-flight could cause null reference
-    -   Mitigation: Check `EntityManager.Exists(target)` before accessing transform
--   🟠 **Integration Risk:** Homing calculations might conflict with other modifiers (e.g., fork, pierce)
-    -   Mitigation: Document execution order, ensure HomingSystem runs after movement but before collision
--   🔵 **Testing Challenge:** Difficult to reproduce specific homing behaviors deterministically
-    -   Mitigation: Create fixed test scenarios with stationary targets first
+- 🔴 **Performance Risk:** Querying all enemies every frame could be expensive with 100+ enemies
+  - Mitigation: Cache closest enemy during spawn, use spatial partitioning if needed
+- 🟡 **Edge Case:** Target enemy destroyed mid-flight could cause null reference
+  - Mitigation: Check `EntityManager.Exists(target)` before accessing transform
+- 🟠 **Integration Risk:** Homing calculations might conflict with other modifiers (e.g., fork, pierce)
+  - Mitigation: Document execution order, ensure HomingSystem runs after movement but before collision
+- 🔵 **Testing Challenge:** Difficult to reproduce specific homing behaviors deterministically
+  - Mitigation: Create fixed test scenarios with stationary targets first
 
 ---
 
@@ -138,16 +138,16 @@ Use for new gameplay/user-facing functionality.
 
 **INSTRUCTION:** Provide links to technical documentation, related tasks, and code references.
 
--   **🎨 Design Files:**
-    -   [Miro: Homing Behavior Flow Diagram](URL)
-    -   [Video Reference: Diablo 3 Magic Missile](URL)
--   **📚 Documentation:**
-    -   [Unity DOTS: Writing an IJobEntity](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_ijobentity.html)
-    -   [Unity Mathematics: Slerp Function](https://docs.unity3d.com/Packages/com.unity.mathematics@latest)
-    -   [Project Rules: DOTS Architecture](.cursor/rules/concept/dots-architecture.mdc)
--   **🌐 External Resources:**
-    -   [GDC Talk: Math for Game Programmers - Juicing Your Cameras](URL)
-    -   [Reference Implementation: Unity ECS Samples - Boids](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
+- **🎨 Design Files:**
+  - [Miro: Homing Behavior Flow Diagram](URL)
+  - [Video Reference: Diablo 3 Magic Missile](URL)
+- **📚 Documentation:**
+  - [Unity DOTS: Writing an IJobEntity](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_ijobentity.html)
+  - [Unity Mathematics: Slerp Function](https://docs.unity3d.com/Packages/com.unity.mathematics@latest)
+  - [Project Rules: DOTS Architecture](.cursor/rules/concept/dots-architecture.mdc)
+- **🌐 External Resources:**
+  - [GDC Talk: Math for Game Programmers - Juicing Your Cameras](URL)
+  - [Reference Implementation: Unity ECS Samples - Boids](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
 ```
 
 ---
@@ -167,8 +167,8 @@ Use for refactorings, optimizations, and internal technical improvements.
 
 **EXAMPLE:**
 
--   **What:** Refactor the `SpellBakingSystem` to use component enableable pattern instead of adding/removing components dynamically
--   **Why:** Current approach causes structural changes during baking, leading to 500ms+ baking times for 100 spells. Enableable components will reduce this to <50ms by avoiding archetype changes, and simplify debugging by keeping all components visible in Entity Inspector.
+- **What:** Refactor the `SpellBakingSystem` to use component enableable pattern instead of adding/removing components dynamically
+- **Why:** Current approach causes structural changes during baking, leading to 500ms+ baking times for 100 spells. Enableable components will reduce this to <50ms by avoiding archetype changes, and simplify debugging by keeping all components visible in Entity Inspector.
 
 ---
 
@@ -203,46 +203,46 @@ Use for refactorings, optimizations, and internal technical improvements.
 
 **Step 1: Update Component Definitions**
 
--   Modify `Assets/Scripts/Components/Payloads/*.cs` to implement `IEnableableComponent`
--   Add `: IEnableableComponent` to: `DamagePayload`, `HealPayload`, `StatusEffectPayload`
--   Keep all fields and struct layout unchanged
+- Modify `Assets/Scripts/Components/Payloads/*.cs` to implement `IEnableableComponent`
+- Add `: IEnableableComponent` to: `DamagePayload`, `HealPayload`, `StatusEffectPayload`
+- Keep all fields and struct layout unchanged
 
 **Step 2: Refactor SpellBakingSystem**
 
--   Open `Assets/Scripts/Systems/SpellBakingSystem.cs`
--   Replace `ecb.AddComponent<T>()` with `ecb.SetComponentEnabled<T>(entity, true)`
--   Replace `ecb.RemoveComponent<T>()` with `ecb.SetComponentEnabled<T>(entity, false)`
--   Ensure all components are added during initial entity creation, then enabled/disabled as needed
+- Open `Assets/Scripts/Systems/SpellBakingSystem.cs`
+- Replace `ecb.AddComponent<T>()` with `ecb.SetComponentEnabled<T>(entity, true)`
+- Replace `ecb.RemoveComponent<T>()` with `ecb.SetComponentEnabled<T>(entity, false)`
+- Ensure all components are added during initial entity creation, then enabled/disabled as needed
 
 **Step 3: Update Query Filters**
 
--   Update all systems that query payload components
--   Change `.WithAll<PayloadComponent>()` to `.WithAll<PayloadComponent>().WithEnabled<PayloadComponent>()`
--   Affected files: `PayloadResolutionSystem.cs`, `SpellCollisionSystem.cs`
+- Update all systems that query payload components
+- Change `.WithAll<PayloadComponent>()` to `.WithAll<PayloadComponent>().WithEnabled<PayloadComponent>()`
+- Affected files: `PayloadResolutionSystem.cs`, `SpellCollisionSystem.cs`
 
 **Step 4: Performance Validation**
 
--   Open Unity Profiler (Window > Analysis > Profiler)
--   Navigate to `Test_Scene_StressTest` and spawn 100 spells
--   Measure `SpellBakingSystem.OnUpdate()` time
--   Target: <0.5ms per system update, <50ms total for 100 spells
+- Open Unity Profiler (Window > Analysis > Profiler)
+- Navigate to `Test_Scene_StressTest` and spawn 100 spells
+- Measure `SpellBakingSystem.OnUpdate()` time
+- Target: <0.5ms per system update, <50ms total for 100 spells
 
 **Step 5: Compatibility Testing**
 
--   Load all spell definitions from `Assets/Resources/Spells/`
--   Verify each spell spawns, moves, and applies effects correctly
--   Check Entity Inspector to confirm disabled components are visible but grayed out
+- Load all spell definitions from `Assets/Resources/Spells/`
+- Verify each spell spawns, moves, and applies effects correctly
+- Check Entity Inspector to confirm disabled components are visible but grayed out
 
 **Step 6: Update Documentation**
 
--   Add section in `.cursor/rules/concept/dots-architecture.mdc` about enableable components
--   Document when to use `IEnableableComponent` vs adding/removing components
+- Add section in `.cursor/rules/concept/dots-architecture.mdc` about enableable components
+- Document when to use `IEnableableComponent` vs adding/removing components
 
 **Performance Impact:**
 
--   Before: 500ms for 100 spells (5ms per spell)
--   After: <50ms for 100 spells (<0.5ms per spell)
--   **10x improvement** in baking performance
+- Before: 500ms for 100 spells (5ms per spell)
+- After: <50ms for 100 spells (<0.5ms per spell)
+- **10x improvement** in baking performance
 
 ---
 
@@ -254,22 +254,22 @@ Use for refactorings, optimizations, and internal technical improvements.
 
 **Risk Categories:**
 
--   🔴 **Technical Risk:** Architecture or technology challenges
--   🟡 **Migration Risk:** Breaking changes during refactoring
--   🟠 **Performance Risk:** Potential regressions
--   🔵 **Knowledge Risk:** Team expertise gaps
+- 🔴 **Technical Risk:** Architecture or technology challenges
+- 🟡 **Migration Risk:** Breaking changes during refactoring
+- 🟠 **Performance Risk:** Potential regressions
+- 🔵 **Knowledge Risk:** Team expertise gaps
 
 **EXAMPLE:**
 
--   🔴 **Migration Risk:** Existing spell entities might break if components are not added upfront
-    -   Mitigation: Add all components during entity creation, use enabled/disabled state only
-    -   Rollback: Keep old system in separate branch for 1 sprint as safety net
--   🟡 **Testing Coverage:** Hard to verify ALL spell combinations still work
-    -   Mitigation: Run full spell test suite (50+ test cases), manual QA testing session
--   🟠 **Performance Regression:** Querying with `WithEnabled<T>()` might have overhead
-    -   Mitigation: Profile before/after with 1000 entities, ensure no frame time increase
--   🔵 **Team Knowledge:** Team might not be familiar with enableable component pattern
-    -   Mitigation: Tech talk + code review session before merge
+- 🔴 **Migration Risk:** Existing spell entities might break if components are not added upfront
+  - Mitigation: Add all components during entity creation, use enabled/disabled state only
+  - Rollback: Keep old system in separate branch for 1 sprint as safety net
+- 🟡 **Testing Coverage:** Hard to verify ALL spell combinations still work
+  - Mitigation: Run full spell test suite (50+ test cases), manual QA testing session
+- 🟠 **Performance Regression:** Querying with `WithEnabled<T>()` might have overhead
+  - Mitigation: Profile before/after with 1000 entities, ensure no frame time increase
+- 🔵 **Team Knowledge:** Team might not be familiar with enableable component pattern
+  - Mitigation: Tech talk + code review session before merge
 
 ---
 
@@ -277,13 +277,13 @@ Use for refactorings, optimizations, and internal technical improvements.
 
 **INSTRUCTION:** Include Unity documentation, architectural references, and related refactoring tasks.
 
--   **📚 Documentation:**
-    -   [Unity Entities: Enableable Components](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-enableable.html)
-    -   [Unity DOTS Best Practices: Structural Changes](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/concepts-structural-changes.html)
-    -   [Project: DOTS Architecture Rules](.cursor/rules/concept/dots-architecture.mdc)
--   **🌐 External Resources:**
-    -   [Unite Talk: DOTS Performance Optimization](URL)
-    -   [Unity Forum: When to Use Enableable Components](URL)
+- **📚 Documentation:**
+  - [Unity Entities: Enableable Components](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-enableable.html)
+  - [Unity DOTS Best Practices: Structural Changes](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/concepts-structural-changes.html)
+  - [Project: DOTS Architecture Rules](.cursor/rules/concept/dots-architecture.mdc)
+- **🌐 External Resources:**
+  - [Unite Talk: DOTS Performance Optimization](URL)
+  - [Unity Forum: When to Use Enableable Components](URL)
 ```
 
 ---
@@ -329,14 +329,14 @@ Use to fix identified defects and problems.
 
 **EXAMPLE:**
 
--   **Unity Version:** 2022.3.15f1
--   **DOTS Packages:**
-    -   `com.unity.entities` 1.0.16
-    -   `com.unity.burst` 1.8.8
--   **Build Target:** Windows Standalone, Editor Play Mode
--   **Device Specs:** Windows 11, Ryzen 9 5900X, RTX 3080, 32GB RAM
--   **Commit Hash:** `a3f7d91` (branch: `feature/SPWS-2/SPWT-10`)
--   **Reproducibility:** 100% (happens every time)
+- **Unity Version:** 2022.3.15f1
+- **DOTS Packages:**
+  - `com.unity.entities` 1.0.16
+  - `com.unity.burst` 1.8.8
+- **Build Target:** Windows Standalone, Editor Play Mode
+- **Device Specs:** Windows 11, Ryzen 9 5900X, RTX 3080, 32GB RAM
+- **Commit Hash:** `a3f7d91` (branch: `feature/SPWS-2/SPWT-10`)
+- **Reproducibility:** 100% (happens every time)
 
 ---
 
@@ -384,26 +384,26 @@ Use to fix identified defects and problems.
 
 **Step 1: Fix System Execution Order**
 
--   Open `Assets/Scripts/Systems/StatusEffectSystem.cs`
--   Add attribute above class: `[UpdateBefore(typeof(LifecycleSystem))]`
--   This ensures status effects are applied before entity destruction
+- Open `Assets/Scripts/Systems/StatusEffectSystem.cs`
+- Add attribute above class: `[UpdateBefore(typeof(LifecycleSystem))]`
+- This ensures status effects are applied before entity destruction
 
 **Step 2: Add Defensive Null Check**
 
--   In `StatusEffectSystem.OnUpdate()`, add check: `if (!EntityManager.Exists(sourceEntity)) continue;`
--   Prevents exception if entity is destroyed earlier than expected
+- In `StatusEffectSystem.OnUpdate()`, add check: `if (!EntityManager.Exists(sourceEntity)) continue;`
+- Prevents exception if entity is destroyed earlier than expected
 
 **Step 3: Create Regression Test**
 
--   Create `Assets/Tests/StatusEffectSystemTests.cs`
--   Test case: Spawn spell → trigger effect → verify effect applied before destruction
--   Use `[Test]` attribute for Unity Test Runner
+- Create `Assets/Tests/StatusEffectSystemTests.cs`
+- Test case: Spawn spell → trigger effect → verify effect applied before destruction
+- Use `[Test]` attribute for Unity Test Runner
 
 **Step 4: Validate Memory Cleanup**
 
--   Open Memory Profiler (Window > Analysis > Memory Profiler)
--   Capture snapshot before and after spawning 100 spells
--   Verify no leaked `StatusEffectBuffer` components
+- Open Memory Profiler (Window > Analysis > Memory Profiler)
+- Capture snapshot before and after spawning 100 spells
+- Verify no leaked `StatusEffectBuffer` components
 
 ---
 
@@ -415,21 +415,21 @@ Use to fix identified defects and problems.
 
 **Risk Categories:**
 
--   🔴 **Technical Risk:** Architecture or technology challenges
--   🟡 **Side Effect Risk:** Unintended consequences of the fix
--   🟠 **Regression Risk:** Fix might break other functionality
--   🔵 **Platform Risk:** Different behavior across platforms
+- 🔴 **Technical Risk:** Architecture or technology challenges
+- 🟡 **Side Effect Risk:** Unintended consequences of the fix
+- 🟠 **Regression Risk:** Fix might break other functionality
+- 🔵 **Platform Risk:** Different behavior across platforms
 
 **EXAMPLE:**
 
--   🔴 **Side Effect Risk:** Changing system order might affect other systems that depend on current execution flow
-    -   Mitigation: Review all systems in `SimulationSystemGroup`, verify no implicit dependencies
--   🟡 **Regression Risk:** Fix might break existing spells that rely on current (incorrect) timing
-    -   Mitigation: Full regression test suite on all spell types (projectile, AoE, cone, self-cast)
--   🟠 **Performance Risk:** Adding null checks might impact performance at scale
-    -   Mitigation: Profile with 1000 concurrent entities, ensure <0.1ms overhead
--   🔵 **Platform Risk:** Bug might manifest differently on mobile platforms
-    -   Mitigation: Test on Android device before marking as complete
+- 🔴 **Side Effect Risk:** Changing system order might affect other systems that depend on current execution flow
+  - Mitigation: Review all systems in `SimulationSystemGroup`, verify no implicit dependencies
+- 🟡 **Regression Risk:** Fix might break existing spells that rely on current (incorrect) timing
+  - Mitigation: Full regression test suite on all spell types (projectile, AoE, cone, self-cast)
+- 🟠 **Performance Risk:** Adding null checks might impact performance at scale
+  - Mitigation: Profile with 1000 concurrent entities, ensure <0.1ms overhead
+- 🔵 **Platform Risk:** Bug might manifest differently on mobile platforms
+  - Mitigation: Test on Android device before marking as complete
 
 ---
 
@@ -437,13 +437,13 @@ Use to fix identified defects and problems.
 
 **INSTRUCTION:** Link to error logs, related bugs, Unity documentation, and debugging sessions.
 
--   **🐛 Bug Tracking:**
-    -   [Notion Bug Report: SPWT-23](URL)
-    -   [Console Log Screenshot](URL)
-    -   [Memory Profiler Snapshot](URL)
--   **📚 Documentation:**
-    -   [Unity Entities: System Update Order](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/systems-update-order.html)
-    -   [Project Rules: DOTS System Ordering](.cursor/rules/concept/dots-architecture.mdc#system-execution-order)
+- **🐛 Bug Tracking:**
+  - [Notion Bug Report: SPWT-23](URL)
+  - [Console Log Screenshot](URL)
+  - [Memory Profiler Snapshot](URL)
+- **📚 Documentation:**
+  - [Unity Entities: System Update Order](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/systems-update-order.html)
+  - [Project Rules: DOTS System Ordering](.cursor/rules/concept/dots-architecture.mdc#system-execution-order)
 ```
 
 ---
@@ -454,38 +454,38 @@ Before presenting any Task, verify:
 
 ### Feature Task Checks
 
--   [ ] Description focuses on user-facing behavior
--   [ ] Definition of Done includes code, tests, docs, and PR workflow (10+ items typical)
--   [ ] File paths are exact and follow project structure (`Assets/Scripts/[Category]/[FileName].cs`)
--   [ ] Implementation Notes include algorithm choices and performance considerations
--   [ ] Dependencies list specific tasks/systems (with SPWT-X or system names)
--   [ ] Risks are implementation-specific and categorized
--   [ ] Performance targets included ("<0.5ms for 100 entities")
+- [ ] Description focuses on user-facing behavior
+- [ ] Definition of Done includes code, tests, docs, and PR workflow (10+ items typical)
+- [ ] File paths are exact and follow project structure (`Assets/Scripts/[Category]/[FileName].cs`)
+- [ ] Implementation Notes include algorithm choices and performance considerations
+- [ ] Dependencies list specific tasks/systems (with SPWT-X or system names)
+- [ ] Risks are implementation-specific and categorized
+- [ ] Performance targets included ("<0.5ms for 100 entities")
 
 ### Tech Task Checks
 
--   [ ] Technical Objective explains WHAT + WHY with quantifiable improvement
--   [ ] Definition of Done includes performance metrics (before/after)
--   [ ] Technical Refinement provides step-by-step plan
--   [ ] Performance Impact section shows concrete improvement ("10x faster")
--   [ ] Rollback strategy included for risky changes
--   [ ] Documentation updates included in DoD
+- [ ] Technical Objective explains WHAT + WHY with quantifiable improvement
+- [ ] Definition of Done includes performance metrics (before/after)
+- [ ] Technical Refinement provides step-by-step plan
+- [ ] Performance Impact section shows concrete improvement ("10x faster")
+- [ ] Rollback strategy included for risky changes
+- [ ] Documentation updates included in DoD
 
 ### Bug Task Checks
 
--   [ ] Reproduction steps are exact and detailed (any developer can reproduce)
--   [ ] Expected vs Actual behavior clearly contrasted
--   [ ] Environment info complete (versions, platform, commit hash, reproducibility %)
--   [ ] Root Cause Analysis explains WHY (not just WHAT)
--   [ ] Regression test required in Definition of Done
--   [ ] Fix tested across multiple platforms if applicable
+- [ ] Reproduction steps are exact and detailed (any developer can reproduce)
+- [ ] Expected vs Actual behavior clearly contrasted
+- [ ] Environment info complete (versions, platform, commit hash, reproducibility %)
+- [ ] Root Cause Analysis explains WHY (not just WHAT)
+- [ ] Regression test required in Definition of Done
+- [ ] Fix tested across multiple platforms if applicable
 
 ### Universal Task Checks
 
--   [ ] Correct template chosen (Feature/Tech/Bug matches request)
--   [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
--   [ ] Parent Story (SPWS-X) referenced
--   [ ] Risks categorized with emoji (🔴🟡🟠🔵)
--   [ ] All emoticons and markdown formatting preserved
--   [ ] Uses correct Unity/DOTS terminology
--   [ ] Written in English
+- [ ] Correct template chosen (Feature/Tech/Bug matches request)
+- [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
+- [ ] Parent Story (SPWS-X) referenced
+- [ ] Risks categorized with emoji (🔴🟡🟠🔵)
+- [ ] All emoticons and markdown formatting preserved
+- [ ] Uses correct Unity/DOTS terminology
+- [ ] Written in English
