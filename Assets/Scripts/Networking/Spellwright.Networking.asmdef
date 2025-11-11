@@ -1,0 +1,23 @@
+{
+    "name": "Spellwright.Networking",
+    "rootNamespace": "Spellwright.Networking",
+    "references": [
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.Transforms",
+        "Unity.NetCode",
+        "Spellwright.Components",
+        "Spellwright.Systems"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

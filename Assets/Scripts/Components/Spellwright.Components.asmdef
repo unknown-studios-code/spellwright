@@ -1,0 +1,19 @@
+{
+    "name": "Spellwright.Components",
+    "rootNamespace": "Spellwright.Components",
+    "references": [
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Spellwright.Utilities"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
