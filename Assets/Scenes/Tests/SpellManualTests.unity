@@ -395,11 +395,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f0cf41b2501ebb42bad3dc6daf4fee5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Spellwright.Tests.Utilities::Spellwright.Tests.Utilities.SpellSpawnVisualizer
+  m_EditorClassIdentifier: Spellwright.Tests.Manual::Spellwright.Tests.Manual.SpellTester
   spawnKey: 1
   spawnCount: 1
-  spawnRadius: 2
-  spellSpeed: 15
+  spawnRadius: 1
+  spellSpeed: 1
   spellLifetime: 5
   spawnPosition:
     x: 0
@@ -421,9 +421,8 @@ MonoBehaviour:
   sphereRadius: 0.2
   showLifecycleStats: 1
   statsPosition: {x: 10, y: 10}
-  enableManualMovement: 1
   autoSpawn: 0
-  spawnInterval: 2
+  spawnInterval: 1
   verboseLogging: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
