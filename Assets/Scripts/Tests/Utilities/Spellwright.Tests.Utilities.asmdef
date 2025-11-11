@@ -1,0 +1,25 @@
+{
+    "name": "Spellwright.Tests.Utilities",
+    "rootNamespace": "Spellwright.Tests.Utilities",
+    "references": [
+        "Unity.Entities",
+        "Unity.Transforms",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "Spellwright.Utilities",
+        "Spellwright.Components",
+        "Spellwright.Systems",
+        "Spellwright.Jobs"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

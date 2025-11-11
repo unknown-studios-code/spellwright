@@ -1,0 +1,331 @@
+---
+description: Defines code generation standards for Spellwright, establishing clean and production-ready code practices without unnecessary comments or documentation overhead.
+alwaysApply: false
+---
+
+# Code Generation Standards
+
+This file defines mandatory code generation standards for Spellwright. The goal is to produce clean, readable, and production-ready code that is self-documenting through clear naming conventions and structure.
+
+## Core Principles
+
+### No Comments in Generated Code
+
+**CRITICAL**: When generating code, DO NOT include comments unless explicitly requested by the user.
+
+- **No explanatory comments**: Code should be self-explanatory through clear naming
+- **No inline documentation**: Avoid `//` or `/* */` style comments
+- **No XML documentation**: Do not add `///` XML doc comments
+- **No TODO/FIXME**: Never add placeholder comments
+
+### Exceptions
+
+Comments are allowed ONLY in these specific cases:
+
+1. **User explicitly requests**: "add comments explaining X"
+2. **Complex algorithms**: Mathematical formulas or non-obvious logic that cannot be simplified
+3. **Unity/DOTS attributes**: Required attributes like `[BurstCompile]`, `[GenerateAuthoringComponent]`
+4. **Legal/License headers**: When required by project standards
+
+## Code Quality Standards
+
+Since we don't use comments, code quality is paramount:
+
+### 1. Clear Naming Conventions
+
+**Variables and Fields:**
+```csharp
+float projectileSpeed;
+float3 targetPosition;
+Entity currentTarget;
+```
+
+**Methods:**
+```csharp
+public void ProcessCollision(Entity source, Entity target)
+public bool TryFindTarget(out Entity target)
+public void ApplyDamage(Entity target, float amount)
+```
+
+**Systems:**
+```csharp
+public partial struct ProjectileMovementSystem : ISystem
+public partial struct HomingTargetAcquisitionSystem : ISystem
+```
+
+**Components:**
+```csharp
+public struct ProjectileSpeed : IComponentData
+public struct HomingTarget : IComponentData
+public struct DamagePayload : IComponentData
+```
+
+### 2. Self-Documenting Code Structure
+
+**Good (No comments needed):**
+```csharp
+public void Execute(Entity projectile, RefRW<Position> position, in Velocity velocity)
+{
+    float deltaTime = SystemAPI.Time.DeltaTime;
+    float3 movement = velocity.Value * deltaTime;
+    position.ValueRW.Value += movement;
+}
+```
+
+**Bad (Needs comments due to unclear code):**
+```csharp
+public void Execute(Entity e, RefRW<Position> p, in Velocity v)
+{
+    float dt = SystemAPI.Time.DeltaTime;
+    p.ValueRW.Value += v.Value * dt;
+}
+```
+
+### 3. Small, Focused Methods
+
+Break complex logic into well-named methods instead of using comments:
+
+**Good:**
+```csharp
+private bool IsTargetValid(Entity target)
+{
+    return SystemAPI.HasComponent<Targetable>(target) &&
+           !SystemAPI.HasComponent<Dead>(target);
+}
+
+private Entity FindNearestTarget(float3 position, float range)
+{
+    Entity nearest = Entity.Null;
+    float minDistance = range;
+
+    foreach (var (targetPos, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<Targetable>().WithEntityAccess())
+    {
+        float distance = math.distance(position, targetPos.ValueRO.Position);
+        if (distance < minDistance && IsTargetValid(entity))
+        {
+            minDistance = distance;
+            nearest = entity;
+        }
+    }
+
+    return nearest;
+}
+```
+
+**Bad:**
+```csharp
+private Entity FindNearestTarget(float3 position, float range)
+{
+    Entity nearest = Entity.Null;
+    float minDistance = range;
+
+    // Loop through all entities with Targetable component
+    foreach (var (targetPos, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<Targetable>().WithEntityAccess())
+    {
+        // Calculate distance to target
+        float distance = math.distance(position, targetPos.ValueRO.Position);
+
+        // Check if it's closer and valid
+        if (distance < minDistance && SystemAPI.HasComponent<Targetable>(entity) && !SystemAPI.HasComponent<Dead>(entity))
+        {
+            minDistance = distance;
+            nearest = entity;
+        }
+    }
+
+    return nearest;
+}
+```
+
+### 4. Consistent Patterns
+
+Follow established DOTS/ECS patterns consistently:
+
+**Component Definition:**
+```csharp
+public struct ProjectileSpeed : IComponentData
+{
+    public float Value;
+}
+```
+
+**System Definition:**
+```csharp
+[BurstCompile]
+public partial struct ProjectileMovementSystem : ISystem
+{
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        foreach (var (transform, speed) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<ProjectileSpeed>>())
+        {
+            float3 forward = transform.ValueRO.Forward();
+            transform.ValueRW.Position += forward * speed.ValueRO.Value * SystemAPI.Time.DeltaTime;
+        }
+    }
+}
+```
+
+## Code Organization
+
+### File Structure
+
+Each file should have clear, logical organization:
+
+1. **Using statements** (grouped and sorted)
+2. **Namespace declaration**
+3. **Type definition** (class/struct)
+4. **Fields** (grouped by access modifier)
+5. **Properties** (grouped by access modifier)
+6. **Methods** (grouped by purpose)
+
+**Example:**
+```csharp
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
+
+namespace Spellwright.Generators
+{
+    public struct ProjectileGenerator : IComponentData
+    {
+        public float Speed;
+        public float Lifetime;
+        public Entity ProjectilePrefab;
+    }
+
+    [BurstCompile]
+    public partial struct ProjectileSpawnSystem : ISystem
+    {
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            EntityCommandBuffer ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+
+            foreach (var (generator, entity) in SystemAPI.Query<RefRO<ProjectileGenerator>>().WithEntityAccess())
+            {
+                SpawnProjectile(ecb, generator.ValueRO, entity);
+            }
+        }
+
+        private void SpawnProjectile(EntityCommandBuffer ecb, ProjectileGenerator generator, Entity source)
+        {
+            Entity projectile = ecb.Instantiate(generator.ProjectilePrefab);
+            ecb.SetComponent(projectile, new ProjectileSpeed { Value = generator.Speed });
+            ecb.SetComponent(projectile, new Lifetime { Value = generator.Lifetime });
+        }
+    }
+}
+```
+
+### Whitespace and Formatting
+
+- One blank line between methods
+- No blank lines between field declarations
+- Consistent indentation (4 spaces or 1 tab)
+- Opening braces on new line (K&R style for Unity C#)
+
+## Generated Code Checklist
+
+When generating code, ensure:
+
+- [ ] No comments (unless explicitly requested or exception applies)
+- [ ] Clear, descriptive variable names
+- [ ] Clear, descriptive method names
+- [ ] Clear, descriptive type names
+- [ ] Methods are small and focused
+- [ ] Logic is self-explanatory
+- [ ] Follows DOTS/ECS patterns
+- [ ] Consistent formatting
+- [ ] Proper using statements
+- [ ] Correct namespace
+- [ ] No spelling errors in identifiers
+
+## Anti-Patterns to Avoid
+
+### 1. Over-Commented Code
+```csharp
+// BAD: Don't do this
+// Set the speed
+projectile.speed = 10f; // Speed is 10
+```
+
+### 2. Unclear Names with Comments
+```csharp
+// BAD: Don't do this
+float s; // speed
+float3 p; // position
+```
+
+**Instead:**
+```csharp
+// GOOD: Self-documenting
+float speed;
+float3 position;
+```
+
+### 3. Magic Numbers
+```csharp
+// BAD: Don't do this
+if (distance < 5.0f)
+```
+
+**Instead:**
+```csharp
+// GOOD: Named constant
+private const float MAX_TARGETING_RANGE = 5.0f;
+
+if (distance < MAX_TARGETING_RANGE)
+```
+
+### 4. Long Methods with Comments
+```csharp
+// BAD: Don't do this
+public void Update()
+{
+    // Acquire target
+    // ... 20 lines of code ...
+
+    // Calculate trajectory
+    // ... 20 lines of code ...
+
+    // Apply movement
+    // ... 20 lines of code ...
+}
+```
+
+**Instead:**
+```csharp
+// GOOD: Extracted methods
+public void Update()
+{
+    Entity target = AcquireTarget();
+    float3 trajectory = CalculateTrajectory(target);
+    ApplyMovement(trajectory);
+}
+
+private Entity AcquireTarget() { ... }
+private float3 CalculateTrajectory(Entity target) { ... }
+private void ApplyMovement(float3 trajectory) { ... }
+```
+
+## Integration with Other Standards
+
+This standard works in conjunction with:
+
+- **DOTS Architecture**: Follow component/system patterns defined in `concept/dots-architecture`
+- **Spell Components**: Follow generator/modifier/payload patterns in `concept/spell-components`
+- **JSON Schema**: Follow data structures in `concept/json-schema`
+
+## Summary
+
+**PRIMARY RULE**: Generate clean, comment-free code that is self-documenting through:
+
+1. Clear naming conventions
+2. Small, focused methods
+3. Consistent patterns
+4. Logical organization
+5. Self-explanatory logic
+
+**Remember**: If code needs comments to be understood, it needs to be refactored, not commented.
