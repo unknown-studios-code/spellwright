@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Entities.Serialization;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine;
@@ -6,26 +7,35 @@ using UnityEngine.InputSystem;
 using Spellwright.Components.Common;
 using Spellwright.Components.Spawning;
 
-namespace Spellwright.Tests.Utilities
+namespace Spellwright.Tests.Manual
 {
     [RequireComponent(typeof(Camera))]
-    public class SpellSpawnVisualizer : MonoBehaviour
+    public class SpellTester : MonoBehaviour
     {
         [Header("Spawn Configuration")]
         [SerializeField] private Key spawnKey = Key.Space;
         [SerializeField] private int spawnCount = 1;
         [SerializeField] private float spawnRadius = 2f;
         [SerializeField] private float spellSpeed = 15f;
+        [SerializeField] private float spellLifetime = 5f;
         [SerializeField] private float3 spawnPosition = float3.zero;
         [SerializeField] private float3 spawnDirection = new float3(0, 0, 1);
 
         [Header("Visualization")]
         [SerializeField] private bool showVelocityVectors = true;
         [SerializeField] private bool showSpawnPoints = true;
+        [SerializeField] private bool showLifetimeIndicators = true;
+        [SerializeField] private bool showLifetimeText = true;
         [SerializeField] private float vectorScale = 1f;
         [SerializeField] private Color velocityColor = Color.cyan;
         [SerializeField] private Color spawnPointColor = Color.yellow;
+        [SerializeField] private Color lifetimeFullColor = Color.green;
+        [SerializeField] private Color lifetimeExpiredColor = Color.red;
         [SerializeField] private float sphereRadius = 0.2f;
+
+        [Header("Lifecycle Statistics")]
+        [SerializeField] private bool showLifecycleStats = true;
+        [SerializeField] private Vector2 statsPosition = new Vector2(10, 10);
 
         [Header("Debug")]
         [SerializeField] private bool enableManualMovement = true;
@@ -37,8 +47,10 @@ namespace Spellwright.Tests.Utilities
         private Entity _testPrefab;
         private Entity _caster;
         private float _lastSpellSpeed;
+        private float _lastSpellLifetime;
         private float _nextSpawnTime;
         private int _totalSpawned;
+        private int _totalDestroyed;
         private EntityQuery _spellQuery;
 
         private void Start()
@@ -54,7 +66,7 @@ namespace Spellwright.Tests.Utilities
         {
             if (World.DefaultGameObjectInjectionWorld == null)
             {
-                Debug.LogError("[SpellSpawnVisualizer] No default world found. Ensure ECS is initialized.");
+                Debug.LogError("[SpellTester] No default world found. Ensure ECS is initialized.");
                 return false;
             }
             return true;
@@ -65,7 +77,8 @@ namespace Spellwright.Tests.Utilities
             _spellQuery = _entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<Unity.Transforms.LocalTransform>(),
                 ComponentType.ReadOnly<Velocity>(),
-                ComponentType.ReadOnly<SpellOwner>()
+                ComponentType.ReadOnly<SpellOwner>(),
+                ComponentType.ReadOnly<Lifetime>()
             );
         }
 
@@ -75,11 +88,13 @@ namespace Spellwright.Tests.Utilities
             HandleAutoSpawn();
             HandleManualSpawn();
             HandleManualMovement();
+            TrackDestroyedEntities();
         }
 
         private void HandlePrefabRecreation()
         {
-            if (math.abs(spellSpeed - _lastSpellSpeed) > 0.01f)
+            if (math.abs(spellSpeed - _lastSpellSpeed) > 0.01f ||
+                math.abs(spellLifetime - _lastSpellLifetime) > 0.01f)
             {
                 RecreatePrefab();
             }
@@ -110,6 +125,18 @@ namespace Spellwright.Tests.Utilities
             }
         }
 
+        private void TrackDestroyedEntities()
+        {
+            int currentCount = _spellQuery.CalculateEntityCount();
+            int expectedAlive = _totalSpawned - _totalDestroyed;
+
+            if (currentCount < expectedAlive)
+            {
+                _totalDestroyed += (expectedAlive - currentCount);
+                LogVerbose($"Lifecycle destroyed {expectedAlive - currentCount} spell(s) | Total destroyed: {_totalDestroyed}");
+            }
+        }
+
         private void RecreatePrefab()
         {
             if (_entityManager != default && _entityManager.Exists(_testPrefab))
@@ -120,8 +147,9 @@ namespace Spellwright.Tests.Utilities
 
             _testPrefab = CreateTestPrefab();
             _lastSpellSpeed = spellSpeed;
+            _lastSpellLifetime = spellLifetime;
 
-            LogInfo($"Prefab recreated | Speed: {spellSpeed:F2}");
+            LogInfo($"Prefab recreated | Speed: {spellSpeed:F2} | Lifetime: {spellLifetime:F2}s");
         }
 
         private void MoveSpells()
@@ -148,6 +176,7 @@ namespace Spellwright.Tests.Utilities
             _testPrefab = CreateTestPrefab();
             _caster = _entityManager.CreateEntity();
             _lastSpellSpeed = spellSpeed;
+            _lastSpellLifetime = spellLifetime;
 
             LogInfo($"Initialized | Prefab: {_testPrefab.Index}:{_testPrefab.Version} | Caster: {_caster.Index}:{_caster.Version} | Press '{spawnKey}' to spawn");
         }
@@ -164,9 +193,10 @@ namespace Spellwright.Tests.Utilities
                 Scale = 1f
             });
             _entityManager.AddComponentData(prefab, new Speed { Value = spellSpeed });
-            _entityManager.AddComponentData(prefab, new Lifetime { Duration = 5f, SpawnTime = 0 });
+            _entityManager.AddComponentData(prefab, new Lifetime { Duration = spellLifetime, SpawnTime = 0 });
+            _entityManager.AddComponent<Prefab>(prefab);
 
-            LogVerbose($"Prefab components | SpellOwner: ✓ | Transform: ✓ | Speed: {spellSpeed:F2} | Lifetime: 5s");
+            LogVerbose($"Prefab components | SpellOwner: ✓ | Transform: ✓ | Speed: {spellSpeed:F2} | Lifetime: {spellLifetime:F2}s | Prefab Tag: ✓");
 
             return prefab;
         }
@@ -240,20 +270,23 @@ namespace Spellwright.Tests.Utilities
             var entities = _spellQuery.ToEntityArray(Allocator.Temp);
             var transforms = _spellQuery.ToComponentDataArray<Unity.Transforms.LocalTransform>(Allocator.Temp);
             var velocities = _spellQuery.ToComponentDataArray<Velocity>(Allocator.Temp);
+            var lifetimes = _spellQuery.ToComponentDataArray<Lifetime>(Allocator.Temp);
 
             for (int i = 0; i < entities.Length; i++)
             {
                 float3 position = transforms[i].Position;
                 float3 velocity = velocities[i].Value;
+                Lifetime lifetime = lifetimes[i];
 
                 DrawSpawnPoint(position);
                 DrawVelocityVector(position, velocity);
-                DrawLifetimeIndicator(position, entities[i]);
+                DrawLifetimeIndicator(position, lifetime);
             }
 
             entities.Dispose();
             transforms.Dispose();
             velocities.Dispose();
+            lifetimes.Dispose();
         }
 
         private void DrawSpawnPoint(float3 position)
@@ -276,20 +309,44 @@ namespace Spellwright.Tests.Utilities
             DrawArrowHead(position, endPoint, 0.2f);
         }
 
-        private void DrawLifetimeIndicator(float3 position, Entity entity)
+        private void DrawLifetimeIndicator(float3 position, Lifetime lifetime)
         {
-            if (!_entityManager.HasComponent<Lifetime>(entity)) return;
+            if (!showLifetimeIndicators) return;
 
-            Lifetime lifetime = _entityManager.GetComponentData<Lifetime>(entity);
             double elapsedTime = World.DefaultGameObjectInjectionWorld.Time.ElapsedTime;
             float remainingTime = lifetime.Duration - (float)(elapsedTime - lifetime.SpawnTime);
+            float normalizedLifetime = math.clamp(remainingTime / lifetime.Duration, 0f, 1f);
 
-            if (remainingTime > 0)
+            Gizmos.color = Color.Lerp(lifetimeExpiredColor, lifetimeFullColor, normalizedLifetime);
+            Gizmos.DrawWireSphere(position, sphereRadius * 0.5f);
+
+            if (showLifetimeText && Camera.current != null)
             {
-                float normalizedLifetime = remainingTime / lifetime.Duration;
-                Gizmos.color = Color.Lerp(Color.red, Color.green, normalizedLifetime);
-                Gizmos.DrawWireSphere(position, sphereRadius * 0.5f);
+                Vector3 screenPos = Camera.current.WorldToScreenPoint(position);
+                if (screenPos.z > 0)
+                {
+                    Vector3 guiPos = new Vector3(screenPos.x, Screen.height - screenPos.y, 0);
+                    DrawLifetimeLabel(guiPos, remainingTime);
+                }
             }
+        }
+
+        private void DrawLifetimeLabel(Vector3 guiPosition, float remainingTime)
+        {
+#if UNITY_EDITOR
+            GUIStyle style = new GUIStyle();
+            style.normal.textColor = remainingTime > 1f ? lifetimeFullColor : lifetimeExpiredColor;
+            style.fontSize = 10;
+            style.alignment = TextAnchor.MiddleCenter;
+
+            string label = remainingTime > 0 ? $"{remainingTime:F1}s" : "EXPIRED";
+            Vector2 size = style.CalcSize(new GUIContent(label));
+            Rect rect = new Rect(guiPosition.x - size.x / 2, guiPosition.y - size.y / 2, size.x, size.y);
+
+            UnityEditor.Handles.BeginGUI();
+            GUI.Label(rect, label, style);
+            UnityEditor.Handles.EndGUI();
+#endif
         }
 
         private void DrawArrowHead(float3 start, float3 end, float arrowSize)
@@ -311,16 +368,53 @@ namespace Spellwright.Tests.Utilities
             Gizmos.DrawLine(end, arrowTip2);
         }
 
+        private void OnGUI()
+        {
+            if (!showLifecycleStats || !Application.isPlaying) return;
+
+            DrawLifecycleStatistics();
+        }
+
+        private void DrawLifecycleStatistics()
+        {
+            int activeCount = _spellQuery.CalculateEntityCount();
+
+            GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
+            boxStyle.alignment = TextAnchor.UpperLeft;
+            boxStyle.padding = new RectOffset(10, 10, 10, 10);
+
+            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            labelStyle.fontSize = 12;
+            labelStyle.normal.textColor = Color.white;
+
+            string stats = $"<b>Lifecycle Statistics</b>\n" +
+                          $"Active Spells: {activeCount}\n" +
+                          $"Total Spawned: {_totalSpawned}\n" +
+                          $"Total Destroyed: {_totalDestroyed}\n" +
+                          $"Lifetime: {spellLifetime:F1}s\n" +
+                          $"Speed: {spellSpeed:F1} u/s\n" +
+                          $"\n<b>Controls</b>\n" +
+                          $"Spawn: {spawnKey}\n" +
+                          $"Auto Spawn: {(autoSpawn ? "ON" : "OFF")}";
+
+            GUIContent content = new GUIContent(stats);
+            Vector2 size = labelStyle.CalcSize(content);
+            Rect boxRect = new Rect(statsPosition.x, statsPosition.y, size.x + 20, size.y + 20);
+
+            GUI.Box(boxRect, "", boxStyle);
+            GUI.Label(new Rect(statsPosition.x + 10, statsPosition.y + 10, size.x, size.y), stats, labelStyle);
+        }
+
         private void LogInfo(string message)
         {
-            Debug.Log($"[SpellSpawnVisualizer] {message}");
+            Debug.Log($"[SpellTester] {message}");
         }
 
         private void LogVerbose(string message)
         {
             if (verboseLogging)
             {
-                Debug.Log($"[SpellSpawnVisualizer] [VERBOSE] {message}");
+                Debug.Log($"[SpellTester] [VERBOSE] {message}");
             }
         }
 
@@ -338,7 +432,8 @@ namespace Spellwright.Tests.Utilities
                 }
             }
 
-            LogInfo($"Destroyed | Total spawned this session: {_totalSpawned}");
+            LogInfo($"Destroyed | Total spawned: {_totalSpawned} | Total destroyed: {_totalDestroyed}");
         }
     }
 }
+
