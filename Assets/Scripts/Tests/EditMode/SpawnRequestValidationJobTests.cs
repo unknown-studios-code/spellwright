@@ -1,143 +1,72 @@
 using NUnit.Framework;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Spellwright.Components.Common;
 using Spellwright.Components.Spawning;
 using Spellwright.Tests.Utilities;
+using Unity.Transforms;
 
 namespace Spellwright.Tests.EditMode.Jobs.Spawning
 {
     [TestFixture]
-    public class SpawnRequestValidationJobTests
+    public class SpawnRequestValidationJobTests : EditModeTestBase
     {
-        private World _world;
-        private EntityManager _entityManager;
-        private EntityCommandBuffer _ecb;
 
-        [SetUp]
-        public void SetUp()
+        [Test]
+        public void IsValidPrefab_WithAllComponents_ReturnsTrue()
         {
-            _world = new World("TestWorld");
-            _entityManager = _world.EntityManager;
-            _ecb = new EntityCommandBuffer(Allocator.TempJob);
-        }
+            Entity prefab = EntityCreationUtils.CreateValidPrefab(EntityManager);
 
-        [TearDown]
-        public void TearDown()
-        {
-            if (_ecb.IsCreated)
-            {
-                _ecb.Dispose();
-            }
+            bool isValid = ValidatesPrefabManually(prefab);
 
-            if (_world != null && _world.IsCreated)
-            {
-                _world.Dispose();
-            }
+            Assert.IsTrue(isValid, "Prefab with all required components should be valid");
         }
 
         [Test]
-        public void ValidPrefab_HasAllComponents()
+        public void IsValidPrefab_MissingSpellOwner_ReturnsFalse()
         {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
+            Entity prefab = EntityCreationUtils.CreateInvalidPrefab_MissingSpellOwner(EntityManager);
 
-            bool hasAllComponents = _entityManager.HasComponent<SpellOwner>(prefab)
-                && _entityManager.HasComponent<Unity.Transforms.LocalTransform>(prefab)
-                && _entityManager.HasComponent<Speed>(prefab)
-                && _entityManager.HasComponent<Lifetime>(prefab);
+            bool isValid = ValidatesPrefabManually(prefab);
 
-            Assert.IsTrue(hasAllComponents, "Valid prefab must have all required components");
+            Assert.IsFalse(isValid, "Prefab missing SpellOwner should be invalid");
         }
 
         [Test]
-        public void InvalidPrefab_MissingSpellOwner()
+        public void IsValidPrefab_MissingLocalTransform_ReturnsFalse()
         {
-            Entity prefab = TestHelpers.CreateInvalidPrefab_MissingSpellOwner(_entityManager);
+            Entity prefab = EntityCreationUtils.CreateInvalidPrefab_MissingLocalTransform(EntityManager);
 
-            Assert.IsFalse(_entityManager.HasComponent<SpellOwner>(prefab), "Invalid prefab should not have SpellOwner");
+            bool isValid = ValidatesPrefabManually(prefab);
+
+            Assert.IsFalse(isValid, "Prefab missing LocalTransform should be invalid");
         }
 
         [Test]
-        public void InvalidPrefab_MissingLocalTransform()
+        public void IsValidPrefab_MissingSpeed_ReturnsFalse()
         {
-            Entity prefab = TestHelpers.CreateInvalidPrefab_MissingLocalTransform(_entityManager);
+            Entity prefab = EntityCreationUtils.CreateInvalidPrefab_MissingSpeed(EntityManager);
 
-            Assert.IsFalse(_entityManager.HasComponent<Unity.Transforms.LocalTransform>(prefab), "Invalid prefab should not have LocalTransform");
+            bool isValid = ValidatesPrefabManually(prefab);
+
+            Assert.IsFalse(isValid, "Prefab missing Speed should be invalid");
         }
 
         [Test]
-        public void InvalidPrefab_MissingSpeed()
+        public void IsValidPrefab_MissingLifetime_ReturnsFalse()
         {
-            Entity prefab = TestHelpers.CreateInvalidPrefab_MissingSpeed(_entityManager);
+            Entity prefab = EntityCreationUtils.CreateInvalidPrefab_MissingLifetime(EntityManager);
 
-            Assert.IsFalse(_entityManager.HasComponent<Speed>(prefab), "Invalid prefab should not have Speed");
+            bool isValid = ValidatesPrefabManually(prefab);
+
+            Assert.IsFalse(isValid, "Prefab missing Lifetime should be invalid");
         }
 
-        [Test]
-        public void InvalidPrefab_MissingLifetime()
+        private bool ValidatesPrefabManually(Entity prefabEntity)
         {
-            Entity prefab = TestHelpers.CreateInvalidPrefab_MissingLifetime(_entityManager);
-
-            Assert.IsFalse(_entityManager.HasComponent<Lifetime>(prefab), "Invalid prefab should not have Lifetime");
-        }
-
-        [Test]
-        public void ECB_AfterPlayback_AddsValidatedTag()
-        {
-            Entity request = _entityManager.CreateEntity();
-            _ecb.AddComponent<ValidatedTag>(request);
-
-            _ecb.Playback(_entityManager);
-
-            Assert.IsTrue(_entityManager.HasComponent<ValidatedTag>(request), "Entity should have ValidatedTag after playback");
-        }
-
-        [Test]
-        public void ECB_AfterPlayback_DestroysInvalidRequest()
-        {
-            Entity request = _entityManager.CreateEntity();
-            _ecb.DestroyEntity(request);
-
-            _ecb.Playback(_entityManager);
-
-            Assert.IsFalse(_entityManager.Exists(request), "Invalid request should be destroyed after playback");
-        }
-
-        [Test]
-        public void SpawnRequest_CanBeCreated()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-
-            Entity request = _entityManager.CreateEntity();
-            _entityManager.AddComponentData(request, new SpawnRequest
-            {
-                PrefabEntity = prefab,
-                CasterEntity = caster,
-                SpawnPosition = float3.zero,
-                SpawnDirection = new float3(0, 0, 1)
-            });
-
-            Assert.IsTrue(_entityManager.HasComponent<SpawnRequest>(request), "Entity should have SpawnRequest component");
-        }
-
-        [Test]
-        public void SpawnRequest_WithoutValidatedTag()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-
-            Entity request = _entityManager.CreateEntity();
-            _entityManager.AddComponentData(request, new SpawnRequest
-            {
-                PrefabEntity = prefab,
-                CasterEntity = caster,
-                SpawnPosition = float3.zero,
-                SpawnDirection = new float3(0, 0, 1)
-            });
-
-            Assert.IsFalse(_entityManager.HasComponent<ValidatedTag>(request), "New SpawnRequest should not have ValidatedTag");
+            return EntityManager.HasComponent<SpellOwner>(prefabEntity)
+                && EntityManager.HasComponent<LocalTransform>(prefabEntity)
+                && EntityManager.HasComponent<Speed>(prefabEntity)
+                && EntityManager.HasComponent<Lifetime>(prefabEntity);
         }
     }
 }
