@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace Spellwright.Components
+namespace Spellwright.Components.Common
 {
     public struct Lifetime : IComponentData
     {
