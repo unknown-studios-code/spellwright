@@ -15,8 +15,8 @@ namespace Spellwright.Tests.Manual
         [Header("Spawn Configuration")]
         [SerializeField] private Key spawnKey = Key.Space;
         [SerializeField] private int spawnCount = 1;
-        [SerializeField] private float spawnRadius = 2f;
-        [SerializeField] private float spellSpeed = 15f;
+        [SerializeField] private float spawnRadius = 1f;
+        [SerializeField] private float spellSpeed = 1;
         [SerializeField] private float spellLifetime = 5f;
         [SerializeField] private float3 spawnPosition = float3.zero;
         [SerializeField] private float3 spawnDirection = new float3(0, 0, 1);
@@ -38,9 +38,8 @@ namespace Spellwright.Tests.Manual
         [SerializeField] private Vector2 statsPosition = new Vector2(10, 10);
 
         [Header("Debug")]
-        [SerializeField] private bool enableManualMovement = true;
         [SerializeField] private bool autoSpawn = false;
-        [SerializeField] private float spawnInterval = 2f;
+        [SerializeField] private float spawnInterval = 1f;
         [SerializeField] private bool verboseLogging = false;
 
         private EntityManager _entityManager;
@@ -87,7 +86,6 @@ namespace Spellwright.Tests.Manual
             HandlePrefabRecreation();
             HandleAutoSpawn();
             HandleManualSpawn();
-            HandleManualMovement();
             TrackDestroyedEntities();
         }
 
@@ -117,14 +115,6 @@ namespace Spellwright.Tests.Manual
             }
         }
 
-        private void HandleManualMovement()
-        {
-            if (enableManualMovement)
-            {
-                MoveSpells();
-            }
-        }
-
         private void TrackDestroyedEntities()
         {
             int currentCount = _spellQuery.CalculateEntityCount();
@@ -150,25 +140,6 @@ namespace Spellwright.Tests.Manual
             _lastSpellLifetime = spellLifetime;
 
             LogInfo($"Prefab recreated | Speed: {spellSpeed:F2} | Lifetime: {spellLifetime:F2}s");
-        }
-
-        private void MoveSpells()
-        {
-            if (!_spellQuery.IsEmpty)
-            {
-                var entities = _spellQuery.ToEntityArray(Allocator.Temp);
-
-                for (int i = 0; i < entities.Length; i++)
-                {
-                    var transform = _entityManager.GetComponentData<Unity.Transforms.LocalTransform>(entities[i]);
-                    var velocity = _entityManager.GetComponentData<Velocity>(entities[i]);
-
-                    transform.Position += velocity.Value * Time.deltaTime;
-                    _entityManager.SetComponentData(entities[i], transform);
-                }
-
-                entities.Dispose();
-            }
         }
 
         private void InitializeTestEntities()

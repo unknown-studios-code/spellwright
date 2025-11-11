@@ -8,117 +8,46 @@ using Spellwright.Tests.Utilities;
 namespace Spellwright.Tests.EditMode.Systems.Spawning
 {
     [TestFixture]
-    public class SpellSpawnSystemTests
+    public class SpellSpawnSystemTests : EditModeTestBase
     {
-        private World _world;
-        private EntityManager _entityManager;
-
-        [SetUp]
-        public void SetUp()
-        {
-            _world = new World("TestWorld");
-            _entityManager = _world.EntityManager;
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            if (_world != null && _world.IsCreated)
-            {
-                _world.Dispose();
-            }
-        }
 
         [Test]
-        public void SpawnRequest_CanBeCreatedWithValidatedTag()
+        public void SpawnRequest_ComponentData_IsCorrect()
         {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, float3.zero, new float3(0, 0, 1));
-
-            Assert.IsTrue(_entityManager.Exists(request), "SpawnRequest entity should exist");
-        }
-
-        [Test]
-        public void ValidatedSpawnRequest_HasValidatedTag()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, float3.zero, new float3(0, 0, 1));
-
-            Assert.IsTrue(_entityManager.HasComponent<ValidatedTag>(request), "SpawnRequest must have ValidatedTag");
-        }
-
-        [Test]
-        public void ValidatedSpawnRequest_HasSpawnRequest()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, float3.zero, new float3(0, 0, 1));
-
-            Assert.IsTrue(_entityManager.HasComponent<SpawnRequest>(request), "Entity must have SpawnRequest component");
-        }
-
-        [Test]
-        public void SpawnRequest_HasCorrectPrefabEntity()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, float3.zero, new float3(0, 0, 1));
-
-            SpawnRequest spawnRequest = _entityManager.GetComponentData<SpawnRequest>(request);
-            Assert.AreEqual(prefab, spawnRequest.PrefabEntity, "PrefabEntity should match the created prefab");
-        }
-
-        [Test]
-        public void SpawnRequest_HasCorrectCasterEntity()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, float3.zero, new float3(0, 0, 1));
-
-            SpawnRequest spawnRequest = _entityManager.GetComponentData<SpawnRequest>(request);
-            Assert.AreEqual(caster, spawnRequest.CasterEntity, "CasterEntity should match the created caster");
-        }
-
-        [Test]
-        public void SpawnRequest_HasCorrectPosition()
-        {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
+            Entity prefab = EntityCreationUtils.CreateValidPrefab(EntityManager);
+            Entity caster = EntityManager.CreateEntity();
             float3 position = new float3(1, 2, 3);
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, position, new float3(0, 0, 1));
+            float3 direction = new float3(0, 0, 1);
+            Entity request = EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, position, direction);
 
-            SpawnRequest spawnRequest = _entityManager.GetComponentData<SpawnRequest>(request);
-            Assert.AreEqual(position, spawnRequest.SpawnPosition, "SpawnPosition should match the specified position");
+            SpawnRequest spawnRequest = EntityManager.GetComponentData<SpawnRequest>(request);
+
+            Assert.AreEqual(prefab, spawnRequest.PrefabEntity, "PrefabEntity should match");
+            Assert.AreEqual(caster, spawnRequest.CasterEntity, "CasterEntity should match");
+            Assert.AreEqual(position, spawnRequest.SpawnPosition, "SpawnPosition should match");
+            Assert.AreEqual(direction, spawnRequest.SpawnDirection, "SpawnDirection should match");
         }
 
         [Test]
-        public void SpawnRequest_HasCorrectDirection()
+        public void ValidatedTag_CanBeAdded()
         {
-            Entity prefab = TestHelpers.CreateValidPrefab(_entityManager);
-            Entity caster = _entityManager.CreateEntity();
-            float3 direction = new float3(1, 0, 0);
-            Entity request = CreateValidatedSpawnRequest(prefab, caster, float3.zero, direction);
+            Entity prefab = EntityCreationUtils.CreateValidPrefab(EntityManager);
+            Entity caster = EntityManager.CreateEntity();
+            Entity request = EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, float3.zero, new float3(0, 0, 1));
 
-            SpawnRequest spawnRequest = _entityManager.GetComponentData<SpawnRequest>(request);
-            Assert.AreEqual(direction, spawnRequest.SpawnDirection, "SpawnDirection should match the specified direction");
+            Assert.IsTrue(EntityManager.HasComponent<ValidatedTag>(request), "ValidatedTag should be present");
         }
 
-        private Entity CreateValidatedSpawnRequest(Entity prefab, Entity caster, float3 position, float3 direction)
+        [Test]
+        public void SpawnRequest_RequiresPrefabAndCaster()
         {
-            Entity request = _entityManager.CreateEntity();
-            _entityManager.AddComponentData(request, new SpawnRequest
-            {
-                PrefabEntity = prefab,
-                CasterEntity = caster,
-                SpawnPosition = position,
-                SpawnDirection = direction
-            });
-            _entityManager.AddComponent<ValidatedTag>(request);
+            Entity prefab = EntityCreationUtils.CreateValidPrefab(EntityManager);
+            Entity caster = EntityManager.CreateEntity();
+            Entity request = EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, float3.zero, new float3(0, 0, 1));
 
-            return request;
+            SpawnRequest spawnRequest = EntityManager.GetComponentData<SpawnRequest>(request);
+            Assert.IsTrue(EntityManager.Exists(spawnRequest.PrefabEntity), "Prefab entity should exist");
+            Assert.IsTrue(EntityManager.Exists(spawnRequest.CasterEntity), "Caster entity should exist");
         }
     }
 }
-

@@ -14,7 +14,7 @@ namespace Spellwright.Jobs.Lifecycle
         [BurstCompile]
         private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in Lifetime lifetime)
         {
-            if (CurrentTime > lifetime.SpawnTime + lifetime.Duration)
+            if (CurrentTime >= lifetime.SpawnTime + lifetime.Duration)
             {
                 ECB.DestroyEntity(sortKey, entity);
             }

@@ -2,11 +2,13 @@
     "name": "Spellwright.Tests.Utilities",
     "rootNamespace": "Spellwright.Tests.Utilities",
     "references": [
+        "UnityEngine.TestRunner",
         "Unity.Entities",
         "Unity.Transforms",
         "Unity.Mathematics",
         "Unity.Collections",
         "Unity.InputSystem",
+        "Unity.Core",
         "Spellwright.Utilities",
         "Spellwright.Components",
         "Spellwright.Systems",
@@ -15,10 +17,14 @@
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
