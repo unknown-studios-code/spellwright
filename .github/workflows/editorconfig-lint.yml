@@ -72,7 +72,7 @@ jobs:
           # Exit with the same code
           exit $EXIT_CODE
 
-      - name: Validation Summary
+      - name: Show Validation Summary
         if: success()
         run: |
           echo "✅ All files comply with EditorConfig rules!"
@@ -83,7 +83,7 @@ jobs:
           echo "  - Final newline insertion"
           echo "  - Character encoding (UTF-8)"
 
-      - name: Validation Failed - Show Details
+      - name: Show Validation Errors
         if: failure()
         run: |
           echo "❌ EditorConfig validation failed!"

@@ -361,6 +361,50 @@ Part of: SPWS-1
 Related: SPWE-1
 ```
 
+## Husky Management
+
+**CRITICAL**: When creating commits programmatically, Husky hooks **MUST** be disabled to prevent interactive prompts and hook interference.
+
+### Disabling Husky
+
+Use the `HUSKY=0` environment variable to bypass all Husky hooks:
+
+```bash
+# PowerShell (Windows)
+$env:HUSKY=0; git commit -m "commit message"
+
+# Bash/Zsh (Linux/macOS)
+HUSKY=0 git commit -m "commit message"
+```
+
+### When to Disable Husky
+
+- **AI Agent Commits**: Always disable when agent creates commits automatically
+- **CI/CD Pipelines**: Disable in automated environments
+- **Scripts**: Disable in batch commit operations
+
+### Why Disable Husky
+
+- Prevents Commitizen interactive prompts
+- Avoids hook validation delays
+- Ensures non-interactive execution
+- Prevents potential commit failures from hook side effects
+
+### Example: Agent Commit Flow
+
+```bash
+# 1. Stage changes
+git add .
+
+# 2. Commit with Husky disabled
+$env:HUSKY=0; git commit -m "feat(generators): add projectile generator"
+
+# 3. Push changes
+git push
+```
+
+**Important**: Always use `HUSKY=0` prefix when programmatically creating commits via terminal commands.
+
 ## Important Notes
 
 - **Mandatory**: All commits MUST follow Conventional Commits format
@@ -373,3 +417,4 @@ Related: SPWE-1
 - **Validation**: Enable commitlint in CI/CD pipeline
 - **Versioning**: Understand how commit types affect versioning
 - **History**: Maintain clean, readable git history
+- **Husky**: Always disable (`HUSKY=0`) when creating commits programmatically
