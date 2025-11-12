@@ -1,5 +1,10 @@
 {
     "recommendations": [
+        "csharpier.csharpier-vscode",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
         "visualstudiotoolsforunity.vstuc"
     ]
 }

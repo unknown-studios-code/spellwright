@@ -1,8 +1,16 @@
 {
+    "editor.wordWrapColumn": 160,
     "dotnet.defaultSolution": "spellwright.slnx",
-    "cSpell.words": [
-        "spellwright"
-    ],
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.formatOnPaste": true,
+        "editor.formatOnSave": true
+    },
+    "editor.rulers": [160],
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },

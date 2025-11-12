@@ -52,8 +52,8 @@ alwaysApply: true
 - **Merge:** `merge_pull_request` (confirm first, supports merge/squash/rebase)
 - **Copilot Review:** `request_copilot_review`
 - **Manual Review:**
-  - Simple: `create_and_submit_pull_request_review`
-  - Detailed: `create_pending_pull_request_review` → `add_comment_to_pending_review` → `submit_pending_pull_request_review`
+    - Simple: `create_and_submit_pull_request_review`
+    - Detailed: `create_pending_pull_request_review` → `add_comment_to_pending_review` → `submit_pending_pull_request_review`
 
 ### Code Search
 

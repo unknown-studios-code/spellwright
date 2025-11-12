@@ -10,6 +10,7 @@ Obj/
 UserSettings/
 MemoryCaptures/
 Recordings/
+ProjectSettings/
 
 # Unity Files
 *.meta
@@ -55,7 +56,6 @@ Recordings/
 
 # Visual Studio / Rider
 .vs/
-.vscode/
 .idea/
 *.DotSettings.user
 
@@ -80,4 +80,3 @@ Thumbs.db
 
 # Specific files to ignore
 .editorconfig
-
