@@ -1,9 +1,9 @@
+﻿using Spellwright.Components.Common;
+using Spellwright.Components.Spawning;
+using Spellwright.Jobs.Spawning;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Spellwright.Components.Common;
-using Spellwright.Components.Spawning;
-using Spellwright.Jobs.Spawning;
 
 namespace Spellwright.Systems.Spawning
 {
@@ -19,17 +19,14 @@ namespace Spellwright.Systems.Spawning
         {
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
 
-            _query = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<SpawnRequest>()
-                .WithNone<ValidatedTag>()
-                .Build(ref state);
+            _query = new EntityQueryBuilder(Allocator.Temp).WithAll<SpawnRequest>().WithNone<ValidatedTag>().Build(ref state);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecbSingleton = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>();
-            var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
+            BeginInitializationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>();
+            EntityCommandBuffer ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
             var validationJob = new SpawnRequestValidationJob
             {
@@ -37,11 +34,10 @@ namespace Spellwright.Systems.Spawning
                 SpellOwnerLookup = SystemAPI.GetComponentLookup<SpellOwner>(true),
                 TransformLookup = SystemAPI.GetComponentLookup<Unity.Transforms.LocalTransform>(true),
                 SpeedLookup = SystemAPI.GetComponentLookup<Speed>(true),
-                LifetimeLookup = SystemAPI.GetComponentLookup<Lifetime>(true)
+                LifetimeLookup = SystemAPI.GetComponentLookup<Lifetime>(true),
             };
 
             state.Dependency = validationJob.ScheduleParallel(_query, state.Dependency);
         }
     }
 }
-

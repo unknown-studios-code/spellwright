@@ -1,4 +1,4 @@
-namespace Spellwright.Components.Payloads
+﻿namespace Spellwright.Components.Payloads
 {
     public enum ElementalType : byte
     {
@@ -7,6 +7,6 @@ namespace Spellwright.Components.Payloads
         Frost = 2,
         Shock = 3,
         Physical = 4,
-        Holy = 5
+        Holy = 5,
     }
 }

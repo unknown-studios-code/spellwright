@@ -1,11 +1,8 @@
+﻿using System.Collections;
 using NUnit.Framework;
 using Unity.Core;
 using Unity.Entities;
 using UnityEngine;
-using System.Collections;
-using Spellwright.Systems.Lifecycle;
-using Spellwright.Systems.Movement;
-using Spellwright.Systems.Spawning;
 
 namespace Spellwright.Tests.Utilities
 {
@@ -28,19 +25,10 @@ namespace Spellwright.Tests.Utilities
             InitializationGroup = World.GetOrCreateSystemManaged<InitializationSystemGroup>();
             SimulationGroup = World.GetOrCreateSystemManaged<SimulationSystemGroup>();
 
-            var beginInitECB = World.GetOrCreateSystemManaged<BeginInitializationEntityCommandBufferSystem>();
-            var validationSystem = World.CreateSystem<SpawnRequestValidationSystem>();
-            var spawnSystem = World.CreateSystem<SpellSpawnSystem>();
-            var movementSystem = World.CreateSystem<SpellMovementSystem>();
-            var lifecycleSystem = World.CreateSystem<LifecycleSystem>();
-            var endSimECB = World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
-
-            InitializationGroup.AddSystemToUpdateList(beginInitECB);
-            InitializationGroup.AddSystemToUpdateList(validationSystem);
-            InitializationGroup.AddSystemToUpdateList(spawnSystem);
-            SimulationGroup.AddSystemToUpdateList(movementSystem);
-            SimulationGroup.AddSystemToUpdateList(lifecycleSystem);
-            SimulationGroup.AddSystemToUpdateList(endSimECB);
+            World.GetOrCreateSystemManaged<BeginInitializationEntityCommandBufferSystem>();
+            World.GetOrCreateSystemManaged<EndInitializationEntityCommandBufferSystem>();
+            World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
+            World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
             InitializationGroup.SortSystems();
             SimulationGroup.SortSystems();

@@ -1,4 +1,4 @@
-using Unity.Entities;
+﻿using Unity.Entities;
 
 namespace Spellwright.Components.Common
 {
@@ -7,4 +7,3 @@ namespace Spellwright.Components.Common
         public float Value;
     }
 }
-
