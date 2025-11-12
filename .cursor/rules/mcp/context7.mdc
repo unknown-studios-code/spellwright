@@ -19,22 +19,22 @@ alwaysApply: true
 
 1. **Automatically activate** `@Context7` MCP
 2. **Resolve Library ID:**
-   - Use `resolve-library-id` with library name
-   - Analyze results by:
-     - Name similarity (exact match priority)
-     - Trust Score >= 7 (most reliable)
-     - Description relevance
-     - Code Snippet count
-   - If ambiguous, present options to user
-   - If user provides `/org/project` or `/org/project/version`, use directly
+    - Use `resolve-library-id` with library name
+    - Analyze results by:
+        - Name similarity (exact match priority)
+        - Trust Score >= 7 (most reliable)
+        - Description relevance
+        - Code Snippet count
+    - If ambiguous, present options to user
+    - If user provides `/org/project` or `/org/project/version`, use directly
 3. **Fetch Documentation:**
-   - Use `get-library-docs` with correct Library ID
-   - Use `topic` parameter if user specified functionality
-   - Adjust `tokens` by complexity:
-     - Simple: 3000-5000 tokens
-     - Medium: 7000-8000 tokens
-     - Complex: 10000+ tokens
-   - Minimum: 1000 tokens (auto-adjusted)
+    - Use `get-library-docs` with correct Library ID
+    - Use `topic` parameter if user specified functionality
+    - Adjust `tokens` by complexity:
+        - Simple: 3000-5000 tokens
+        - Medium: 7000-8000 tokens
+        - Complex: 10000+ tokens
+    - Minimum: 1000 tokens (auto-adjusted)
 4. **Generate code** based on documentation
 5. **Always cite** source and version
 

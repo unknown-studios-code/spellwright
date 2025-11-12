@@ -12,7 +12,7 @@ Copy this template structure when creating a Pull Request. Remove all INSTRUCTIO
 ## PR Body Template Structure
 
 ```markdown
-## 📋 Task: SPWT-X
+## Task: SPWT-X
 
 **INSTRUCTION:** Replace SPWT-X with actual task ID. Fetch task details from Notion to populate all sections.
 
@@ -25,7 +25,7 @@ Copy this template structure when creating a Pull Request. Remove all INSTRUCTIO
 
 ---
 
-## 🎯 What Changed
+## What Changed
 
 **INSTRUCTION:** Provide a high-level summary (2-4 sentences) explaining what was implemented, fixed, or improved. Focus on WHAT changed, not HOW.
 
@@ -52,9 +52,9 @@ Copy this template structure when creating a Pull Request. Remove all INSTRUCTIO
 
 All [components/systems/features] are:
 
-- ✅ Quality criterion 1
-- ✅ Quality criterion 2
-- ✅ Quality criterion 3
+- Quality criterion 1
+- Quality criterion 2
+- Quality criterion 3
 
 ````
 
@@ -67,10 +67,10 @@ All [components/systems/features] are:
 - **`SpellOwner`** - Entity reference to caster for ownership tracking
 
 All components are:
-- ✅ Blittable and Burst-compatible
-- ✅ Include comprehensive XML documentation
-- ✅ Use Unity.Mathematics types for optimal performance
-- ✅ Follow project naming conventions
+- Blittable and Burst-compatible
+- Include comprehensive XML documentation
+- Use Unity.Mathematics types for optimal performance
+- Follow project naming conventions
 ````
 
 ---
@@ -141,10 +141,10 @@ All components are:
 **Solution:** [How it was fixed]
 
 **Verification:**
-- ✅ Bug no longer reproducible
-- ✅ Regression test added
-- ✅ No side effects
-- ✅ Tested on platforms
+- Bug no longer reproducible
+- Regression test added
+- No side effects
+- Tested on platforms
 ```
 
 **EXAMPLE:**
@@ -164,11 +164,11 @@ All components are:
 
 **Verification:**
 
-- ✅ Bug no longer reproducible (tested 50+ times)
-- ✅ Regression test added to `StatusEffectSystemTests.cs`
-- ✅ No side effects detected in other systems
-- ✅ Tested on Windows Standalone, Android, WebGL
-- ✅ Stress tested with 200 concurrent spells
+- Bug no longer reproducible (tested 50+ times)
+- Regression test added to `StatusEffectSystemTests.cs`
+- No side effects detected in other systems
+- Tested on Windows Standalone, Android, WebGL
+- Stress tested with 200 concurrent spells
 ```
 
 ---
@@ -233,7 +233,7 @@ Assets/Scripts/Systems/
 
 ---
 
-## ✅ Definition of Done
+## Definition of Done
 
 **INSTRUCTION:** Copy all Definition of Done items from the Notion task. Mark each item as completed [x]. This demonstrates that all acceptance criteria were met.
 
@@ -304,7 +304,7 @@ Assets/Scripts/Systems/
 
 ---
 
-## 📝 Notes
+## Notes
 
 **INSTRUCTION:** Add any additional context, known limitations, follow-up work, or important information reviewers should know. If nothing special to note, include a brief summary.
 
@@ -340,7 +340,7 @@ Before using this template, verify:
 - [ ] Notes provide additional context if needed
 - [ ] All INSTRUCTION/FORMAT/EXAMPLE labels removed
 - [ ] Markdown formatting is correct
-- [ ] All emoticons preserved (📋 🎯 📁 ✅ 🔑 🔗 📝)
+- [ ] All emoticons preserved
 
 ---
 
@@ -349,7 +349,7 @@ Before using this template, verify:
 ### Example 1: Feature Task PR
 
 ```markdown
-## 📋 Task: SPWT-1
+## Task: SPWT-1
 
 **Story:** SPWS-1 - Spell Data Architecture & Foundation
 **Type:** Tech
@@ -357,7 +357,7 @@ Before using this template, verify:
 
 ---
 
-## 🎯 What Changed
+## What Changed
 
 Implemented three fundamental unmanaged components that form the foundation of every spell entity in the ECS architecture.
 
@@ -368,10 +368,10 @@ Implemented three fundamental unmanaged components that form the foundation of e
 - **`SpellOwner`** - Entity reference to caster for ownership tracking
 
 All components are:
-- ✅ Blittable and Burst-compatible
-- ✅ Include comprehensive XML documentation
-- ✅ Use Unity.Mathematics types for optimal performance
-- ✅ Follow project naming conventions
+- Blittable and Burst-compatible
+- Include comprehensive XML documentation
+- Use Unity.Mathematics types for optimal performance
+- Follow project naming conventions
 
 ---
 
@@ -388,7 +388,7 @@ Assets/Scripts/Components/Common/
 
 ---
 
-## ✅ Definition of Done
+## Definition of Done
 
 - [x] `Velocity.cs` created with `float3 Value` field
 - [x] `Lifetime.cs` created with `double SpawnTime` and `float Duration` fields
@@ -419,7 +419,7 @@ Assets/Scripts/Components/Common/
 
 ---
 
-## 📝 Notes
+## Notes
 
 These components are prerequisites for all other spell functionality. They unblock parallel development of generators, modifiers, and payloads.
 ```
@@ -427,7 +427,7 @@ These components are prerequisites for all other spell functionality. They unblo
 ### Example 2: Tech Task PR
 
 ```markdown
-## 📋 Task: SPWT-45
+## Task: SPWT-45
 
 **Story:** SPWS-6 - Performance Optimization
 **Type:** Tech
@@ -435,7 +435,7 @@ These components are prerequisites for all other spell functionality. They unblo
 
 ---
 
-## 🎯 What Changed
+## What Changed
 
 Refactored SpellBakingSystem to use enableable component pattern, reducing baking time by 10x and simplifying debugging.
 
@@ -483,7 +483,7 @@ Assets/Scripts/Systems/
 
 ---
 
-## ✅ Definition of Done
+## Definition of Done
 
 - [x] All spell components implement `IEnableableComponent`
 - [x] `SpellBakingSystem.cs` refactored to use `SetComponentEnabled()`
@@ -515,7 +515,7 @@ Assets/Scripts/Systems/
 
 ---
 
-## 📝 Notes
+## Notes
 
 All spell definitions remain compatible. Performance improvement verified with Unity Profiler across multiple scenarios (stress test with 1000 entities).
 ```
@@ -523,7 +523,7 @@ All spell definitions remain compatible. Performance improvement verified with U
 ### Example 3: Bug Task PR
 
 ```markdown
-## 📋 Task: SPWT-23
+## Task: SPWT-23
 
 **Story:** SPWS-4 - Spell Payload System
 **Type:** Bug
@@ -531,7 +531,7 @@ All spell definitions remain compatible. Performance improvement verified with U
 
 ---
 
-## 🎯 What Changed
+## What Changed
 
 Fixed NullReferenceException when applying status effects by correcting system execution order.
 
@@ -549,11 +549,11 @@ Fixed NullReferenceException when applying status effects by correcting system e
 
 **Verification:**
 
-- ✅ Bug no longer reproducible (tested 50+ times)
-- ✅ Regression test added to `StatusEffectSystemTests.cs`
-- ✅ No side effects detected in other systems
-- ✅ Tested on Windows Standalone, Android, WebGL
-- ✅ Stress tested with 200 concurrent spells
+- Bug no longer reproducible (tested 50+ times)
+- Regression test added to `StatusEffectSystemTests.cs`
+- No side effects detected in other systems
+- Tested on Windows Standalone, Android, WebGL
+- Stress tested with 200 concurrent spells
 
 ---
 
@@ -568,7 +568,7 @@ Assets/Scripts/Systems/
 
 ---
 
-## ✅ Definition of Done
+## Definition of Done
 
 - [x] `StatusEffectSystem` runs before `LifecycleSystem`
 - [x] Bug no longer reproducible following original steps
@@ -599,7 +599,7 @@ Assets/Scripts/Systems/
 
 ---
 
-## 📝 Notes
+## Notes
 
 System execution order is now explicitly defined. All spell types (projectile, AoE, cone, self-cast) tested and working correctly.
 ```

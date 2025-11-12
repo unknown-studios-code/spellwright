@@ -1,290 +1,241 @@
 ---
-description: Defines how to create Pull Requests following project standards, including title format, body template, integration with Notion tasks, and quality validation.
+description: Standards for creating Pull Requests with Conventional Commits format, structured templates, and Notion integration.
 alwaysApply: false
 ---
 
 # Pull Request Creation Standards
 
-This file defines mandatory standards for creating Pull Requests in the Spellwright project. All PRs must follow Conventional Commits format for titles and use the structured template for body content.
-
-## PR Creation Triggers
-
-**Activate when user requests:**
-
-- "create a PR", "open a pull request", "create pull request"
-- "open PR for SPWT-X" (Task)
-- "create PR from current branch"
-
-## Template Loading Strategy
-
-**CRITICAL:** The PR template is loaded **ON-DEMAND**. You MUST explicitly read `.cursor/rules/general/pr-template.mdc` when the user requests PR creation.
+Defines mandatory standards for creating Pull Requests in Spellwright following Conventional Commits and project templates.
 
 ## Workflow Overview
 
-1. **Identify Context:** Current branch, target branch, task details from Notion, authenticated user
-2. **Read Template:** `.cursor/rules/general/pr-template.mdc` and identify task-type section
-3. **Generate Title:** Conventional Commits format: `type(scope): subject`
-4. **Analyze & Assign Labels:** Automatically determine 3-5 labels (see Label Assignment section)
-5. **Generate Body:** Follow template structure, remove INSTRUCTION labels, populate with task info
-6. **Create PR:** Use GitHub MCP `create_pull_request` (default `draft: false`)
-7. **Assign Creator:** Use `update_pull_request` with user from `mcp_github_get_me`
-8. **Apply Labels:** Use GitHub CLI/API
-9. **Update Notion:** Set Pull Request property with PR URL
-
-## Automatic Label Assignment
-
-**CRITICAL:** Automatically assign 3-5 labels based on PR content analysis. Structure: 1x type + 1x priority + 1-2x context + 0-2x additional.
-
-### Label Selection Rules
-
-**1. Type Label (MANDATORY - Choose ONE)**
-
-**CRITICAL RULE: Branch prefix ALWAYS takes priority over commit type!**
-
-**Step 1: Check branch name FIRST**
-
-- If branch starts with `feature/` → Use `type: feature` (STOP, ignore commit type)
-- If branch starts with `bug/` → Use `type: bug` (STOP, ignore commit type)
-- If branch starts with `tech/` → Use `type: tech` (STOP, ignore commit type)
-
-**Step 2: If no matching branch prefix, THEN check commit type**
-
-- `feat:` → `type: feature`
-- `fix:` → `type: bug`
-- `refactor:` or `perf:` → `type: tech`
-- `docs:` → `type: docs`
-- `test:` → `type: test`
-
-**Step 3: Special cases (checked independently)**
-
-- Files in `.github/workflows/` → `type: ci/cd`
-- `BREAKING CHANGE:` footer in commit → Add `type: breaking` (additional label, not replacement)
-
-**Decision Matrix:**
-
-| Branch Prefix | Commit Type | Final Label (Branch Wins!) |
-| ------------- | ----------- | -------------------------- |
-| `tech/`       | `feat:`     | `type: tech`               |
-| `feature/`    | `fix:`      | `type: feature`            |
-| `bug/`        | `feat:`     | `type: bug`                |
-| `main`        | `feat:`     | `type: feature`            |
-| `develop`     | `fix:`      | `type: bug`                |
-
-**Special Cases Examples:**
-
-| Files Modified              | Additional Label | Notes                                    |
-| --------------------------- | ---------------- | ---------------------------------------- |
-| `.github/workflows/*.yml`   | `type: ci/cd`    | CI/CD configuration changes              |
-| Any with `BREAKING CHANGE:` | `type: breaking` | ADDED to existing type (not replacement) |
-
-**Example - Breaking Change:**
-
-- Branch: `feature/SPWS-1/SPWT-10`
-- Commit: `feat(api)!: change spell validation API`
-- Final Labels: `type: feature` + `type: breaking` (both labels applied)
-
-**2. Priority Label (MANDATORY - Choose ONE)**
-
-Use Notion task Priority property (default to `medium` if missing):
-
-- `priority: critical` - Blockers, critical bugs, security
-- `priority: high` - Important features, high-impact bugs
-- `priority: medium` - Normal features, moderate bugs
-- `priority: low` - Nice-to-have, minor improvements
-
-**3. Context Labels (MANDATORY - Choose 1-2)**
-
-**Spell System:** `spell: generator|modifier|payload|component` - Use keywords: Projectile, Homing, Damage, etc.
-**DOTS/ECS:** `dots: system|component|job|burst|entities` - Use keywords: ISystem, IComponentData, Burst, etc.
-**Area:** `area: architecture|input|physics|rendering|networking|ui|audio` - Use keywords from domain
-
-**4. Additional Labels (OPTIONAL - Choose 0-2)**
-
-- **Status:** `status: blocked|needs design|needs testing`
-- **Performance:** `quick win|performance|technical debt`
-- **Special:** `skip-title-check` (use rarely)
-
-### Label Assignment Algorithm
-
-**Execute in this EXACT order:**
-
-1. **Extract branch name** from current git branch or PR head
-2. **Determine Type Label (CHECK BRANCH FIRST!):**
-    - a. Does branch start with `feature/`, `bug/`, or `tech/`?
-        - YES → Use corresponding `type:` label, SKIP to step 3
-        - NO → Check commit message type (`feat:`, `fix:`, etc.)
-3. **Priority:** Read Notion task "Priority" property (default: `medium`)
-4. **Context (1-2):** Scan file paths and task description for keywords:
-    - Spell keywords → `spell: generator|modifier|payload|component`
-    - DOTS keywords → `dots: system|component|job|burst|entities`
-    - Domain keywords → `area: architecture|input|physics|rendering|networking|ui|audio`
-5. **Additional (0-2):** Add if relevant: `status:`, `performance`, `technical debt`, `quick win`
-6. **Validate:** Total of 3-5 labels, no duplicates
-
-### Example: Feature Task
-
-**Branch:** `feature/SPWS-1/SPWT-5` | **Priority:** High | **Files:** `ProjectileGeneratorSystem.cs`
-
-**Labels:** `type: feature`, `priority: high`, `spell: generator`, `dots: system`
-
-### Example: Tech Task
-
-**Branch:** `tech/SPWS-1/SPWT-4` | **Commit:** `feat(payloads): ...` | **Priority:** Medium
-
-**Step-by-step:**
-
-1. Branch = `tech/SPWS-1/SPWT-4` → starts with `tech/`
-2. Type label = `type: tech` (IGNORE commit `feat:`)
-3. Priority = `priority: medium` (from Notion)
-4. Context = `spell: payload`, `dots: component` (from files)
-
-**Final Labels:** `type: tech`, `priority: medium`, `spell: payload`, `dots: component`
+1. Identify context (branch, target, task from Notion)
+2. Read template from `pr-template.mdc`
+3. Generate title (Conventional Commits format)
+4. Assign labels automatically (3-5 labels)
+5. Generate body (follow template structure)
+6. Create PR (use GitHub MCP)
+7. Assign creator
+8. Apply labels
+9. Update Notion task with PR URL
 
 ## PR Title Format
 
-**Rules:** Conventional Commits format, match commit type, max 72 chars, lowercase, no period
+**Follow Conventional Commits:**
 
-**Examples:**
+```
+<type>(<scope>): <subject>
+```
 
-- `feat(components): implement core spell components (Velocity, Lifetime, SpellOwner)`
-- `fix(collision): prevent null reference on target destroy`
-- `refactor(baking): migrate to enableable component pattern`
+**Rules:**
 
-**By Task Type:**
+- Type: lowercase (feat, fix, refactor, docs, test, etc.)
+- Scope: optional, lowercase
+- Subject: lowercase, imperative, no period, <72 chars
 
-- Feature Task → `feat(scope): description`
-- Tech Task → `refactor(scope): description` or `perf(scope): description`
-- Bug Task → `fix(scope): description`
+## Label Assignment
 
-## PR Body Template
+**Automatically assign 3-5 labels:**
 
-**Read full template from:** `.cursor/rules/general/pr-template.mdc`
+**Structure:**
 
-**Structure:** Task identification, What Changed (with task-type-specific section), Files Created/Modified, Definition of Done, Key Technical Decisions, References, Notes
+- 1x type label (mandatory)
+- 1x priority label (mandatory)
+- 1-2x context labels (mandatory)
+- 0-2x additional labels (optional)
 
-**Task-Type Sections:**
+### Type Labels (Choose ONE)
 
-- **Feature Tasks:** Components/Systems Added with quality criteria
-- **Tech Tasks:** Technical Improvements with before/after metrics
-- **Bug Tasks:** Bug Fix Details with issue/cause/solution/verification
+**Priority: Branch prefix > Commit type**
 
-## PR Creation Checklist
+**Branch Prefix Rules:**
 
-**Title:** Conventional Commits format, type matches commit, <72 chars, lowercase, no period
+- `feature/` → `type: feature`
+- `bug/` → `type: bug`
+- `tech/` → `type: tech`
 
-**Labels:** 3-5 labels (1x type, 1x priority, 1-2x context, 0-2x additional), match content, no redundancy
+**Commit Type Rules (if no branch prefix):**
 
-**Assignee:** PR creator assigned (use `mcp_github_get_me`)
+- `feat:` → `type: feature`
+- `fix:` → `type: bug`
+- `refactor:`, `perf:` → `type: tech`
+- `docs:` → `type: docs`
+- `test:` → `type: test`
 
-**Body:** Task ID/Story ref, type/priority, "What Changed", task-specific section, files list, completed DoD, 3-5 technical decisions with rationale, Notion links, additional notes
+**Special Cases:**
 
-**Quality:** No placeholders, accurate file paths, correct Unity/DOTS terminology, metrics when relevant, all DoD items complete, valid Notion links, proper markdown
+- `.github/workflows/` files → `type: ci/cd`
+- `BREAKING CHANGE:` → Add `type: breaking`
 
-**Notion:** PR URL added to task "Pull Request" property
+### Priority Labels (Choose ONE)
+
+**From Notion task Priority:**
+
+- `priority: critical` - Blockers, security issues
+- `priority: high` - Important features, high-impact bugs
+- `priority: medium` - Normal features, moderate bugs (default)
+- `priority: low` - Nice-to-have, minor improvements
+
+### Context Labels (Choose 1-2)
+
+**Spell System:**
+
+- `spell: generator`, `spell: modifier`, `spell: payload`, `spell: component`
+
+**DOTS/ECS:**
+
+- `dots: system`, `dots: component`, `dots: job`, `dots: burst`, `dots: entities`
+
+**Area:**
+
+- `area: architecture`, `area: ui`, `area: physics`, `area: networking`
+
+**Infrastructure:**
+
+- `infra: build`, `infra: ci`, `infra: tests`, `infra: docs`
+
+### Additional Labels (0-2)
+
+- `needs: review` - Requires code review
+- `needs: testing` - Requires manual testing
+- `wip` - Work in progress
+- `breaking` - Breaking changes
+- `performance` - Performance improvements
+- `security` - Security-related changes
+
+## PR Body Structure
+
+**Required Sections:**
+
+1. Task Reference (SPWT-XX link)
+2. Changes Overview (bullet list)
+3. Testing Performed
+4. Checklist
+5. Additional Notes (if needed)
+
+**DO:**
+
+- Link to Notion task
+- Summarize changes clearly
+- Document testing approach
+- Complete checklist
+- Remove template instructions
+- Use bullet points
+
+**DON'T:**
+
+- Leave template instructions
+- Skip testing section
+- Ignore checklist
+- Write vague descriptions
+- Include implementation details
+
+## Task Type Sections
+
+**Feature Task:**
+
+- Implementation summary
+- New functionality
+- Integration points
+- Testing coverage
+
+**Tech Task:**
+
+- Technical changes
+- Architecture improvements
+- Performance impact
+- Migration notes (if any)
+
+**Bug Task:**
+
+- Bug description
+- Root cause
+- Fix approach
+- Regression prevention
+
+## Quality Validation
+
+**Before Creating PR:**
+
+- [ ] Title follows Conventional Commits
+- [ ] Title is lowercase, no period
+- [ ] Title is under 72 characters
+- [ ] Labels assigned (3-5 labels)
+- [ ] Body follows template
+- [ ] Task reference included
+- [ ] Changes summarized
+- [ ] Testing documented
+- [ ] Checklist completed
+- [ ] Template instructions removed
+
+## GitHub Integration
+
+**Create PR:**
+
+- Use `mcp_github_create_pull_request`
+- Default: `draft: false`
+- Base: target branch (usually `develop`)
+- Head: current branch
+
+**Assign Creator:**
+
+- Use `mcp_github_get_me` for user
+- Use `mcp_github_update_pull_request` to assign
+
+**Apply Labels:**
+
+- Use GitHub API/CLI
+- Apply 3-5 labels automatically
 
 ## Notion Integration
 
-After PR creation:
+**Update Task:**
 
-1. **Update Task:** Use `notion-update-page` to set Pull Request property with PR URL
-2. **Optional Status:** Consider updating status to "In Review" if still "In Progress"
+- Set Pull Request property with PR URL
+- Format: `https://github.com/owner/repo/pull/123`
+- Update after PR creation
 
-**Example:**
+## Best Practices
 
-```javascript
-{
-  "page_id": "task-id",
-  "command": "update_properties",
-  "properties": {
-    "Pull Request": "https://github.com/unknown-studios-code/spellwright/pull/1"
-  }
-}
-```
+**DO:**
 
-## Draft vs Regular PRs
+- Create PRs from feature branches
+- Target appropriate base branch
+- Assign labels automatically
+- Link to Notion tasks
+- Document testing
+- Complete checklist
+- Request reviews
 
-**Use `draft: true` when:**
+**DON'T:**
 
-- Work incomplete but want early feedback
-- Discussion of approach before full implementation
-- User explicitly requests draft
-- Task blocked but want to show progress
+- Create PRs without task reference
+- Skip label assignment
+- Leave template instructions
+- Merge without review
+- Skip testing documentation
+- Create PRs from main/develop
 
-**Use `draft: false` (default) when:**
+## Integration
 
-- All Definition of Done complete
-- Code ready for final review and merge
-- Tests passing
-- Documentation complete
+This standard works with:
 
-## GitHub MCP Integration
+- **Commit Creation** (`general/commit-creation.mdc`)
+- **PR Template** (`general/pr-template.mdc`)
+- **GitHub MCP** (`mcp/github.mdc`)
+- **Notion MCP** (`mcp/notion.mdc`)
 
-**Complete PR Creation Flow:**
+## Summary
 
-```javascript
-// 1. Get current user (for assignee)
-const user = await mcp_github_get_me();
+**PRIMARY RULE**: All PRs must follow Conventional Commits format and use structured templates.
 
-// 2. Create PR
-const pr = await mcp_github_create_pull_request({
-    owner: "unknown-studios-code",
-    repo: "spellwright",
-    title: "feat(components): implement core spell components",
-    head: "tech/SPWS-1/SPWT-1",
-    base: "feature/develop/SPWS-1",
-    body: "[Full PR body following template]",
-    draft: false,
-});
+**Key Requirements:**
 
-// 3. Assign to creator
-await mcp_github_update_pull_request({
-    owner: "unknown-studios-code",
-    repo: "spellwright",
-    pullNumber: pr.number,
-    assignees: [user.login],
-});
+1. Title: Conventional Commits format
+2. Labels: 3-5 labels automatically assigned
+3. Body: Follow template structure
+4. Task: Link to Notion task
+5. Testing: Document testing approach
+6. Checklist: Complete before submission
 
-// 4. Add labels (via GitHub CLI)
-gh pr edit ${pr.number} --add-label "type: feature,priority: high,spell: generator,dots: system"
-
-// 5. Update Notion
-await notion_update_page({
-    page_id: "[task_id]",
-    command: "update_properties",
-    properties: { "Pull Request": pr.html_url }
-});
-```
-
-**Error Handling:**
-
-- PR creation fails → Check base/head branches exist, no existing PR, token permissions
-- Assignee/label fails → Log error, inform user, provide manual CLI commands
-
-## Important Notes
-
-- **Mandatory Template:** All PRs MUST use the template structure from `pr-template.mdc`
-- **Specific Titles:** Use descriptive titles with scope and details, not generic like "feat: add components" or "fix: bug fix"
-- **Detailed DoD:** All Definition of Done items must be specific (e.g., "`Velocity.cs` created with `float3 Value` field") not generic (e.g., "Code implemented")
-- **Automatic Labels:** Agent MUST assign 3-5 labels automatically based on content analysis - never ask user
-- **Automatic Assignee:** Agent MUST assign PR creator as Assignee using `mcp_github_get_me`
-- **Notion Integration:** PR URL MUST be added to Notion task "Pull Request" property after creation
-- **English Only:** All PR content must be in English
-- **Technical Accuracy:** Verify all file paths, component names, and Unity/DOTS terminology
-- **Priority from Notion:** Use Notion task Priority property for priority label (default to `medium` if missing)
-
-## Quick Reference
-
-**User Request → Actions:**
-
-- "create a PR" → Read template, fetch task, analyze content, auto-assign 3-5 labels, assign creator, generate title/body, create PR, update Notion
-- "open PR for SPWT-5" → Same flow with SPWT-5
-- "create draft PR" → Same but set `draft: true`
-
-**Key Points:**
-
-- Always read `.cursor/rules/general/pr-template.mdc` first
-- Get user with `mcp_github_get_me` for assignee
-- Auto-determine 3-5 labels from content (never ask)
-- Title = Conventional Commits format
-- Assignee = PR creator (always)
-- Update Notion with PR URL after creation
+**Remember**: PRs are permanent documentation. Write for clarity and completeness.

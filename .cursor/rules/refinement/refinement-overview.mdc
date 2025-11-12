@@ -81,7 +81,7 @@ All templates use a three-part structure to guide you:
 2. **FORMAT:** Defines the STRUCTURE and SYNTAX to use
 3. **EXAMPLE:** Provides a SAMPLE for reference (Spellwright-specific)
 
-**⚠️ CRITICAL RULE:** In your final output, you MUST:
+**CRITICAL RULE:** In your final output, you MUST:
 
 - **REMOVE** all "INSTRUCTION:" labels
 - **REMOVE** all "FORMAT:" labels
@@ -271,21 +271,21 @@ Use these emoji-based categories for ALL risk sections:
 
 ```markdown
 - 🔴 **[Risk Category]:** [Brief description of risk]
-  - Mitigation: [How to address or reduce risk]
+    - Mitigation: [How to address or reduce risk]
 ```
 
 **Example:**
 
 ```markdown
 - 🔴 **Performance Risk:** System may not scale to 1000 entities
-  - Mitigation: Early stress testing with 2000 entities, profile before implementation
+    - Mitigation: Early stress testing with 2000 entities, profile before implementation
 ```
 
 ---
 
 ## Notion Properties Configuration Guide
 
-**⚠️ CRITICAL:** Notion Properties are configured via Notion MCP, NOT written in artifact descriptions.
+**CRITICAL:** Notion Properties are configured via Notion MCP, NOT written in artifact descriptions.
 
 ### General Rules
 
