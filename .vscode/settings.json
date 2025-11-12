@@ -1,5 +1,5 @@
 {
-    "editor.wordWrapColumn": 160,
+    "editor.wordWrapColumn": 200,
     "dotnet.defaultSolution": "spellwright.slnx",
     "[csharp]": {
         "editor.defaultFormatter": "csharpier.csharpier-vscode",
@@ -10,7 +10,7 @@
         "editor.formatOnPaste": true,
         "editor.formatOnSave": true
     },
-    "editor.rulers": [160],
+    "editor.rulers": [200],
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },

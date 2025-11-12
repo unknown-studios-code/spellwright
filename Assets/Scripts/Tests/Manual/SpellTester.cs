@@ -1,64 +1,225 @@
-using Unity.Entities;
-using Unity.Entities.Serialization;
-using Unity.Mathematics;
-using Unity.Collections;
-using UnityEngine;
-using UnityEngine.InputSystem;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Spellwright.Components.Collision;
 using Spellwright.Components.Common;
 using Spellwright.Components.Spawning;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Physics;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Spellwright.Tests.Manual
 {
     [RequireComponent(typeof(Camera))]
     public class SpellTester : MonoBehaviour
     {
+        private const float POSITION_EPSILON = 0.01f;
+        private const float CONE_SEGMENTS = 16f;
+        private const float ARROW_SIZE = 0.2f;
+        private const float COLLISION_EVENT_SPHERE_RADIUS = 0.3f;
+        private const float COLLISION_EVENT_CENTER_RADIUS = 0.1f;
+
         [Header("Spawn Configuration")]
-        [SerializeField] private Key spawnKey = Key.Space;
-        [SerializeField] private int spawnCount = 1;
-        [SerializeField] private float spawnRadius = 1f;
-        [SerializeField] private float spellSpeed = 1;
-        [SerializeField] private float spellLifetime = 5f;
-        [SerializeField] private float3 spawnPosition = float3.zero;
-        [SerializeField] private float3 spawnDirection = new float3(0, 0, 1);
+        [SerializeField]
+        private Key _spawnKey = Key.Space;
+
+        [SerializeField]
+        private int _spawnCount = 1;
+
+        [SerializeField]
+        private float _spawnRadius = 1f;
+
+        [SerializeField]
+        private float _spellSpeed = 10f;
+
+        [SerializeField]
+        private float _spellLifetime = 5f;
+
+        [SerializeField]
+        private float3 _spawnPosition = float3.zero;
 
         [Header("Visualization")]
-        [SerializeField] private bool showVelocityVectors = true;
-        [SerializeField] private bool showSpawnPoints = true;
-        [SerializeField] private bool showLifetimeIndicators = true;
-        [SerializeField] private bool showLifetimeText = true;
-        [SerializeField] private float vectorScale = 1f;
-        [SerializeField] private Color velocityColor = Color.cyan;
-        [SerializeField] private Color spawnPointColor = Color.yellow;
-        [SerializeField] private Color lifetimeFullColor = Color.green;
-        [SerializeField] private Color lifetimeExpiredColor = Color.red;
-        [SerializeField] private float sphereRadius = 0.2f;
+        [SerializeField]
+        private bool _showVelocityVectors = true;
+
+        [SerializeField]
+        private bool _showSpawnPoints = true;
+
+        [SerializeField]
+        private bool _showLifetimeIndicators = true;
+
+        [SerializeField]
+        private bool _showLifetimeText = true;
+
+        [SerializeField]
+        private float _vectorScale = 1f;
+
+        [SerializeField]
+        private Color _velocityColor = Color.cyan;
+
+        [SerializeField]
+        private Color _spawnPointColor = Color.yellow;
+
+        [SerializeField]
+        private Color _lifetimeFullColor = Color.green;
+
+        [SerializeField]
+        private Color _lifetimeExpiredColor = Color.red;
+
+        [SerializeField]
+        private float _sphereRadius = 0.2f;
 
         [Header("Lifecycle Statistics")]
-        [SerializeField] private bool showLifecycleStats = true;
-        [SerializeField] private Vector2 statsPosition = new Vector2(10, 10);
+        [SerializeField]
+        private bool _showLifecycleStats = true;
+
+        [SerializeField]
+        private Vector2 _statsPosition = new(10, 10);
+
+        [Header("Physics Configuration")]
+        [SerializeField]
+        private GeneratorType _generatorType = GeneratorType.Projectile;
+
+        [SerializeField]
+        private float _collisionRadius = 0.5f;
+
+        [SerializeField]
+        private float _coneAngle = 45f;
+
+        [SerializeField]
+        private float _coneRadius = 10f;
+
+        [SerializeField]
+        private float _aoeRadius = 5f;
+
+        [Header("Target Configuration")]
+        [SerializeField]
+        private bool _spawnTargets = true;
+
+        [SerializeField]
+        private int _targetCount = 5;
+
+        [SerializeField]
+        private float _targetSpawnRadius = 5f;
+
+        [SerializeField]
+        private float _targetCollisionRadius = 0.5f;
+
+        [SerializeField]
+        private Key _spawnTargetKey = Key.T;
+
+        [Header("Collision Visualization")]
+        [SerializeField]
+        private bool _showCollisionEvents = true;
+
+        [SerializeField]
+        private bool _showCollisionRadii = true;
+
+        [SerializeField]
+        private Color _collisionEventColor = Color.red;
+
+        [SerializeField]
+        private Color _collisionRadiusColor = new(1f, 0.5f, 0f, 0.3f);
+
+        [SerializeField]
+        private float _collisionEventDuration = 0.5f;
 
         [Header("Debug")]
-        [SerializeField] private bool autoSpawn = false;
-        [SerializeField] private float spawnInterval = 1f;
-        [SerializeField] private bool verboseLogging = false;
+        [SerializeField]
+        private bool _autoSpawn = false;
+
+        [SerializeField]
+        private float _spawnInterval = 1f;
+
+        [SerializeField]
+        private bool _verboseLogging = false;
+
+        private enum GeneratorType
+        {
+            Projectile,
+            Cone,
+            AreaOfEffect,
+        }
+
+        private struct CollisionEventData
+        {
+            public float3 Position;
+            public float Time;
+        }
 
         private EntityManager _entityManager;
         private Entity _testPrefab;
         private Entity _caster;
         private float _lastSpellSpeed;
         private float _lastSpellLifetime;
+        private GeneratorType _lastGeneratorType;
+        private float _lastConeAngle;
+        private float _lastConeRadius;
+        private float _lastAoeRadius;
         private float _nextSpawnTime;
         private int _totalSpawned;
         private int _totalDestroyed;
+        private int _totalCollisions;
         private EntityQuery _spellQuery;
+        private EntityQuery _targetQuery;
+        private EntityQuery _collisionQuery;
+        private readonly List<CollisionEventData> _collisionEvents = new();
 
+        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void Start()
         {
-            if (!ValidateSetup()) return;
+            if (!ValidateSetup())
+            {
+                return;
+            }
 
             _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             InitializeQueries();
             InitializeTestEntities();
+        }
+
+        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
+        private void Update()
+        {
+            HandleGeneratorTypeSelection();
+            HandlePrefabRecreation();
+            HandleAutoSpawn();
+            HandleManualSpawn();
+            HandleTargetSpawning();
+            TrackDestroyedEntities();
+            TrackCollisionEvents();
+            CleanupExpiredCollisionEvents();
+        }
+
+        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
+        private void OnDrawGizmos()
+        {
+            if (!Application.isPlaying || _entityManager == default || _targetQuery == default)
+            {
+                return;
+            }
+
+            DrawSpellEntities();
+            DrawTargetEntities();
+            DrawCollisionEvents();
+            DrawInstantSpellPreview();
+        }
+
+        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
+        private void OnGUI()
+        {
+            if (_showLifecycleStats && Application.isPlaying)
+            {
+                DrawLifecycleStatistics();
+            }
+        }
+
+        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
+        private void OnDestroy()
+        {
+            CleanupEntities();
         }
 
         private bool ValidateSetup()
@@ -75,43 +236,124 @@ namespace Spellwright.Tests.Manual
         {
             _spellQuery = _entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<Unity.Transforms.LocalTransform>(),
-                ComponentType.ReadOnly<Velocity>(),
+                ComponentType.ReadOnly<PhysicsVelocity>(),
                 ComponentType.ReadOnly<SpellOwner>(),
                 ComponentType.ReadOnly<Lifetime>()
             );
+
+            _targetQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Unity.Transforms.LocalTransform>(), ComponentType.ReadOnly<DamageableTag>());
+
+            _collisionQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Components.Collision.CollisionEvent>());
         }
 
-        private void Update()
+        private void InitializeTestEntities()
         {
-            HandlePrefabRecreation();
-            HandleAutoSpawn();
-            HandleManualSpawn();
-            TrackDestroyedEntities();
+            _testPrefab = CreateTestPrefab();
+            _caster = _entityManager.CreateEntity();
+            CacheCurrentConfiguration();
+
+            if (_spawnTargets)
+            {
+                SpawnTargets();
+            }
+
+            LogInfo(
+                $"Initialized | Prefab: {_testPrefab.Index}:{_testPrefab.Version} | Caster: {_caster.Index}:{_caster.Version} | Press '{_spawnKey}' to spawn spells | Press '{_spawnTargetKey}' to spawn targets"
+            );
+        }
+
+        private void HandleGeneratorTypeSelection()
+        {
+            if (Keyboard.current == null)
+            {
+                return;
+            }
+
+            if (Keyboard.current[Key.Digit1].wasPressedThisFrame)
+            {
+                ChangeGeneratorType(GeneratorType.Projectile);
+            }
+            else if (Keyboard.current[Key.Digit2].wasPressedThisFrame)
+            {
+                ChangeGeneratorType(GeneratorType.Cone, $"Angle: {_coneAngle}°, Radius: {_coneRadius}m");
+            }
+            else if (Keyboard.current[Key.Digit3].wasPressedThisFrame)
+            {
+                ChangeGeneratorType(GeneratorType.AreaOfEffect, $"Radius: {_aoeRadius}m");
+            }
+        }
+
+        private void ChangeGeneratorType(GeneratorType newType, string additionalInfo = "")
+        {
+            _generatorType = newType;
+            string info = string.IsNullOrEmpty(additionalInfo) ? newType.ToString() : $"{newType} ({additionalInfo})";
+            LogInfo($"Generator type changed to: {info}");
         }
 
         private void HandlePrefabRecreation()
         {
-            if (math.abs(spellSpeed - _lastSpellSpeed) > 0.01f ||
-                math.abs(spellLifetime - _lastSpellLifetime) > 0.01f)
+            if (NeedsPrefabRecreation())
             {
                 RecreatePrefab();
             }
         }
 
+        private bool NeedsPrefabRecreation()
+        {
+            return math.abs(_spellSpeed - _lastSpellSpeed) > POSITION_EPSILON
+                || math.abs(_spellLifetime - _lastSpellLifetime) > POSITION_EPSILON
+                || _generatorType != _lastGeneratorType
+                || math.abs(_coneAngle - _lastConeAngle) > POSITION_EPSILON
+                || math.abs(_coneRadius - _lastConeRadius) > POSITION_EPSILON
+                || math.abs(_aoeRadius - _lastAoeRadius) > POSITION_EPSILON;
+        }
+
+        private void RecreatePrefab()
+        {
+            if (_entityManager != default && _entityManager.Exists(_testPrefab))
+            {
+                _entityManager.DestroyEntity(_testPrefab);
+                LogInfo("Prefab destroyed");
+            }
+
+            _testPrefab = CreateTestPrefab();
+            CacheCurrentConfiguration();
+
+            LogInfo($"Prefab recreated | Speed: {_spellSpeed:F2} | Lifetime: {_spellLifetime:F2}s | Type: {_generatorType}");
+        }
+
+        private void CacheCurrentConfiguration()
+        {
+            _lastSpellSpeed = _spellSpeed;
+            _lastSpellLifetime = _spellLifetime;
+            _lastGeneratorType = _generatorType;
+            _lastConeAngle = _coneAngle;
+            _lastConeRadius = _coneRadius;
+            _lastAoeRadius = _aoeRadius;
+        }
+
         private void HandleAutoSpawn()
         {
-            if (autoSpawn && Time.time >= _nextSpawnTime)
+            if (_autoSpawn && Time.time >= _nextSpawnTime)
             {
                 SpawnTestSpells();
-                _nextSpawnTime = Time.time + spawnInterval;
+                _nextSpawnTime = Time.time + _spawnInterval;
             }
         }
 
         private void HandleManualSpawn()
         {
-            if (Keyboard.current != null && Keyboard.current[spawnKey].wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current[_spawnKey].wasPressedThisFrame)
             {
                 SpawnTestSpells();
+            }
+        }
+
+        private void HandleTargetSpawning()
+        {
+            if (_spawnTargets && Keyboard.current != null && Keyboard.current[_spawnTargetKey].wasPressedThisFrame)
+            {
+                SpawnTargets();
             }
         }
 
@@ -122,76 +364,122 @@ namespace Spellwright.Tests.Manual
 
             if (currentCount < expectedAlive)
             {
-                _totalDestroyed += (expectedAlive - currentCount);
-                LogVerbose($"Lifecycle destroyed {expectedAlive - currentCount} spell(s) | Total destroyed: {_totalDestroyed}");
+                int destroyed = expectedAlive - currentCount;
+                _totalDestroyed += destroyed;
+                LogVerbose($"Lifecycle destroyed {destroyed} spell(s) | Total destroyed: {_totalDestroyed}");
             }
         }
 
-        private void RecreatePrefab()
+        private void TrackCollisionEvents()
         {
-            if (_entityManager != default && _entityManager.Exists(_testPrefab))
+            if (_collisionQuery.IsEmpty)
             {
-                _entityManager.DestroyEntity(_testPrefab);
-                LogInfo($"Prefab destroyed");
+                return;
             }
 
-            _testPrefab = CreateTestPrefab();
-            _lastSpellSpeed = spellSpeed;
-            _lastSpellLifetime = spellLifetime;
+            using NativeArray<Entity> entities = _collisionQuery.ToEntityArray(Allocator.Temp);
+            using NativeArray<Components.Collision.CollisionEvent> collisionEvents = _collisionQuery.ToComponentDataArray<Components.Collision.CollisionEvent>(Allocator.Temp);
 
-            LogInfo($"Prefab recreated | Speed: {spellSpeed:F2} | Lifetime: {spellLifetime:F2}s");
+            for (int i = 0; i < entities.Length; i++)
+            {
+                Components.Collision.CollisionEvent collision = collisionEvents[i];
+                _collisionEvents.Add(new CollisionEventData { Position = collision.ImpactPosition, Time = Time.time });
+                _totalCollisions++;
+                LogVerbose($"Collision detected | Projectile: {collision.ProjectileEntity.Index} | Target: {collision.TargetEntity.Index}");
+            }
         }
 
-        private void InitializeTestEntities()
+        private void CleanupExpiredCollisionEvents()
         {
-            _testPrefab = CreateTestPrefab();
-            _caster = _entityManager.CreateEntity();
-            _lastSpellSpeed = spellSpeed;
-            _lastSpellLifetime = spellLifetime;
-
-            LogInfo($"Initialized | Prefab: {_testPrefab.Index}:{_testPrefab.Version} | Caster: {_caster.Index}:{_caster.Version} | Press '{spawnKey}' to spawn");
+            for (int i = _collisionEvents.Count - 1; i >= 0; i--)
+            {
+                if (Time.time - _collisionEvents[i].Time > _collisionEventDuration)
+                {
+                    _collisionEvents.RemoveAt(i);
+                }
+            }
         }
 
         private Entity CreateTestPrefab()
         {
             Entity prefab = _entityManager.CreateEntity();
 
-            _entityManager.AddComponentData(prefab, new SpellOwner { OwnerEntity = Entity.Null });
-            _entityManager.AddComponentData(prefab, new Unity.Transforms.LocalTransform
+            AddCommonComponents(prefab);
+
+            if (_generatorType == GeneratorType.Projectile)
             {
-                Position = float3.zero,
-                Rotation = quaternion.identity,
-                Scale = 1f
-            });
-            _entityManager.AddComponentData(prefab, new Speed { Value = spellSpeed });
-            _entityManager.AddComponentData(prefab, new Lifetime { Duration = spellLifetime, SpawnTime = 0 });
+                AddProjectileComponents(prefab);
+            }
+
             _entityManager.AddComponent<Prefab>(prefab);
 
-            LogVerbose($"Prefab components | SpellOwner: ✓ | Transform: ✓ | Speed: {spellSpeed:F2} | Lifetime: {spellLifetime:F2}s | Prefab Tag: ✓");
+            LogVerbose($"Prefab components | SpellOwner: ✓ | Transform: ✓ | Speed: {_spellSpeed:F2} | Lifetime: {_spellLifetime:F2}s | Type: {GetGeneratorInfo()}");
 
             return prefab;
+        }
+
+        private void AddCommonComponents(Entity entity)
+        {
+            _entityManager.AddComponentData(entity, new SpellOwner { OwnerEntity = Entity.Null });
+            _entityManager.AddComponentData(
+                entity,
+                new Unity.Transforms.LocalTransform
+                {
+                    Position = float3.zero,
+                    Rotation = quaternion.identity,
+                    Scale = 1f,
+                }
+            );
+            _entityManager.AddComponentData(entity, new Unity.Transforms.LocalToWorld());
+            _entityManager.AddComponentData(entity, new Speed { Value = _spellSpeed });
+            _entityManager.AddComponentData(entity, new Lifetime { Duration = _spellLifetime, SpawnTime = 0 });
+        }
+
+        private void AddProjectileComponents(Entity entity)
+        {
+            _entityManager.AddComponentData(entity, new PhysicsVelocity { Linear = float3.zero, Angular = float3.zero });
+
+            Unity.Physics.Material material = Unity.Physics.Material.Default;
+            material.CollisionResponse = CollisionResponsePolicy.RaiseTriggerEvents;
+
+            BlobAssetReference<Unity.Physics.Collider> collider = Unity.Physics.SphereCollider.Create(
+                new SphereGeometry { Center = float3.zero, Radius = _collisionRadius },
+                CollisionLayers.CreateProjectileFilter(),
+                material
+            );
+
+            _entityManager.AddComponentData(entity, new PhysicsCollider { Value = collider });
+            _entityManager.AddSharedComponentManaged(entity, new PhysicsWorldIndex { Value = 0 });
+            _entityManager.AddComponentData(entity, new ProjectileTag());
+
+            LogVerbose("Physics components added: PhysicsVelocity ✓ | PhysicsCollider (IsTrigger) ✓ | PhysicsWorldIndex=0 ✓ | LocalToWorld ✓");
+        }
+
+        private string GetGeneratorInfo()
+        {
+            return _generatorType switch
+            {
+                GeneratorType.Cone => $"Cone (Angle: {_coneAngle}°, Radius: {_coneRadius}m)",
+                GeneratorType.AreaOfEffect => $"AoE (Radius: {_aoeRadius}m)",
+                GeneratorType.Projectile => $"Projectile (Radius: {_collisionRadius}m)",
+                _ => throw new System.NotImplementedException($"Generator type {_generatorType} not implemented"),
+            };
         }
 
         private void SpawnTestSpells()
         {
             float3 cameraPosition = transform.position;
-            float3 cameraForward = transform.forward;
-
-            float3 basePosition = math.lengthsq(spawnPosition) > 0.01f
-                ? cameraPosition + spawnPosition
-                : cameraPosition + cameraForward * 2f;
-
-            float3 baseDirection = math.lengthsq(spawnDirection) > 0.01f
-                ? math.normalize(spawnDirection)
-                : cameraForward;
+            float3 cameraForward = new float3(transform.forward.x, transform.forward.y, transform.forward.z);
+            float3 basePosition = CalculateBasePosition(cameraPosition, cameraForward);
+            float3 baseDirection = cameraForward;
 
             int spawnedThisBatch = 0;
-            for (int i = 0; i < spawnCount; i++)
+            for (int i = 0; i < _spawnCount; i++)
             {
-                float angle = (360f / spawnCount) * i;
+                float angle = 360f / _spawnCount * i;
                 float3 offset = CalculateRadialOffset(angle);
                 float3 finalPosition = basePosition + offset;
-                float3 finalDirection = math.normalize(baseDirection + offset * 0.3f);
+                float3 finalDirection = math.normalize(baseDirection + (offset * 0.3f));
 
                 CreateSpawnRequest(finalPosition, finalDirection);
                 spawnedThisBatch++;
@@ -201,118 +489,344 @@ namespace Spellwright.Tests.Manual
             LogInfo($"Spawned {spawnedThisBatch} spell(s) | Total: {_totalSpawned} | Position: {basePosition:F2} | Direction: {baseDirection:F2} | Active: {_spellQuery.CalculateEntityCount()}");
         }
 
+        private float3 CalculateBasePosition(float3 cameraPosition, float3 cameraForward)
+        {
+            return math.lengthsq(_spawnPosition) > POSITION_EPSILON ? cameraPosition + _spawnPosition : cameraPosition + (cameraForward * 2f);
+        }
+
         private float3 CalculateRadialOffset(float angleDegrees)
         {
-            if (spawnCount == 1) return float3.zero;
+            if (_spawnCount == 1)
+            {
+                return float3.zero;
+            }
 
             float angleRad = math.radians(angleDegrees);
-            float x = math.cos(angleRad) * spawnRadius;
-            float y = math.sin(angleRad) * spawnRadius;
-
-            return new float3(x, y, 0);
+            return new float3(math.cos(angleRad) * _spawnRadius, math.sin(angleRad) * _spawnRadius, 0);
         }
 
         private void CreateSpawnRequest(float3 position, float3 direction)
         {
-            Entity request = _entityManager.CreateEntity();
-
-            _entityManager.AddComponentData(request, new SpawnRequest
+            switch (_generatorType)
             {
-                PrefabEntity = _testPrefab,
-                CasterEntity = _caster,
-                SpawnPosition = position,
-                SpawnDirection = direction
-            });
+                case GeneratorType.Projectile:
+                    CreateProjectileRequest(position, direction);
+                    break;
 
-            LogVerbose($"SpawnRequest created | Position: {position:F2} | Direction: {direction:F2}");
+                case GeneratorType.Cone:
+                    CreateConeRequest(position, direction);
+                    break;
+
+                case GeneratorType.AreaOfEffect:
+                    CreateAoeRequest(position);
+                    break;
+            }
         }
 
-        private void OnDrawGizmos()
+        private void CreateProjectileRequest(float3 position, float3 direction)
         {
-            if (!Application.isPlaying || _entityManager == default || _spellQuery == default) return;
+            Entity request = _entityManager.CreateEntity();
+            _entityManager.AddComponentData(
+                request,
+                new SpawnRequest
+                {
+                    PrefabEntity = _testPrefab,
+                    CasterEntity = _caster,
+                    SpawnPosition = position,
+                    SpawnDirection = direction,
+                }
+            );
+            LogVerbose($"Projectile SpawnRequest created | Position: {position:F2} | Direction: {direction:F2}");
+        }
 
-            DrawSpellEntities();
+        private void CreateConeRequest(float3 position, float3 direction)
+        {
+            Entity request = _entityManager.CreateEntity();
+            _entityManager.AddComponentData(
+                request,
+                new ConeRequest
+                {
+                    Position = position,
+                    Direction = direction,
+                    AngleDegrees = _coneAngle,
+                    Radius = _coneRadius,
+                    SourceEntity = _caster,
+                    CheckLineOfSight = true,
+                }
+            );
+            LogVerbose($"Cone request created | Position: {position:F2} | Direction: {direction:F2} | Angle: {_coneAngle}° | Radius: {_coneRadius}m");
+        }
+
+        private void CreateAoeRequest(float3 position)
+        {
+            Entity request = _entityManager.CreateEntity();
+            _entityManager.AddComponentData(
+                request,
+                new AoeRequest
+                {
+                    Position = position,
+                    Radius = _aoeRadius,
+                    SourceEntity = _caster,
+                    CheckLineOfSight = true,
+                }
+            );
+            LogVerbose($"AoE request created | Position: {position:F2} | Radius: {_aoeRadius}m");
+        }
+
+        private void SpawnTargets()
+        {
+            float3 cameraPosition = transform.position;
+            float3 cameraForward = transform.forward;
+            float3 basePosition = cameraPosition + (cameraForward * 5f);
+
+            int spawned = 0;
+            for (int i = 0; i < _targetCount; i++)
+            {
+                float3 position = CalculateTargetPosition(basePosition, i);
+                CreateTargetEntity(position);
+                spawned++;
+            }
+
+            LogInfo($"Spawned {spawned} target(s) | Total targets: {_targetQuery.CalculateEntityCount()}");
+        }
+
+        private float3 CalculateTargetPosition(float3 basePosition, int index)
+        {
+            float angle = 360f / _targetCount * index;
+            float angleRad = math.radians(angle);
+            float3 offset = new float3(math.cos(angleRad) * _targetSpawnRadius, 0f, math.sin(angleRad) * _targetSpawnRadius);
+            return basePosition + offset;
+        }
+
+        private void CreateTargetEntity(float3 position)
+        {
+            Entity target = _entityManager.CreateEntity();
+            _entityManager.AddComponentData(
+                target,
+                new Unity.Transforms.LocalTransform
+                {
+                    Position = position,
+                    Rotation = quaternion.identity,
+                    Scale = 1f,
+                }
+            );
+            _entityManager.AddComponentData(target, new Unity.Transforms.LocalToWorld());
+
+            BlobAssetReference<Unity.Physics.Collider> targetCollider = Unity.Physics.SphereCollider.Create(
+                new SphereGeometry { Center = float3.zero, Radius = _targetCollisionRadius },
+                CollisionLayers.CreateEnemyFilter()
+            );
+
+            _entityManager.AddComponentData(target, new PhysicsCollider { Value = targetCollider });
+            _entityManager.AddSharedComponentManaged(target, new PhysicsWorldIndex { Value = 0 });
+            _entityManager.AddComponentData(target, new DamageableTag());
         }
 
         private void DrawSpellEntities()
         {
-            if (_spellQuery.IsEmpty) return;
+            if (_spellQuery.IsEmpty)
+            {
+                return;
+            }
 
-            var entities = _spellQuery.ToEntityArray(Allocator.Temp);
-            var transforms = _spellQuery.ToComponentDataArray<Unity.Transforms.LocalTransform>(Allocator.Temp);
-            var velocities = _spellQuery.ToComponentDataArray<Velocity>(Allocator.Temp);
-            var lifetimes = _spellQuery.ToComponentDataArray<Lifetime>(Allocator.Temp);
+            using NativeArray<Entity> entities = _spellQuery.ToEntityArray(Allocator.Temp);
+            using NativeArray<Unity.Transforms.LocalTransform> transforms = _spellQuery.ToComponentDataArray<Unity.Transforms.LocalTransform>(Allocator.Temp);
+            using NativeArray<PhysicsVelocity> velocities = _spellQuery.ToComponentDataArray<PhysicsVelocity>(Allocator.Temp);
+            using NativeArray<Lifetime> lifetimes = _spellQuery.ToComponentDataArray<Lifetime>(Allocator.Temp);
 
             for (int i = 0; i < entities.Length; i++)
             {
                 float3 position = transforms[i].Position;
-                float3 velocity = velocities[i].Value;
+                float3 velocity = velocities[i].Linear;
                 Lifetime lifetime = lifetimes[i];
 
                 DrawSpawnPoint(position);
                 DrawVelocityVector(position, velocity);
                 DrawLifetimeIndicator(position, lifetime);
+
+                if (_generatorType == GeneratorType.Projectile)
+                {
+                    DrawCollisionRadius(position);
+                }
+            }
+        }
+
+        private void DrawTargetEntities()
+        {
+            if (_targetQuery.IsEmpty)
+            {
+                return;
             }
 
-            entities.Dispose();
-            transforms.Dispose();
-            velocities.Dispose();
-            lifetimes.Dispose();
+            using NativeArray<Entity> entities = _targetQuery.ToEntityArray(Allocator.Temp);
+            using NativeArray<Unity.Transforms.LocalTransform> transforms = _targetQuery.ToComponentDataArray<Unity.Transforms.LocalTransform>(Allocator.Temp);
+
+            for (int i = 0; i < entities.Length; i++)
+            {
+                float3 position = transforms[i].Position;
+
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireSphere(position, _targetCollisionRadius);
+                Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
+                Gizmos.DrawSphere(position, _targetCollisionRadius);
+            }
+        }
+
+        private void DrawInstantSpellPreview()
+        {
+            if (_generatorType == GeneratorType.Projectile)
+            {
+                return;
+            }
+
+            float3 cameraPosition = transform.position;
+            float3 cameraForward = new float3(transform.forward.x, transform.forward.y, transform.forward.z);
+            float3 previewPosition = cameraPosition + (cameraForward * 2f);
+
+            switch (_generatorType)
+            {
+                case GeneratorType.Cone:
+                    DrawConeGizmo(previewPosition, cameraForward);
+                    break;
+
+                case GeneratorType.AreaOfEffect:
+                    DrawAoeGizmo(previewPosition);
+                    break;
+            }
+        }
+
+        private void DrawAoeGizmo(float3 position)
+        {
+            Gizmos.color = _collisionRadiusColor;
+            Gizmos.DrawWireSphere(position, _aoeRadius);
+            Gizmos.color = new Color(_collisionRadiusColor.r, _collisionRadiusColor.g, _collisionRadiusColor.b, _collisionRadiusColor.a * 0.3f);
+            Gizmos.DrawSphere(position, _aoeRadius);
+        }
+
+        private void DrawConeGizmo(float3 position, float3 direction)
+        {
+            float3 coneForward = math.normalize(direction);
+            float3 right = CalculateConeRight(coneForward);
+            float3 up = math.normalize(math.cross(coneForward, right));
+
+            float halfAngleRad = math.radians(_coneAngle * 0.5f);
+            float3 origin = position;
+            float3 baseCenter = origin + (coneForward * _coneRadius);
+            float baseRadius = _coneRadius * math.tan(halfAngleRad);
+
+            Gizmos.color = _collisionRadiusColor;
+
+            float angleStep = 360f / CONE_SEGMENTS;
+
+            for (int i = 0; i <= CONE_SEGMENTS; i++)
+            {
+                float currentAngle = angleStep * i;
+                float angleRad = math.radians(currentAngle);
+                float3 basePoint = baseCenter + (((right * math.cos(angleRad)) + (up * math.sin(angleRad))) * baseRadius);
+
+                Gizmos.DrawLine(new Vector3(origin.x, origin.y, origin.z), new Vector3(basePoint.x, basePoint.y, basePoint.z));
+
+                if (i > 0)
+                {
+                    float3 prevBasePoint = CalculatePreviousConePoint(baseCenter, right, up, baseRadius, angleStep, i);
+                    Gizmos.DrawLine(new Vector3(prevBasePoint.x, prevBasePoint.y, prevBasePoint.z), new Vector3(basePoint.x, basePoint.y, basePoint.z));
+                }
+            }
+        }
+
+        private static float3 CalculateConeRight(float3 forward)
+        {
+            return math.abs(math.dot(forward, math.up())) < 0.999f ? math.normalize(math.cross(math.up(), forward)) : math.normalize(math.cross(math.right(), forward));
+        }
+
+        private static float3 CalculatePreviousConePoint(float3 baseCenter, float3 right, float3 up, float baseRadius, float angleStep, int currentIndex)
+        {
+            float prevAngle = angleStep * (currentIndex - 1);
+            float prevAngleRad = math.radians(prevAngle);
+            return baseCenter + (((right * math.cos(prevAngleRad)) + (up * math.sin(prevAngleRad))) * baseRadius);
+        }
+
+        private void DrawCollisionEvents()
+        {
+            if (!_showCollisionEvents)
+            {
+                return;
+            }
+
+            Gizmos.color = _collisionEventColor;
+            foreach (CollisionEventData collisionEvent in _collisionEvents)
+            {
+                float alpha = 1f - ((Time.time - collisionEvent.Time) / _collisionEventDuration);
+                Gizmos.color = new Color(_collisionEventColor.r, _collisionEventColor.g, _collisionEventColor.b, alpha);
+                Gizmos.DrawWireSphere(collisionEvent.Position, COLLISION_EVENT_SPHERE_RADIUS);
+                Gizmos.DrawSphere(collisionEvent.Position, COLLISION_EVENT_CENTER_RADIUS);
+            }
         }
 
         private void DrawSpawnPoint(float3 position)
         {
-            if (!showSpawnPoints) return;
-
-            Gizmos.color = spawnPointColor;
-            Gizmos.DrawWireSphere(position, sphereRadius);
+            if (_showSpawnPoints)
+            {
+                Gizmos.color = _spawnPointColor;
+                Gizmos.DrawWireSphere(position, _sphereRadius);
+            }
         }
 
         private void DrawVelocityVector(float3 position, float3 velocity)
         {
-            if (!showVelocityVectors || math.lengthsq(velocity) < 0.001f) return;
+            if (!_showVelocityVectors || math.lengthsq(velocity) < 0.001f)
+            {
+                return;
+            }
 
-            Gizmos.color = velocityColor;
+            Gizmos.color = _velocityColor;
             float3 normalized = math.normalize(velocity);
-            float3 endPoint = position + normalized * vectorScale;
+            float3 endPoint = position + (normalized * _vectorScale);
 
             Gizmos.DrawLine(position, endPoint);
-            DrawArrowHead(position, endPoint, 0.2f);
+            DrawArrowHead(position, endPoint);
         }
 
         private void DrawLifetimeIndicator(float3 position, Lifetime lifetime)
         {
-            if (!showLifetimeIndicators) return;
+            if (!_showLifetimeIndicators)
+            {
+                return;
+            }
 
             double elapsedTime = World.DefaultGameObjectInjectionWorld.Time.ElapsedTime;
             float remainingTime = lifetime.Duration - (float)(elapsedTime - lifetime.SpawnTime);
             float normalizedLifetime = math.clamp(remainingTime / lifetime.Duration, 0f, 1f);
 
-            Gizmos.color = Color.Lerp(lifetimeExpiredColor, lifetimeFullColor, normalizedLifetime);
-            Gizmos.DrawWireSphere(position, sphereRadius * 0.5f);
+            Gizmos.color = Color.Lerp(_lifetimeExpiredColor, _lifetimeFullColor, normalizedLifetime);
+            Gizmos.DrawWireSphere(position, _sphereRadius * 0.5f);
 
-            if (showLifetimeText && Camera.current != null)
+            if (_showLifetimeText && Camera.current != null)
             {
-                Vector3 screenPos = Camera.current.WorldToScreenPoint(position);
-                if (screenPos.z > 0)
-                {
-                    Vector3 guiPos = new Vector3(screenPos.x, Screen.height - screenPos.y, 0);
-                    DrawLifetimeLabel(guiPos, remainingTime);
-                }
+                DrawLifetimeLabel(position, remainingTime);
             }
         }
 
-        private void DrawLifetimeLabel(Vector3 guiPosition, float remainingTime)
+        private void DrawLifetimeLabel(float3 position, float remainingTime)
         {
 #if UNITY_EDITOR
-            GUIStyle style = new GUIStyle();
-            style.normal.textColor = remainingTime > 1f ? lifetimeFullColor : lifetimeExpiredColor;
-            style.fontSize = 10;
-            style.alignment = TextAnchor.MiddleCenter;
+            Vector3 screenPos = Camera.current.WorldToScreenPoint(position);
+            if (screenPos.z <= 0)
+            {
+                return;
+            }
+
+            var guiPos = new Vector3(screenPos.x, Screen.height - screenPos.y, 0);
+            var style = new GUIStyle
+            {
+                normal = { textColor = remainingTime > 1f ? _lifetimeFullColor : _lifetimeExpiredColor },
+                fontSize = 10,
+                alignment = TextAnchor.MiddleCenter,
+            };
 
             string label = remainingTime > 0 ? $"{remainingTime:F1}s" : "EXPIRED";
             Vector2 size = style.CalcSize(new GUIContent(label));
-            Rect rect = new Rect(guiPosition.x - size.x / 2, guiPosition.y - size.y / 2, size.x, size.y);
+            var rect = new Rect(guiPos.x - (size.x / 2), guiPos.y - (size.y / 2), size.x, size.y);
 
             UnityEditor.Handles.BeginGUI();
             GUI.Label(rect, label, style);
@@ -320,60 +834,98 @@ namespace Spellwright.Tests.Manual
 #endif
         }
 
-        private void DrawArrowHead(float3 start, float3 end, float arrowSize)
+        private void DrawCollisionRadius(float3 position)
         {
-            float3 direction = math.normalize(end - start);
-            float3 right = math.cross(direction, math.up());
-            float3 up = math.cross(right, direction);
-
-            if (math.lengthsq(right) < 0.001f)
+            if (!_showCollisionRadii)
             {
-                right = math.cross(direction, math.forward());
-                up = math.cross(right, direction);
+                return;
             }
 
-            float3 arrowTip1 = end - direction * arrowSize + right * arrowSize * 0.5f;
-            float3 arrowTip2 = end - direction * arrowSize - right * arrowSize * 0.5f;
+            Gizmos.color = _collisionRadiusColor;
+            Gizmos.DrawWireSphere(position, _collisionRadius);
+            Gizmos.color = new Color(_collisionRadiusColor.r, _collisionRadiusColor.g, _collisionRadiusColor.b, _collisionRadiusColor.a * 0.3f);
+            Gizmos.DrawSphere(position, _collisionRadius);
+        }
+
+        private static void DrawArrowHead(float3 start, float3 end)
+        {
+            float3 direction = math.normalize(end - start);
+            float3 right = CalculateArrowRight(direction);
+
+            float3 arrowTip1 = end - (direction * ARROW_SIZE) + (right * ARROW_SIZE * 0.5f);
+            float3 arrowTip2 = end - (direction * ARROW_SIZE) - (right * ARROW_SIZE * 0.5f);
 
             Gizmos.DrawLine(end, arrowTip1);
             Gizmos.DrawLine(end, arrowTip2);
         }
 
-        private void OnGUI()
+        private static float3 CalculateArrowRight(float3 direction)
         {
-            if (!showLifecycleStats || !Application.isPlaying) return;
+            float3 right = math.cross(direction, math.up());
 
-            DrawLifecycleStatistics();
+            if (math.lengthsq(right) < 0.001f)
+            {
+                right = math.cross(direction, math.forward());
+            }
+
+            return right;
         }
 
         private void DrawLifecycleStatistics()
         {
             int activeCount = _spellQuery.CalculateEntityCount();
+            int targetCount = _targetQuery != null ? _targetQuery.CalculateEntityCount() : 0;
 
-            GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
-            boxStyle.alignment = TextAnchor.UpperLeft;
-            boxStyle.padding = new RectOffset(10, 10, 10, 10);
+            var boxStyle = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.UpperLeft, padding = new RectOffset(10, 10, 10, 10) };
+            var labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 12, normal = { textColor = Color.white } };
 
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
-            labelStyle.fontSize = 12;
-            labelStyle.normal.textColor = Color.white;
-
-            string stats = $"<b>Lifecycle Statistics</b>\n" +
-                          $"Active Spells: {activeCount}\n" +
-                          $"Total Spawned: {_totalSpawned}\n" +
-                          $"Total Destroyed: {_totalDestroyed}\n" +
-                          $"Lifetime: {spellLifetime:F1}s\n" +
-                          $"Speed: {spellSpeed:F1} u/s\n" +
-                          $"\n<b>Controls</b>\n" +
-                          $"Spawn: {spawnKey}\n" +
-                          $"Auto Spawn: {(autoSpawn ? "ON" : "OFF")}";
-
-            GUIContent content = new GUIContent(stats);
+            string stats = BuildStatisticsText(activeCount, targetCount);
+            var content = new GUIContent(stats);
             Vector2 size = labelStyle.CalcSize(content);
-            Rect boxRect = new Rect(statsPosition.x, statsPosition.y, size.x + 20, size.y + 20);
+            var boxRect = new Rect(_statsPosition.x, _statsPosition.y, size.x + 20, size.y + 20);
 
             GUI.Box(boxRect, "", boxStyle);
-            GUI.Label(new Rect(statsPosition.x + 10, statsPosition.y + 10, size.x, size.y), stats, labelStyle);
+            GUI.Label(new Rect(_statsPosition.x + 10, _statsPosition.y + 10, size.x, size.y), stats, labelStyle);
+        }
+
+        private string BuildStatisticsText(int activeCount, int targetCount)
+        {
+            return $"<b>Lifecycle Statistics</b>\n"
+                + $"Active Spells: {activeCount}\n"
+                + $"Total Spawned: {_totalSpawned}\n"
+                + $"Total Destroyed: {_totalDestroyed}\n"
+                + $"Lifetime: {_spellLifetime:F1}s\n"
+                + $"Speed: {_spellSpeed:F1} u/s\n"
+                + $"\n<b>Collision Statistics</b>\n"
+                + $"Total Collisions: {_totalCollisions}\n"
+                + $"Active Events: {_collisionEvents.Count}\n"
+                + $"Targets: {targetCount}\n"
+                + $"Type: {_generatorType}\n"
+                + $"\n<b>Controls</b>\n"
+                + $"Spawn Spell: {_spawnKey}\n"
+                + $"Spawn Targets: {_spawnTargetKey}\n"
+                + $"Select Type: 1-Projectile | 2-Cone | 3-AoE\n"
+                + $"Auto Spawn: {(_autoSpawn ? "ON" : "OFF")}";
+        }
+
+        private void CleanupEntities()
+        {
+            if (_entityManager == default || World.DefaultGameObjectInjectionWorld == null)
+            {
+                return;
+            }
+
+            if (_entityManager.Exists(_testPrefab))
+            {
+                _entityManager.DestroyEntity(_testPrefab);
+            }
+
+            if (_entityManager.Exists(_caster))
+            {
+                _entityManager.DestroyEntity(_caster);
+            }
+
+            LogInfo($"Destroyed | Total spawned: {_totalSpawned} | Total destroyed: {_totalDestroyed}");
         }
 
         private void LogInfo(string message)
@@ -383,28 +935,10 @@ namespace Spellwright.Tests.Manual
 
         private void LogVerbose(string message)
         {
-            if (verboseLogging)
+            if (_verboseLogging)
             {
                 Debug.Log($"[SpellTester] [VERBOSE] {message}");
             }
         }
-
-        private void OnDestroy()
-        {
-            if (_entityManager != default)
-            {
-                if (_entityManager.Exists(_testPrefab))
-                {
-                    _entityManager.DestroyEntity(_testPrefab);
-                }
-                if (_entityManager.Exists(_caster))
-                {
-                    _entityManager.DestroyEntity(_caster);
-                }
-            }
-
-            LogInfo($"Destroyed | Total spawned: {_totalSpawned} | Total destroyed: {_totalDestroyed}");
-        }
     }
 }
-

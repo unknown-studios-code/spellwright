@@ -26,7 +26,7 @@
             }
         }
     ],
-    "printWidth": 160,
+    "printWidth": 200,
     "proseWrap": "preserve",
     "quoteProps": "as-needed",
     "semi": true,
