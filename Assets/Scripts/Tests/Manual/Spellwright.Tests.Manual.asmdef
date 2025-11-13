@@ -7,6 +7,7 @@
         "Unity.Mathematics",
         "Unity.Collections",
         "Unity.InputSystem",
+        "Unity.Physics",
         "Spellwright.Utilities",
         "Spellwright.Components",
         "Spellwright.Systems",
@@ -22,4 +23,3 @@
     "versionDefines": [],
     "noEngineReferences": false
 }
-

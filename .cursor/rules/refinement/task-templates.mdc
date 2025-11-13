@@ -16,7 +16,7 @@ Use for new gameplay/user-facing functionality.
 ```markdown
 # [Feature Title - Specific and Implementation-Focused]
 
-### 📝 Description
+### Description
 
 **INSTRUCTION:** Describe what needs to be implemented from a gameplay/user perspective. Be specific about the visible behavior.
 
@@ -26,7 +26,7 @@ Use for new gameplay/user-facing functionality.
 
 ---
 
-### ✅ Definition of Done
+### Definition of Done
 
 **INSTRUCTION:** Create a comprehensive checklist of ALL steps required to consider this task complete. Include code, testing, documentation, and workflow items.
 
@@ -124,13 +124,13 @@ Use for new gameplay/user-facing functionality.
 **EXAMPLE:**
 
 - 🔴 **Performance Risk:** Querying all enemies every frame could be expensive with 100+ enemies
-  - Mitigation: Cache closest enemy during spawn, use spatial partitioning if needed
+    - Mitigation: Cache closest enemy during spawn, use spatial partitioning if needed
 - 🟡 **Edge Case:** Target enemy destroyed mid-flight could cause null reference
-  - Mitigation: Check `EntityManager.Exists(target)` before accessing transform
+    - Mitigation: Check `EntityManager.Exists(target)` before accessing transform
 - 🟠 **Integration Risk:** Homing calculations might conflict with other modifiers (e.g., fork, pierce)
-  - Mitigation: Document execution order, ensure HomingSystem runs after movement but before collision
+    - Mitigation: Document execution order, ensure HomingSystem runs after movement but before collision
 - 🔵 **Testing Challenge:** Difficult to reproduce specific homing behaviors deterministically
-  - Mitigation: Create fixed test scenarios with stationary targets first
+    - Mitigation: Create fixed test scenarios with stationary targets first
 
 ---
 
@@ -139,15 +139,15 @@ Use for new gameplay/user-facing functionality.
 **INSTRUCTION:** Provide links to technical documentation, related tasks, and code references.
 
 - **🎨 Design Files:**
-  - [Miro: Homing Behavior Flow Diagram](URL)
-  - [Video Reference: Diablo 3 Magic Missile](URL)
+    - [Miro: Homing Behavior Flow Diagram](URL)
+    - [Video Reference: Diablo 3 Magic Missile](URL)
 - **📚 Documentation:**
-  - [Unity DOTS: Writing an IJobEntity](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_ijobentity.html)
-  - [Unity Mathematics: Slerp Function](https://docs.unity3d.com/Packages/com.unity.mathematics@latest)
-  - [Project Rules: DOTS Architecture](.cursor/rules/concept/dots-architecture.mdc)
+    - [Unity DOTS: Writing an IJobEntity](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/ecs_ijobentity.html)
+    - [Unity Mathematics: Slerp Function](https://docs.unity3d.com/Packages/com.unity.mathematics@latest)
+    - [Project Rules: DOTS Architecture](.cursor/rules/concept/dots-architecture.mdc)
 - **🌐 External Resources:**
-  - [GDC Talk: Math for Game Programmers - Juicing Your Cameras](URL)
-  - [Reference Implementation: Unity ECS Samples - Boids](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
+    - [GDC Talk: Math for Game Programmers - Juicing Your Cameras](URL)
+    - [Reference Implementation: Unity ECS Samples - Boids](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
 ```
 
 ---
@@ -262,14 +262,14 @@ Use for refactorings, optimizations, and internal technical improvements.
 **EXAMPLE:**
 
 - 🔴 **Migration Risk:** Existing spell entities might break if components are not added upfront
-  - Mitigation: Add all components during entity creation, use enabled/disabled state only
-  - Rollback: Keep old system in separate branch for 1 sprint as safety net
+    - Mitigation: Add all components during entity creation, use enabled/disabled state only
+    - Rollback: Keep old system in separate branch for 1 sprint as safety net
 - 🟡 **Testing Coverage:** Hard to verify ALL spell combinations still work
-  - Mitigation: Run full spell test suite (50+ test cases), manual QA testing session
+    - Mitigation: Run full spell test suite (50+ test cases), manual QA testing session
 - 🟠 **Performance Regression:** Querying with `WithEnabled<T>()` might have overhead
-  - Mitigation: Profile before/after with 1000 entities, ensure no frame time increase
+    - Mitigation: Profile before/after with 1000 entities, ensure no frame time increase
 - 🔵 **Team Knowledge:** Team might not be familiar with enableable component pattern
-  - Mitigation: Tech talk + code review session before merge
+    - Mitigation: Tech talk + code review session before merge
 
 ---
 
@@ -278,12 +278,12 @@ Use for refactorings, optimizations, and internal technical improvements.
 **INSTRUCTION:** Include Unity documentation, architectural references, and related refactoring tasks.
 
 - **📚 Documentation:**
-  - [Unity Entities: Enableable Components](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-enableable.html)
-  - [Unity DOTS Best Practices: Structural Changes](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/concepts-structural-changes.html)
-  - [Project: DOTS Architecture Rules](.cursor/rules/concept/dots-architecture.mdc)
+    - [Unity Entities: Enableable Components](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/components-enableable.html)
+    - [Unity DOTS Best Practices: Structural Changes](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/concepts-structural-changes.html)
+    - [Project: DOTS Architecture Rules](.cursor/rules/concept/dots-architecture.mdc)
 - **🌐 External Resources:**
-  - [Unite Talk: DOTS Performance Optimization](URL)
-  - [Unity Forum: When to Use Enableable Components](URL)
+    - [Unite Talk: DOTS Performance Optimization](URL)
+    - [Unity Forum: When to Use Enableable Components](URL)
 ```
 
 ---
@@ -331,8 +331,8 @@ Use to fix identified defects and problems.
 
 - **Unity Version:** 2022.3.15f1
 - **DOTS Packages:**
-  - `com.unity.entities` 1.0.16
-  - `com.unity.burst` 1.8.8
+    - `com.unity.entities` 1.0.16
+    - `com.unity.burst` 1.8.8
 - **Build Target:** Windows Standalone, Editor Play Mode
 - **Device Specs:** Windows 11, Ryzen 9 5900X, RTX 3080, 32GB RAM
 - **Commit Hash:** `a3f7d91` (branch: `feature/SPWS-2/SPWT-10`)
@@ -340,7 +340,7 @@ Use to fix identified defects and problems.
 
 ---
 
-### 🔍 Root Cause Analysis
+### Root Cause Analysis
 
 **INSTRUCTION:** After investigation, document WHY the bug occurs. Fill this in once root cause is identified.
 
@@ -423,13 +423,13 @@ Use to fix identified defects and problems.
 **EXAMPLE:**
 
 - 🔴 **Side Effect Risk:** Changing system order might affect other systems that depend on current execution flow
-  - Mitigation: Review all systems in `SimulationSystemGroup`, verify no implicit dependencies
+    - Mitigation: Review all systems in `SimulationSystemGroup`, verify no implicit dependencies
 - 🟡 **Regression Risk:** Fix might break existing spells that rely on current (incorrect) timing
-  - Mitigation: Full regression test suite on all spell types (projectile, AoE, cone, self-cast)
+    - Mitigation: Full regression test suite on all spell types (projectile, AoE, cone, self-cast)
 - 🟠 **Performance Risk:** Adding null checks might impact performance at scale
-  - Mitigation: Profile with 1000 concurrent entities, ensure <0.1ms overhead
+    - Mitigation: Profile with 1000 concurrent entities, ensure <0.1ms overhead
 - 🔵 **Platform Risk:** Bug might manifest differently on mobile platforms
-  - Mitigation: Test on Android device before marking as complete
+    - Mitigation: Test on Android device before marking as complete
 
 ---
 
@@ -438,12 +438,12 @@ Use to fix identified defects and problems.
 **INSTRUCTION:** Link to error logs, related bugs, Unity documentation, and debugging sessions.
 
 - **🐛 Bug Tracking:**
-  - [Notion Bug Report: SPWT-23](URL)
-  - [Console Log Screenshot](URL)
-  - [Memory Profiler Snapshot](URL)
+    - [Notion Bug Report: SPWT-23](URL)
+    - [Console Log Screenshot](URL)
+    - [Memory Profiler Snapshot](URL)
 - **📚 Documentation:**
-  - [Unity Entities: System Update Order](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/systems-update-order.html)
-  - [Project Rules: DOTS System Ordering](.cursor/rules/concept/dots-architecture.mdc#system-execution-order)
+    - [Unity Entities: System Update Order](https://docs.unity3d.com/Packages/com.unity.entities@latest/manual/systems-update-order.html)
+    - [Project Rules: DOTS System Ordering](.cursor/rules/concept/dots-architecture.mdc#system-execution-order)
 ```
 
 ---

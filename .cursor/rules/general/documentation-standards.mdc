@@ -3,133 +3,136 @@ globs: *.cs
 alwaysApply: false
 ---
 
-# C# Documentation Standards for Spellwright
+# C# Documentation Standards
 
-Defines mandatory documentation standards for all C# scripts in the Spellwright project, following official C# XML documentation guidelines and Unity/DOTS best practices.
+Defines mandatory XML documentation standards for all C# scripts in Spellwright, following official C# guidelines and Unity/DOTS best practices.
 
-## Core Documentation Principles
+## Core Principles
 
-### 1. XML Documentation Format
+### XML Documentation Format
 
-All public and internal types, members, and methods **MUST** use C# XML documentation comments with triple-slash `///` format.
+All public and internal types, members, and methods MUST use C# XML documentation with triple-slash `///` format.
 
-**Format:**
-
-```csharp
-/// <summary>
-/// Brief description of the type or member.
-/// </summary>
-public class ExampleClass { }
-```
-
-**Never use:**
-
-- Single-line comments `//` for API documentation
-- Multi-line comments `/* */` for API documentation
-- Inline comments for public member descriptions
-
-### 2. Mandatory Documentation Targets
+### Mandatory Documentation Targets
 
 **MUST be documented:**
 
-- All public classes, structs, and interfaces
+- All public classes, structs, interfaces
 - All public and internal methods
 - All public properties and fields
-- All ECS components (IComponentData)
+- All ECS components (IComponentData, IBufferElementData)
 - All ECS systems (ISystem, SystemBase)
 - All Jobs (IJob, IJobEntity)
-- All enum types and their values
+- All enum types and values
 - All delegates and events
 
 **Optional documentation:**
 
 - Private methods (recommended for complex logic)
-- Private fields (only if non-obvious purpose)
+- Private fields (only if non-obvious)
 
-### 3. Documentation Completeness
+### Required Tags
 
-**Minimum required tags:**
+**Minimum tags per member:**
 
 - `<summary>` - Brief description (1-3 sentences)
 - `<param>` - For each method parameter
-- `<returns>` - For methods with non-void return
-- `<exception>` - For methods that can throw exceptions
-- `<remarks>` - For important implementation details (when needed)
+- `<returns>` - For non-void methods
+- `<exception>` - For methods that throw
+- `<remarks>` - For implementation details (when needed)
 
-## Standard XML Tags Reference
+## Standard XML Tags
 
-### Essential Tags
+| Tag                  | Purpose                | Required For       | Usage                                |
+| -------------------- | ---------------------- | ------------------ | ------------------------------------ |
+| `<summary>`          | Brief description      | All public APIs    | 1-3 sentences describing purpose     |
+| `<param>`            | Parameter description  | All parameters     | Describe purpose and valid values    |
+| `<returns>`          | Return value           | Non-void methods   | Describe what is returned            |
+| `<exception>`        | Exception docs         | Methods that throw | Document exception conditions        |
+| `<remarks>`          | Implementation details | Complex logic      | System group, threading, performance |
+| `<value>`            | Property value         | Properties         | Describe value and valid range       |
+| `<c>`                | Inline code term       | In text            | Reference code elements inline       |
+| `<see cref=""/>`     | Code reference         | Cross-references   | Link to related types/members        |
+| `<seealso cref=""/>` | Related reference      | Related links      | Link to related documentation        |
 
-| Tag                  | Purpose                           | Required For       | Example                                                                               |
-| -------------------- | --------------------------------- | ------------------ | ------------------------------------------------------------------------------------- |
-| `<summary>`          | Brief description (1-3 sentences) | All public APIs    | `/// <summary>Defines movement data for projectile spells.</summary>`                 |
-| `<param>`            | Parameter description             | All parameters     | `/// <param name="entity">The entity to move.</param>`                                |
-| `<returns>`          | Return value description          | Non-void methods   | `/// <returns>The final damage value after modifiers.</returns>`                      |
-| `<exception>`        | Exception documentation           | Methods that throw | `/// <exception cref="ArgumentNullException">Thrown when entity is null.</exception>` |
-| `<remarks>`          | Implementation details            | When needed        | `/// <remarks>Runs in SimulationSystemGroup after physics.</remarks>`                 |
-| `<value>`            | Property value description        | Properties         | `/// <value>Speed in units/second. Range: 0.1f to 100f.</value>`                      |
-| `<example>`          | Usage example                     | Complex APIs       | `/// <example><code>var spell = CreateProjectile();</code></example>`                 |
-| `<c>`                | Inline code term                  | In text            | `Sets the <c>Lifetime</c> component`                                                  |
-| `<see cref=""/>`     | Code reference                    | Cross-references   | `See also <see cref="HealSystem"/>`                                                   |
-| `<seealso cref=""/>` | Related reference                 | Related links      | `/// <seealso cref="HomingModifierSystem"/>`                                          |
+## Writing Guidelines
 
-### Tag Rules
+### Summary Tag
 
-**`<summary>` Rules:**
+**DO:**
 
 - Start with active verbs: "Represents", "Defines", "Calculates", "Processes"
 - Use present tense
-- 1-3 sentences max
-- Don't repeat the member name
-- **Bad:** `/// <summary>ProjectileComponent</summary>`
-- **Good:** `/// <summary>Defines movement data for projectile-type spell generators.</summary>`
+- Keep to 1-3 sentences
+- Include scope and purpose
+- Mention valid ranges for numeric values
 
-**`<param>` Rules:**
+**DON'T:**
 
-- One tag per parameter, match name exactly
+- Repeat the member name
+- Write vague descriptions
+- Use passive voice
+- Exceed 3 sentences
+
+### Param Tag
+
+**DO:**
+
 - Start with "The" or "A/An"
 - Describe purpose and valid values
-- Example: `/// <param name="offset">The movement offset in world space.</param>`
+- Match parameter name exactly
+- Document constraints and ranges
 
-**`<returns>` Rules:**
+**DON'T:**
 
-- Describe what is returned, not just the type
-- Include range or possible values when relevant
-- Mention null conditions for reference types
+- Just repeat the parameter type
+- Skip validation requirements
+- Use ambiguous descriptions
 
-**Cross-References:**
+### Returns Tag
 
-- Use fully qualified names when ambiguous: `<see cref="UnityEngine.Transform"/>`
-- For generics, use curly braces: `<see cref="DynamicBuffer{T}"/>`
+**DO:**
 
-## Unity-Specific Documentation Patterns
+- Describe what is returned, not just type
+- Include range or possible values
+- Mention null conditions
+- Document special return values
+
+**DON'T:**
+
+- Just state the type
+- Skip null documentation
+- Omit range information
+
+### Remarks Tag
+
+**DO:**
+
+- Document system group and update order
+- Specify Burst compilation status
+- Describe threading model (Parallel/Sequential)
+- Include performance characteristics (O(n), target ms)
+- Document which systems read/write components
+- Explain architectural decisions
+
+**DON'T:**
+
+- Duplicate summary information
+- Skip performance documentation
+- Omit system dependencies
+
+## Unity-Specific Patterns
 
 ### MonoBehaviour/ScriptableObject
 
 **Required documentation:**
 
-- Component purpose and where to attach
+- Component purpose and attachment location
 - Required dependencies
-- Inspector-configurable fields with valid ranges
-- Unity messages used (Awake, Start, Update, etc.)
+- Inspector-configurable fields with ranges
+- Unity messages used (Awake, Start, Update)
 
-**Example:**
-
-```csharp
-/// <summary>
-/// Handles player input for spell casting. Attach to player GameObject.
-/// </summary>
-/// <remarks>
-/// Requires: PlayerController. Unity Messages: Update, OnEnable, OnDisable
-/// </remarks>
-public class SpellCastingInput : MonoBehaviour
-{
-    /// <summary>Key for casting primary spell. Configure in Inspector (default: Mouse0).</summary>
-    [SerializeField] private KeyCode castKey = KeyCode.Mouse0;
-}
-```
-
-### ECS Components (IComponentData)
+### ECS Components
 
 **Required documentation:**
 
@@ -137,245 +140,158 @@ public class SpellCastingInput : MonoBehaviour
 - Which systems read/write it
 - Performance characteristics (blittable, burst-compatible)
 - Data constraints and valid ranges
+- Architecture layer (Generator/Modifier/Payload)
 
-**Example:**
-
-```csharp
-/// <summary>
-/// Remaining lifetime of a spell entity. Entity destroyed when reaches zero.
-/// </summary>
-/// <remarks>
-/// Unmanaged, Burst-compatible. Updated by: LifetimeSystem. Blittable, cache-friendly.
-/// </remarks>
-public struct Lifetime : IComponentData
-{
-    /// <summary>Time in seconds before destruction. Negative = unlimited.</summary>
-    /// <value>Must be non-negative or -1 for unlimited.</value>
-    public float Value;
-}
-```
-
-### ECS Systems (ISystem)
+### ECS Systems
 
 **Required documentation:**
 
-- System purpose (verb: "Processes", "Updates", "Handles")
+- System purpose (verb-based)
 - Components queried
-- System group and update order
-- Burst compilation status
-- Threading model
-- Performance characteristics
+- System group: `[UpdateInGroup(typeof(...))]`
+- Update order: `[UpdateBefore/After(typeof(...))]`
+- Burst status: Yes/No
+- Threading: Parallel (IJobEntity) or Sequential
+- Performance: O(n) complexity, target ms
 
-**Example:**
-
-```csharp
-/// <summary>
-/// Processes projectile movement for spell entities with ProjectileComponent.
-/// </summary>
-/// <remarks>
-/// Group: SimulationSystemGroup, After: TransformSystemGroup
-/// Burst: Yes, Threading: Parallel (IJobEntity), Performance: O(n)
-/// </remarks>
-[BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(TransformSystemGroup))]
-public partial struct ProjectileMovementSystem : ISystem
-{
-    /// <summary>Initializes system state and queries.</summary>
-    [BurstCompile]
-    public void OnCreate(ref SystemState state) { }
-
-    /// <summary>Updates projectile positions every frame.</summary>
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state) { }
-}
-```
-
-### ECS Jobs (IJobEntity)
+### ECS Jobs
 
 **Required documentation:**
 
 - Job purpose and execution model
-- Burst compilation status
-- Component access (Read/Write/Read-only)
-- Thread safety
+- Burst compilation: Yes/No
+- Component access: RW/RO for each component
+- Thread safety: Parallel safe or sequential only
+- Performance target
 
-**Example:**
-
-```csharp
-/// <summary>
-/// Parallel job updating projectile positions based on velocity.
-/// </summary>
-/// <remarks>
-/// Burst: Yes, Schedule: Parallel, Access: RW LocalTransform, RO Velocity
-/// </remarks>
-[BurstCompile]
-public partial struct MoveProjectilesJob : IJobEntity
-{
-    public float DeltaTime;
-
-    public void Execute(ref LocalTransform transform, in Velocity velocity)
-    {
-        transform.Position += velocity.Value * DeltaTime;
-    }
-}
-```
-
-## Spellwright Architecture Documentation
+## Spellwright Architecture
 
 ### Generator/Modifier/Payload Pattern
 
-Document how components fit into the spell architecture:
+**Required in remarks:**
 
-```csharp
-/// <summary>
-/// Projectile generator for the Spellwright spell system.
-/// Part of Generator layer - defines how spells originate and move.
-/// </summary>
-/// <remarks>
-/// Layer: Generator (Mandatory). Compatible: Homing/Pierce/Fork modifiers, all payloads.
-/// Performance: Blittable, Burst-compatible. Valid Speed: 0.1f to 100f (recommended: 5-30f).
-/// </remarks>
-public struct ProjectileComponent : IComponentData
-{
-    /// <summary>Movement speed in units per second.</summary>
-    public float Speed;
-}
-```
+- Architecture layer (Generator/Modifier/Payload)
+- Compatibility with other layers
+- Performance characteristics
+- Valid value ranges
+- Recommended values
 
 ### JSON Baking Systems
 
-Document relationship to JSON schema:
+**Required in remarks:**
 
-```csharp
-/// <summary>
-/// Bakes projectile generator JSON into ECS components.
-/// </summary>
-/// <remarks>
-/// Type: Baking System. Execution: One-time during spell creation.
-/// JSON Schema: "generator.projectile". Output: ProjectileComponent, Velocity, LocalTransform.
-/// Validation: Client-side before baking.
-/// </remarks>
-public partial class ProjectileBakingSystem : SystemBase
-{
-    /// <summary>Bakes projectile spell from validated JSON data.</summary>
-    /// <exception cref="ArgumentNullException">Thrown when jsonData is null.</exception>
-    /// <exception cref="FormatException">Thrown when JSON doesn't match schema.</exception>
-    protected override void OnUpdate() { }
-}
-```
+- System type: Baking System
+- Execution timing: One-time during creation
+- JSON schema path
+- Output components
+- Validation layer
 
-## Advanced Documentation Patterns
+## Advanced Patterns
 
 ### Performance Documentation
 
-Document performance characteristics for DOTS code:
+**Include in remarks:**
 
-**Include:**
-
-- Time complexity (Big O notation)
-- Memory allocation (zero GC)
-- Burst compilation status
-- Threading model
-- Target performance metrics
-
-**Example:**
-
-```csharp
-/// <summary>Processes spell collisions using Unity Physics.</summary>
-/// <remarks>
-/// Performance: O(n*m) where n=spells, m=avg hits. Zero GC (NativeArrays).
-/// Burst: Yes. Threading: Parallel (IJobEntity). Cache-friendly sequential access.
-/// Target: &lt;0.5ms for 1000 spells @60fps. Profiler: "Spell.Physics"
-/// </remarks>
-```
-
-### Validation and Constraints
-
-Document data validation:
-
-```csharp
-/// <summary>Validates spell JSON against Spellwright schema.</summary>
-/// <remarks>
-/// Three-layer validation: 1) API Function Calling (LLM), 2) Few-Shot Prompting (LLM), 3) Client-side (this).
-/// </remarks>
-public class SpellValidator
-{
-    /// <summary>Validates damage value is within range.</summary>
-    /// <returns>True if valid; otherwise, false.</returns>
-    /// <remarks>
-    /// Valid: 1.0f to 1000.0f. Recommended: 10f to 100f. Must be positive and finite.
-    /// </remarks>
-    public bool ValidateDamage(float damage) { }
-}
-```
+- Time complexity: O(n), O(n\*m), O(1)
+- Memory allocation: Zero GC, NativeArrays
+- Burst compilation: Yes/No
+- Threading model: Parallel/Sequential
+- Target metrics: <0.5ms for 1000 entities @60fps
+- Profiler marker name
 
 ### Thread Safety
 
-Document thread safety for jobs/parallel processing:
+**Include in remarks:**
 
-```csharp
-/// <summary>Processes multiple spells in parallel using job system.</summary>
-/// <remarks>
-/// Thread Safety: RO Velocity/ProjectileComponent, RW LocalTransform (no shared writes).
-/// Parallel Safe: Yes (no race conditions). ECB: Deferred structural changes.
-/// Synchronization: Implicit via IJobEntity scheduling.
-/// </remarks>
-```
+- Component access patterns: RO/RW
+- Parallel safety: Yes/No
+- Race condition prevention: ECB, no shared writes
+- Synchronization: Implicit via job scheduling
 
-## Documentation Quality Checklist
+### Validation and Constraints
 
-- [ ] All public types have `<summary>` tags
-- [ ] All method parameters have `<param>` tags
-- [ ] All non-void methods have `<returns>` tags
-- [ ] All exceptions documented with `<exception>` tags
-- [ ] Cross-references use `<see cref=""/>` with correct syntax
+**Include in remarks:**
+
+- Valid ranges: 1.0f to 1000.0f
+- Recommended values: 10f to 100f
+- Constraints: Must be positive, non-zero, finite
+- Validation layer: Client-side, LLM, Schema
+
+## Documentation Checklist
+
+Before submitting code, verify:
+
+- [ ] All public types have `<summary>`
+- [ ] All parameters have `<param>`
+- [ ] All non-void methods have `<returns>`
+- [ ] All exceptions have `<exception>`
+- [ ] Cross-references use correct `<see cref=""/>` syntax
 - [ ] ECS components document which systems use them
-- [ ] ECS systems document update order and burst compilation
-- [ ] Performance-critical code includes performance remarks
-- [ ] Unity-specific attributes are explained
+- [ ] ECS systems document group and update order
+- [ ] Performance-critical code has performance remarks
+- [ ] Unity attributes are explained in remarks
 - [ ] No spelling or grammar errors
+- [ ] Documentation matches current implementation
 
 ## Tools and Validation
 
 **IDE Integration:**
 
-- Visual Studio: Enable XML documentation warnings (CS1591)
+- Visual Studio: Enable CS1591 warnings
 - Rider: Enable "Missing XML comment" inspections
 - VS Code: Install C# XML Documentation extension
 
-**Build-Time:** Treat documentation warnings as errors in CI/CD pipeline
+**Build-Time:**
 
-**AI-Assisted:** Always review for technical accuracy, verify code references, validate performance claims, check Unity/DOTS terminology
+- Treat documentation warnings as errors in CI/CD
+
+**AI-Assisted:**
+
+- Review for technical accuracy
+- Verify code references
+- Validate performance claims
+- Check Unity/DOTS terminology
 
 ## Best Practices
 
-**Do:**
+**DO:**
 
-- Write descriptive titles with scope: `/// <summary>Projectile movement speed in units/second. Valid: 0.1f-100f.</summary>`
-- Document all public types, methods, parameters, and return values
-- Include performance characteristics for DOTS code
-- Document thread safety for parallel systems
-- Keep documentation synchronized with code changes
-- Explain **why**, not just **what**
+- Write for developers unfamiliar with code
+- Include scope and valid ranges
+- Document performance characteristics
+- Explain architectural decisions
+- Keep synchronized with code changes
+- Use proper XML syntax
+- Document "why", not just "what"
 
-**Don't:**
+**DON'T:**
 
-- Use redundant descriptions: `/// <summary>Gets or sets the speed.</summary>` (adds nothing)
-- Write vague descriptions: `/// <summary>Does stuff with entity.</summary>`
-- Forget XML escaping: Use `<see cref="List{T}"/>` not `List<T>`
-- Copy-paste without reviewing for accuracy
-- Leave documentation outdated after refactoring
+- Write redundant descriptions
+- Use vague language
+- Forget XML escaping for generics: `<see cref="List{T}"/>`
+- Copy-paste without reviewing
+- Leave documentation outdated
+- Skip performance documentation for DOTS code
 
-## Important Notes
+## Integration
 
-- Documentation is **mandatory**, not optional
-- Write for developers who are unfamiliar with the code
-- Keep documentation synchronized with code changes
-- Document **why**, not just **what** - explain design decisions
-- Use proper XML syntax - validate with IDE tools
-- Performance documentation is critical for DOTS code
-- All documentation must be in **English**
-- Document public API surface area completely
-- Private implementation details are optional but encouraged
-- Update documentation when refactoring code
+This standard works with:
+
+- **Code Generation** (`general/code-generation.mdc`)
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
+- **Spell Components** (`concept/spell-components.mdc`)
+
+## Summary
+
+**PRIMARY RULE**: All public APIs must have complete XML documentation.
+
+**Key Requirements:**
+
+1. Triple-slash `///` format
+2. Summary + param + returns + exception tags
+3. Performance remarks for DOTS code
+4. Thread safety documentation
+5. System group and update order
+6. Architecture layer identification
+
+**Remember**: Documentation is mandatory, not optional. Write for developers unfamiliar with the code.

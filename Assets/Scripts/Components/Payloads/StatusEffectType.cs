@@ -1,4 +1,4 @@
-namespace Spellwright.Components.Payloads
+﻿namespace Spellwright.Components.Payloads
 {
     public enum StatusEffectType : byte
     {
@@ -6,6 +6,6 @@ namespace Spellwright.Components.Payloads
         Slow = 1,
         Burn = 2,
         Stun = 3,
-        Poison = 4
+        Poison = 4,
     }
 }

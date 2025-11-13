@@ -12,11 +12,7 @@
     "conditions": {
         "ref_name": {
             "exclude": [],
-            "include": [
-                "refs/heads/feature/SPWS-*/SPWT-*",
-                "refs/heads/tech/SPWS-*/SPWT-*",
-                "refs/heads/bug/SPWS-*/SPWT-*"
-            ]
+            "include": ["refs/heads/feature/SPWS-*/SPWT-*", "refs/heads/tech/SPWS-*/SPWT-*", "refs/heads/bug/SPWS-*/SPWT-*"]
         }
     },
     "rules": [

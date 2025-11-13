@@ -50,8 +50,8 @@ alwaysApply: true
 
 - **Date:** `filters.created_date_range` with `start_date`/`end_date` (ISO 8601)
 - **Author:**
-  - Search user: `notion-search` with `query_type: "user"`
-  - Apply: `filters.created_by_user_ids`
+    - Search user: `notion-search` with `query_type: "user"`
+    - Apply: `filters.created_by_user_ids`
 - **Teamspace:** Use `teamspace_id` (UUID)
 - **Database:** Use `data_source_url` format `collection://<data_source_id>`
 - **Sorting:** `orderBy` (CREATED_AT, UPDATED_AT, COMMENTS) + `direction` (ASC, DESC)
@@ -61,22 +61,20 @@ alwaysApply: true
 **2-Step Process:**
 
 1. **Locate Container:**
-
-   - `SPWE-X` → Search "Epics" page
-   - `SPWS-X` → Search "Stories" page
-   - `SPWT-X` → Search "Tasks" page
-   - Use: `notion-search` with `query_type: "internal"`
+    - `SPWE-X` → Search "Epics" page
+    - `SPWS-X` → Search "Stories" page
+    - `SPWT-X` → Search "Tasks" page
+    - Use: `notion-search` with `query_type: "internal"`
 
 2. **Find Artifact:**
-
-   - Use: `notion-search` with:
-     - `query: "[artifact ID]"` (e.g., "SPWT-5")
-     - `page_url: "[container page ID/URL]"`
-     - `query_type: "internal"`
+    - Use: `notion-search` with:
+        - `query: "[artifact ID]"` (e.g., "SPWT-5")
+        - `page_url: "[container page ID/URL]"`
+        - `query_type: "internal"`
 
 3. **Get Content:**
-   - Use: `notion-fetch` with artifact ID
-   - If not found, try global search without `page_url`
+    - Use: `notion-fetch` with artifact ID
+    - If not found, try global search without `page_url`
 
 ## Important Notes
 

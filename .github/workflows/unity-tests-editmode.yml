@@ -60,7 +60,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           testMode: editmode
-          unityVersion: auto
+          unityVersion: 6000.2.10f1
           checkName: Edit Mode Test Results
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+Assembly-CSharp,+Unity.*.Runtime"

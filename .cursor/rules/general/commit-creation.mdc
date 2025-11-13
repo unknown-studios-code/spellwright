@@ -1,15 +1,15 @@
 ---
-description: Provides guidelines for writing commit messages following Commitizen and Conventional Commits standards, ensuring consistent and meaningful commit history with automated versioning support.
+description: Guidelines for writing commit messages following Commitizen and Conventional Commits standards for automated versioning and clear history.
 alwaysApply: false
 ---
 
 # Git Commit Message Standards
 
-This file defines mandatory commit message standards for Spellwright, following Commitizen and Conventional Commits specifications. These standards enable automated versioning, changelog generation, and clear project history.
+Defines mandatory commit message standards following Commitizen and Conventional Commits specifications.
 
 ## Commit Message Format
 
-All commit messages **MUST** follow this structure:
+All commits MUST follow this structure:
 
 ```
 <type>(<scope>): <subject>
@@ -19,402 +19,385 @@ All commit messages **MUST** follow this structure:
 [optional footer(s)]
 ```
 
-### Basic Rules
+**Basic Rules:**
 
-- **Type**: Mandatory, lowercase
-- **Scope**: Optional, lowercase, in parentheses
-- **Subject**: Mandatory, lowercase, no period at the end
-- **Body**: Optional, separated by blank line
-- **Footer**: Optional, separated by blank line
+- Type: Mandatory, lowercase
+- Scope: Optional, lowercase, in parentheses
+- Subject: Mandatory, lowercase, no period
+- Body: Optional, blank line separator
+- Footer: Optional, blank line separator
 
 ## Commit Types
 
-### Semantic Versioning Impact
-
-| Type       | Version Bump  | Description                                |
-| ---------- | ------------- | ------------------------------------------ |
-| `feat`     | MINOR (1.x.0) | New feature                                |
-| `fix`      | PATCH (1.0.x) | Bug fix                                    |
-| `perf`     | PATCH (1.0.x) | Performance improvement                    |
-| `docs`     | None          | Documentation only                         |
-| `style`    | None          | Code style (formatting, whitespace)        |
-| `refactor` | None          | Code restructuring without behavior change |
-| `test`     | None          | Adding or modifying tests                  |
-| `build`    | None          | Build system or dependencies               |
-| `ci`       | None          | CI configuration                           |
-| `chore`    | None          | Maintenance tasks                          |
-| `revert`   | None          | Revert previous commit                     |
-
-### Type Usage Guidelines
-
-**`feat` - New Feature**
-
-- Adding new functionality, APIs, or user-facing features
-- Example: `feat(modifiers): add homing target acquisition system`
-
-**`fix` - Bug Fix**
-
-- Fixing bugs, incorrect behavior, or security vulnerabilities
-- Example: `fix(collision): prevent null reference on target destroy`
-
-**`perf` - Performance Improvement**
-
-- Improving performance without changing functionality
-- Example: `perf(movement): reduce allocation in projectile update loop`
-
-**`docs` - Documentation**
-
-- Updating documentation, XML comments, README, or rule files
-- Example: `docs(architecture): add DOTS implementation guide`
-
-**`style` - Code Style**
-
-- Formatting changes without logic changes (whitespace, indentation, naming)
-- Example: `style(components): apply consistent naming conventions`
-
-**`refactor` - Code Refactoring**
-
-- Restructuring code without changing behavior (improving architecture, extracting methods)
-- Example: `refactor(baking): extract JSON validation to separate class`
-
-**`test` - Tests**
-
-- Adding, modifying, or fixing tests
-- Example: `test(lifetime): add unit tests for entity destruction`
-
-**`build` - Build System**
-
-- Modifying build configuration or updating dependencies
-- Example: `build(deps): update Unity.Entities to 1.0.16`
-
-**`ci` - Continuous Integration**
-
-- Modifying CI configuration or automated checks
-- Example: `ci(actions): add code quality checks`
-
-**`chore` - Maintenance**
-
-- Routine maintenance tasks not fitting other categories
-- Example: `chore(gitignore): add Unity temp files`
-
-**`revert` - Revert**
-
-- Reverting a previous commit
-- Format: `revert: <header of reverted commit>`
-- Body: `This reverts commit <hash>. Reason: <explanation>`
+| Type       | Version Impact | Usage                                   |
+| ---------- | -------------- | --------------------------------------- |
+| `feat`     | MINOR (1.x.0)  | New feature or functionality            |
+| `fix`      | PATCH (1.0.x)  | Bug fix or correction                   |
+| `perf`     | PATCH (1.0.x)  | Performance improvement                 |
+| `docs`     | None           | Documentation only                      |
+| `style`    | None           | Code formatting (no logic change)       |
+| `refactor` | None           | Code restructuring (no behavior change) |
+| `test`     | None           | Adding or modifying tests               |
+| `build`    | None           | Build system or dependencies            |
+| `ci`       | None           | CI configuration                        |
+| `chore`    | None           | Maintenance tasks                       |
+| `revert`   | None           | Revert previous commit                  |
 
 ## Scope Guidelines
 
-Scope is optional but recommended for context. Use lowercase, specific names.
-
 **Common Spellwright Scopes:**
 
-**Architecture:** `spells`, `generators` (Projectile/Cone/AoE/SelfCast), `modifiers` (Homing/Chain/Pierce/Fork), `payloads` (Damage/Heal/Status), `components`, `systems`, `jobs`
+**Architecture:**
 
-**Subsystems:** `movement`, `collision`, `lifetime`, `baking`, `validation`
+- `generators` - Projectile/Cone/AoE/SelfCast
+- `modifiers` - Homing/Chain/Pierce/Fork
+- `payloads` - Damage/Heal/Status
+- `components` - ECS components
+- `systems` - ECS systems
+- `jobs` - Parallel jobs
 
-**Integration:** `llm`, `api`, `json`, `ui`, `networking`
+**Subsystems:**
 
-**Infrastructure:** `tests`, `docs`, `build`, `ci`
+- `movement`, `collision`, `lifetime`, `baking`, `validation`
 
-**Examples:**
+**Integration:**
 
-```bash
-feat(generators): add cone spell generator
-fix(collision): prevent double-hit on pierce
-docs(modifiers): add XML documentation for HomingModifier
-```
+- `llm`, `api`, `json`, `ui`, `editor`
+
+**Infrastructure:**
+
+- `tests`, `docs`, `build`, `ci`
 
 ## Subject Line Rules
 
-**Mandatory rules:**
+**DO:**
 
-1. **Imperative mood**: "add", "fix", "change" (NOT "adds", "fixed", "changing")
-2. **Lowercase**: Start with lowercase letter
-3. **No period**: Don't end with period
-4. **Max 72 characters**: Keep it concise
-5. **Be descriptive**: Clearly state what the commit does
+- Use imperative mood: "add", "fix", "change"
+- Start with lowercase
+- Keep under 72 characters
+- Be specific and descriptive
+- Omit period at end
 
-**Good examples:**
+**DON'T:**
 
-```bash
-feat(homing): add target acquisition system
-fix(lifetime): correct time calculation bug
-refactor(baking): extract validator to separate class
-```
+- Use past tense: "added", "fixed"
+- Capitalize first letter
+- Add period at end
+- Be vague: "fix bug", "update code"
+- Exceed 72 characters
 
-**Bad examples:**
+## Body Guidelines
 
-```bash
-feat(homing): Added target acquisition.  # Past tense, capitalized, period
-fix: fixed bug                           # Not descriptive
-Update documentation                     # No type, capitalized
-```
+**When to include body:**
 
-## Commit Body (Optional)
+- Complex changes requiring explanation
+- Breaking changes
+- Multiple related changes
+- Context for future maintainers
 
-The body provides additional context and explanation. Separate from subject with **one blank line**.
+**Format:**
 
-### When to Include Body
-
-- Explaining **why** the change was made
-- Describing complex changes
-- Listing multiple changes in one commit
-- Providing context for reviewers
-
-### Body Guidelines
-
-- Wrap at 72 characters per line
+- Blank line after subject
+- Wrap at 72 characters
 - Use bullet points for multiple items
-- Explain motivation and context
-- Describe what and why, not how
+- Start bullet points with uppercase letter
+- Explain "what" and "why", not "how"
 
-### Example with Body
+**DO:**
 
-```bash
-feat(modifiers): add pierce modifier system
+- Explain motivation for change
+- Describe impact and side effects
+- Reference related issues/PRs
+- Use bullet points for clarity
+- Keep paragraphs focused
 
-Implements pierce functionality allowing projectiles to pass through
-multiple targets before destruction. Uses pierce counter that decrements
-on each collision.
+**DON'T:**
 
-- Add PierceModifier component with pierce count
-- Integrate with CollisionSystem to check pierce state
-- Add tests for 5-target pierce scenario
+- Describe implementation details
+- Repeat subject line
+- Exceed 72 characters per line
+- Use vague language
 
-Related to SPWS-2 (Spell Modifiers implementation)
+## Complex Commits with Organized Sections
+
+**When to use organized sections:**
+
+- Commits with multiple categories of changes
+- Large features with various components
+- Changes affecting multiple subsystems
+- Commits requiring detailed documentation
+
+**Structure:**
+
+```
+<type>(<scope>): <subject>
+
+[Introductory paragraph explaining overall change]
+
+Section Name:
+- Bullet point 1
+- Bullet point 2
+
+Another Section:
+- Bullet point 1
+- Bullet point 2
+
+[Footer(s)]
 ```
 
-## Commit Footer (Optional)
+**Section Guidelines:**
 
-Footers provide structured metadata. Separate from body with **one blank line**.
+- Use descriptive section names (substantives)
+- Keep sections focused and cohesive
+- Order sections by importance or logical flow
+- Use consistent naming across commits
 
-### Breaking Changes
+**Common Section Names:**
 
-**CRITICAL**: Use `BREAKING CHANGE:` footer for breaking changes.
-**Triggers**: MAJOR version bump (x.0.0)
+- `Core Implementation:` - Main code changes
+- `Testing Infrastructure:` - Test setup and utilities
+- `Performance:` - Performance improvements
+- `Documentation:` - Documentation updates
+- `Code Formatting:` - Formatting and linting
+- `IDE Integration:` - Editor configuration
+- `Git Hooks & Protection:` - Git configuration
+- `Fixes:` - Bug fixes within the feature
+- `Breaking Changes:` - API or behavior changes
 
-```bash
-feat(api): change spell JSON schema structure
+## Footer Guidelines
 
-Restructured spell JSON to support multi-payload system.
-Old single-payload format is no longer supported.
+**Available Footers:**
 
-BREAKING CHANGE: `payload` field changed to `payloads` array.
-Migration required for existing spell definitions.
+The only available footers are:
+
+```
+Implements: SPWT-XX
+Part of: SPWS-X
+Related: SPWT-XX or SPWS-X
 ```
 
-### Issue References
+**Footer Format:**
 
-Link commits to Notion artifacts or GitHub issues:
+- `Implements: SPWT-XX` - Task being implemented
+- `Part of: SPWS-X` - User Story this task belongs to
+- `Related: SPWT-XX or SPWS-X` - Related tasks or stories
 
-```bash
-fix(collision): prevent race condition in parallel collision check
+**Multiple Footers:**
 
-Adds explicit system ordering to ensure collision detection runs
-before payload resolution.
-
-Fixes: SPWT-23
-Related: SPWS-2, SPWT-15
+```
+Implements: SPWT-42
+Part of: SPWS-5
+Related: SPWT-15, SPWS-2
 ```
 
-### Other Footers
+## Examples
 
-```bash
-Reviewed-by: John Doe <john@example.com>
-Refs: #123, #456
-See-also: SPWS-1
+**Simple Feature:**
+
+```
+feat(homing): add target acquisition system
 ```
 
-## Complete Examples
+**Bug Fix with Context:**
 
-### Simple Feature
+```
+fix(collision): prevent null reference on target destroy
 
-```bash
-feat(generators): add self-cast generator type
+Collision system crashed when target entity was destroyed
+between detection and resolution frames. Added null check
+before accessing target components.
+
+Implements: SPWT-15
+Part of: SPWS-3
 ```
 
-### Bug Fix with Context
+**Feature with Dependencies:**
 
-```bash
-fix(lifetime): correct entity destruction timing
+```
+feat(api): change spell creation API signature
 
-Entities were destroyed before status effects could be applied.
-Adjusted system execution order to ensure effects resolve first.
+Replace SpellBuilder.Create(string) with SpellBuilder.Create(SpellDefinition)
+for better type safety and validation.
 
-Fixes: SPWT-23
+Implements: SPWT-42
+Part of: SPWS-8
+Related: SPWT-39
 ```
 
-### Breaking Change
+**Performance Improvement:**
 
-```bash
-feat(payloads)!: migrate to multi-payload system
+```
+perf(movement): reduce allocation in projectile loop
 
-Changed spell definition to support multiple payloads instead of single.
-Enables complex effects like "damage + burn + slow".
+Replace foreach with job scheduling to eliminate GC pressure.
+Reduces frame time from 2.5ms to 0.3ms for 1000 projectiles.
 
-BREAKING CHANGE: JSON schema changed. `payload` field renamed to
-`payloads` array. All existing spell JSONs must be migrated.
-
-Migration script: scripts/migrate-payloads.sh
-Refs: SPWE-1, SPWS-3
+Implements: SPWT-28
+Part of: SPWS-6
 ```
 
-## Breaking Change Indicators
+**Refactoring:**
 
-Two ways to indicate breaking changes:
+```
+refactor(baking): extract validation to separate class
 
-### Method 1: Exclamation Mark in Type/Scope
+Move JSON validation logic from BakingSystem to SpellValidator
+for better separation of concerns and testability.
 
-```bash
-feat(api)!: change spell validation API
-refactor!: restructure project folder layout
+Implements: SPWT-19
+Part of: SPWS-4
 ```
 
-### Method 2: BREAKING CHANGE Footer
+**Complex Feature with Organized Sections:**
 
-```bash
-feat(api): change spell validation API
-
-BREAKING CHANGE: SpellValidator constructor signature changed.
 ```
+feat(movement): implement spell movement system with burst
 
-Both methods are equivalent and trigger MAJOR version bump.
+Implement SpellMovementSystem as ISystem with Burst compilation to
+update 3D position of moving spell entities by applying Velocity to
+LocalTransform using frame-independent movement.
 
-## Tools & Configuration
+Core Implementation:
+- SpellMovementSystem.cs using SystemAPI.Query pattern
+- ApplyVelocityJob.cs for parallel velocity application
+- Updates in SimulationSystemGroup with SystemAPI.Time.DeltaTime
+- EntityQuery with Prefab exclusion for correct filtering
 
-### Commitizen CLI
+Testing Infrastructure:
+- PlayModeTestBase for centralized integration test management
+- EditModeTestBase for centralized unit test management
+- EntityCreationUtils with reusable entity creation helpers
+- 8 PlayMode tests for system integration
+- 25 EditMode tests for job logic and component validation
 
-Use `git cz` for guided commit creation:
+Performance:
+- Burst-compiled for zero GC allocations
+- Parallel job scheduling via IJobEntity
+- Target: <0.5ms for 100 moving entities
 
-1. Select type from list
-2. Enter scope (optional)
-3. Write short description
-4. Add body (optional)
-5. List breaking changes (if any)
-6. Add issue references (if any)
+Fixes:
+- DestroyExpiredSpellsJob condition changed to >= for exact expiration
+- SpellTester.cs integrated with ECS movement system
+- Test documentation rules refactored (removed assemblies, emoticons)
 
-### Commit Message Validation
+Documentation:
+- Editmode-tests-generation.mdc reduced by 30%
+- Playmode-tests-generation.mdc reduced by 68%
 
-Install commitlint to enforce standards:
-
-```bash
-npm install --save-dev @commitlint/cli @commitlint/config-conventional
-```
-
-Basic `.commitlintrc.json`:
-
-```json
-{
-    "extends": ["@commitlint/config-conventional"],
-    "rules": {
-        "type-enum": [
-            2,
-            "always",
-            ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
-        ],
-        "scope-case": [2, "always", "lowercase"],
-        "subject-case": [2, "always", "lowercase"],
-        "subject-max-length": [2, "always", 72]
-    }
-}
-```
-
-### Automated Versioning
-
-Conventional Commits enable automated semantic versioning:
-
-- `feat:` → MINOR version bump (1.x.0)
-- `fix:` → PATCH version bump (1.0.x)
-- `BREAKING CHANGE:` → MAJOR version bump (x.0.0)
-
-Use `standard-version` for automatic changelog and version bumps:
-
-```bash
-npm install --save-dev standard-version
-npm run release
+Implements: SPWT-7
+Part of: SPWS-3
 ```
 
 ## Commit Message Checklist
 
-- [ ] Type is correct and lowercase
-- [ ] Scope is specific and lowercase (if used)
+Before committing, verify:
+
+- [ ] Type is valid and lowercase
+- [ ] Scope matches project conventions
 - [ ] Subject uses imperative mood
-- [ ] Subject is lowercase with no period
+- [ ] Subject is lowercase
+- [ ] Subject has no period
 - [ ] Subject is under 72 characters
-- [ ] Body explains why (if needed)
-- [ ] Breaking changes clearly marked
-- [ ] Issue/task references included (if applicable)
-- [ ] No spelling or grammar errors
+- [ ] Subject is descriptive
+- [ ] Body explains "what" and "why" (if needed)
+- [ ] Body lines wrap at 72 characters
+- [ ] Bullet points start with uppercase letter
+- [ ] Footer includes task/story references
+- [ ] Footer only uses: Implements, Part of, or Related
 
-## Integration with Notion
+## Integration
 
-Link commits to Notion artifacts using footers:
+**With Notion Artifacts:**
 
-```bash
-feat(generators): implement projectile generator
+- Always reference task being implemented: `Implements: SPWT-XX`
+- Reference parent story: `Part of: SPWS-X`
+- Reference related tasks or stories when relevant: `Related: SPWT-XX or SPWS-X`
+- Use all three when appropriate for full traceability
 
-Adds projectile generator with configurable speed and lifetime.
+**Available Footer Types:**
 
-Implements: SPWT-5
-Part of: SPWS-1
-Related: SPWE-1
-```
+The only valid footers are:
 
-## Husky Management
+- `Implements: SPWT-XX` - Task being implemented
+- `Part of: SPWS-X` - User Story this task belongs to
+- `Related: SPWT-XX or SPWS-X` - Related tasks or stories
 
-**CRITICAL**: When creating commits programmatically, Husky hooks **MUST** be disabled to prevent interactive prompts and hook interference.
+**With Versioning:**
 
-### Disabling Husky
+- `feat` triggers MINOR version bump
+- `fix` and `perf` trigger PATCH version bump
 
-Use the `HUSKY=0` environment variable to bypass all Husky hooks:
+## Git Commit Commands
 
-```bash
-# PowerShell (Windows)
-$env:HUSKY=0; git commit -m "commit message"
-
-# Bash/Zsh (Linux/macOS)
-HUSKY=0 git commit -m "commit message"
-```
-
-### When to Disable Husky
-
-- **AI Agent Commits**: Always disable when agent creates commits automatically
-- **CI/CD Pipelines**: Disable in automated environments
-- **Scripts**: Disable in batch commit operations
-
-### Why Disable Husky
-
-- Prevents Commitizen interactive prompts
-- Avoids hook validation delays
-- Ensures non-interactive execution
-- Prevents potential commit failures from hook side effects
-
-### Example: Agent Commit Flow
+**Standard Commit:**
 
 ```bash
-# 1. Stage changes
-git add .
-
-# 2. Commit with Husky disabled
-$env:HUSKY=0; git commit -m "feat(generators): add projectile generator"
-
-# 3. Push changes
-git push
+git commit -m "type(scope): subject"
 ```
 
-**Important**: Always use `HUSKY=0` prefix when programmatically creating commits via terminal commands.
+**Disable Husky Hooks:**
 
-## Important Notes
+When the agent creates commits programmatically, ALWAYS disable Husky to prevent hook interference:
 
-- **Mandatory**: All commits MUST follow Conventional Commits format
-- **Atomic**: Each commit should represent one logical change
-- **Meaningful**: Write commits for humans, not machines
-- **English Only**: All commit messages must be in English
-- **Review**: Always review commit message before pushing
-- **Consistency**: Follow the same patterns across the project
-- **Tools**: Use Commitizen CLI for guided commit creation
-- **Validation**: Enable commitlint in CI/CD pipeline
-- **Versioning**: Understand how commit types affect versioning
-- **History**: Maintain clean, readable git history
-- **Husky**: Always disable (`HUSKY=0`) when creating commits programmatically
+```bash
+HUSKY=0 git commit -m "type(scope): subject"
+```
+
+**DO:**
+
+- Always use `HUSKY=0` environment variable when committing via agent
+- Disable hooks to prevent blocking automated commits
+- Ensure commit message follows standards
+
+**DON'T:**
+
+- Run commits without `HUSKY=0` when automating
+- Skip the environment variable
+- Assume hooks won't interfere
+
+## Tools
+
+**Commitizen:**
+
+- Run `git cz` for interactive commit creation
+- Automatically formats according to standards
+- Validates commit message format
+
+**Conventional Changelog:**
+
+- Automatically generates CHANGELOG.md
+- Groups commits by type
+- Links to issues and PRs
+
+## Best Practices
+
+**DO:**
+
+- Commit frequently with focused changes
+- Write commits for future maintainers
+- Reference related issues and tasks
+- Use consistent scope names
+- Explain non-obvious changes in body
+
+**DON'T:**
+
+- Combine unrelated changes
+- Write vague commit messages
+- Skip scope for complex projects
+- Forget to reference tasks/issues
+- Use inconsistent terminology
+
+## Summary
+
+**PRIMARY RULE**: All commits must follow Conventional Commits format.
+
+**Key Requirements:**
+
+1. Type + scope + subject format
+2. Imperative mood, lowercase, no period
+3. Subject under 72 characters
+4. Body explains "what" and "why"
+5. Footer only uses: Implements, Part of, or Related
+6. Related can reference tasks (SPWT-XX) or stories (SPWS-X)
+
+**Remember**: Commit messages are permanent documentation. Write for clarity and future maintainability.

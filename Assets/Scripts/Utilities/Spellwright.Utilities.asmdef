@@ -1,17 +1,22 @@
 {
-    "name": "Spellwright.Utilities",
-    "rootNamespace": "Spellwright.Utilities",
-    "references": [
-        "Unity.Mathematics"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "excludePlatforms": [],
+    "includePlatforms": [],
+    "name": "Spellwright.Utilities",
+    "noEngineReferences": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "references": [
+        "Unity.Mathematics",
+        "Unity.Entities",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Physics",
+        "Unity.Transforms",
+        "Spellwright.Components"
+    ],
+    "rootNamespace": "Spellwright.Utilities",
+    "versionDefines": []
 }
-
