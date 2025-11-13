@@ -1,4 +1,5 @@
 ﻿using Spellwright.Components.Collision;
+using Spellwright.Components.Payloads;
 using Spellwright.Jobs.Collision;
 using Unity.Burst;
 using Unity.Collections;
@@ -6,6 +7,7 @@ using Unity.Entities;
 using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
+using HealthComponent = Spellwright.Components.Health;
 
 namespace Spellwright.Systems.Collision
 {
@@ -22,7 +24,7 @@ namespace Spellwright.Systems.Collision
             state.RequireForUpdate<PhysicsWorldSingleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
 
-            _aoeRequestQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<AoeRequest>().Build(ref state);
+            _aoeRequestQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<AoeRequest, PayloadRequest>().Build(ref state);
         }
 
         [BurstCompile]
@@ -35,7 +37,7 @@ namespace Spellwright.Systems.Collision
             {
                 ECB = ecb.AsParallelWriter(),
                 CollisionWorld = physicsWorld.CollisionWorld,
-                DamageableLookup = SystemAPI.GetComponentLookup<DamageableTag>(true),
+                HealthLookup = SystemAPI.GetComponentLookup<HealthComponent>(true),
                 TransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true),
             };
 

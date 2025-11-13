@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Spellwright.Components;
 using Spellwright.Components.Collision;
 using Spellwright.Components.Common;
+using Spellwright.Components.Payloads;
 using Spellwright.Components.Spawning;
 using Unity.Collections;
 using Unity.Entities;
@@ -9,6 +11,7 @@ using Unity.Mathematics;
 using Unity.Physics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using StatusEffectType = Spellwright.Components.StatusEffect.StatusEffectType;
 
 namespace Spellwright.Tests.Manual
 {
@@ -108,7 +111,29 @@ namespace Spellwright.Tests.Manual
         private float _targetCollisionRadius = 0.5f;
 
         [SerializeField]
+        private float _targetMaxHealth = 100f;
+
+        [SerializeField]
         private Key _spawnTargetKey = Key.T;
+
+        [Header("Payload Configuration")]
+        [SerializeField]
+        private bool _enablePayloads = true;
+
+        [SerializeField]
+        private PayloadType _payloadType = PayloadType.Damage;
+
+        [SerializeField]
+        private ElementalType _elementalType = ElementalType.Fire;
+
+        [SerializeField]
+        private StatusEffectType _statusEffectType = StatusEffectType.Burn;
+
+        [SerializeField]
+        private float _payloadAmount = 25f;
+
+        [SerializeField]
+        private float _payloadDuration = 3f;
 
         [Header("Collision Visualization")]
         [SerializeField]
@@ -116,6 +141,9 @@ namespace Spellwright.Tests.Manual
 
         [SerializeField]
         private bool _showCollisionRadii = true;
+
+        [SerializeField]
+        private bool _showTargetHealth = true;
 
         [SerializeField]
         private Color _collisionEventColor = Color.red;
@@ -158,6 +186,12 @@ namespace Spellwright.Tests.Manual
         private float _lastConeAngle;
         private float _lastConeRadius;
         private float _lastAoeRadius;
+        private bool _lastEnablePayloads;
+        private PayloadType _lastPayloadType;
+        private ElementalType _lastElementalType;
+        private StatusEffectType _lastStatusEffectType;
+        private float _lastPayloadAmount;
+        private float _lastPayloadDuration;
         private float _nextSpawnTime;
         private int _totalSpawned;
         private int _totalDestroyed;
@@ -241,7 +275,7 @@ namespace Spellwright.Tests.Manual
                 ComponentType.ReadOnly<Lifetime>()
             );
 
-            _targetQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Unity.Transforms.LocalTransform>(), ComponentType.ReadOnly<DamageableTag>());
+            _targetQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Unity.Transforms.LocalTransform>(), ComponentType.ReadOnly<Health>());
 
             _collisionQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Components.Collision.CollisionEvent>());
         }
@@ -305,7 +339,13 @@ namespace Spellwright.Tests.Manual
                 || _generatorType != _lastGeneratorType
                 || math.abs(_coneAngle - _lastConeAngle) > POSITION_EPSILON
                 || math.abs(_coneRadius - _lastConeRadius) > POSITION_EPSILON
-                || math.abs(_aoeRadius - _lastAoeRadius) > POSITION_EPSILON;
+                || math.abs(_aoeRadius - _lastAoeRadius) > POSITION_EPSILON
+                || _enablePayloads != _lastEnablePayloads
+                || _payloadType != _lastPayloadType
+                || _elementalType != _lastElementalType
+                || _statusEffectType != _lastStatusEffectType
+                || math.abs(_payloadAmount - _lastPayloadAmount) > POSITION_EPSILON
+                || math.abs(_payloadDuration - _lastPayloadDuration) > POSITION_EPSILON;
         }
 
         private void RecreatePrefab()
@@ -330,6 +370,12 @@ namespace Spellwright.Tests.Manual
             _lastConeAngle = _coneAngle;
             _lastConeRadius = _coneRadius;
             _lastAoeRadius = _aoeRadius;
+            _lastEnablePayloads = _enablePayloads;
+            _lastPayloadType = _payloadType;
+            _lastElementalType = _elementalType;
+            _lastStatusEffectType = _statusEffectType;
+            _lastPayloadAmount = _payloadAmount;
+            _lastPayloadDuration = _payloadDuration;
         }
 
         private void HandleAutoSpawn()
@@ -433,6 +479,22 @@ namespace Spellwright.Tests.Manual
             _entityManager.AddComponentData(entity, new Unity.Transforms.LocalToWorld());
             _entityManager.AddComponentData(entity, new Speed { Value = _spellSpeed });
             _entityManager.AddComponentData(entity, new Lifetime { Duration = _spellLifetime, SpawnTime = 0 });
+
+            if (_enablePayloads)
+            {
+                DynamicBuffer<PayloadRequest> payloadBuffer = _entityManager.AddBuffer<PayloadRequest>(entity);
+                payloadBuffer.Add(
+                    new PayloadRequest
+                    {
+                        Type = _payloadType,
+                        Element = _elementalType,
+                        Effect = _statusEffectType,
+                        Amount = _payloadAmount,
+                        Duration = _payloadDuration,
+                        SpawnPrefab = Entity.Null,
+                    }
+                );
+            }
         }
 
         private void AddProjectileComponents(Entity entity)
@@ -554,6 +616,23 @@ namespace Spellwright.Tests.Manual
                     CheckLineOfSight = true,
                 }
             );
+
+            if (_enablePayloads)
+            {
+                DynamicBuffer<PayloadRequest> payloadBuffer = _entityManager.AddBuffer<PayloadRequest>(request);
+                payloadBuffer.Add(
+                    new PayloadRequest
+                    {
+                        Type = _payloadType,
+                        Element = _elementalType,
+                        Effect = _statusEffectType,
+                        Amount = _payloadAmount,
+                        Duration = _payloadDuration,
+                        SpawnPrefab = Entity.Null,
+                    }
+                );
+            }
+
             LogVerbose($"Cone request created | Position: {position:F2} | Direction: {direction:F2} | Angle: {_coneAngle}° | Radius: {_coneRadius}m");
         }
 
@@ -570,6 +649,23 @@ namespace Spellwright.Tests.Manual
                     CheckLineOfSight = true,
                 }
             );
+
+            if (_enablePayloads)
+            {
+                DynamicBuffer<PayloadRequest> payloadBuffer = _entityManager.AddBuffer<PayloadRequest>(request);
+                payloadBuffer.Add(
+                    new PayloadRequest
+                    {
+                        Type = _payloadType,
+                        Element = _elementalType,
+                        Effect = _statusEffectType,
+                        Amount = _payloadAmount,
+                        Duration = _payloadDuration,
+                        SpawnPrefab = Entity.Null,
+                    }
+                );
+            }
+
             LogVerbose($"AoE request created | Position: {position:F2} | Radius: {_aoeRadius}m");
         }
 
@@ -619,7 +715,7 @@ namespace Spellwright.Tests.Manual
 
             _entityManager.AddComponentData(target, new PhysicsCollider { Value = targetCollider });
             _entityManager.AddSharedComponentManaged(target, new PhysicsWorldIndex { Value = 0 });
-            _entityManager.AddComponentData(target, new DamageableTag());
+            _entityManager.AddComponentData(target, new Health { Current = _targetMaxHealth, Maximum = _targetMaxHealth });
         }
 
         private void DrawSpellEntities()
@@ -665,11 +761,46 @@ namespace Spellwright.Tests.Manual
             {
                 float3 position = transforms[i].Position;
 
-                Gizmos.color = Color.green;
-                Gizmos.DrawWireSphere(position, _targetCollisionRadius);
-                Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
-                Gizmos.DrawSphere(position, _targetCollisionRadius);
+                Color healthColor = Color.green;
+                if (_showTargetHealth && _entityManager.HasComponent<Health>(entities[i]))
+                {
+                    Health health = _entityManager.GetComponentData<Health>(entities[i]);
+                    float healthPercent = health.Current / health.Maximum;
+                    healthColor = Color.Lerp(Color.red, Color.green, healthPercent);
+
+                    Gizmos.color = healthColor;
+                    Gizmos.DrawWireSphere(position, _targetCollisionRadius);
+                    Gizmos.color = new Color(healthColor.r, healthColor.g, healthColor.b, 0.2f);
+                    Gizmos.DrawSphere(position, _targetCollisionRadius);
+
+                    DrawTargetHealthBar(position, health);
+                }
+                else
+                {
+                    Gizmos.color = healthColor;
+                    Gizmos.DrawWireSphere(position, _targetCollisionRadius);
+                    Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
+                    Gizmos.DrawSphere(position, _targetCollisionRadius);
+                }
             }
+        }
+
+        private void DrawTargetHealthBar(float3 position, Health health)
+        {
+            float healthPercent = math.clamp(health.Current / health.Maximum, 0f, 1f);
+            float3 barPosition = position + new float3(0f, _targetCollisionRadius + 0.3f, 0f);
+            float barWidth = _targetCollisionRadius * 2f;
+            float barHeight = 0.1f;
+
+            float3 barStart = barPosition - new float3(barWidth * 0.5f, 0f, 0f);
+            float3 barEnd = barStart + new float3(barWidth, 0f, 0f);
+            float3 healthEnd = barStart + new float3(barWidth * healthPercent, 0f, 0f);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(barStart, barEnd);
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(barStart, healthEnd);
         }
 
         private void DrawInstantSpellPreview()
@@ -890,6 +1021,15 @@ namespace Spellwright.Tests.Manual
 
         private string BuildStatisticsText(int activeCount, int targetCount)
         {
+            string payloadInfo = _enablePayloads
+                ? $"\n<b>Payload Configuration</b>\n"
+                    + $"Type: {_payloadType}\n"
+                    + $"Element: {_elementalType}\n"
+                    + $"Amount: {_payloadAmount:F1}\n"
+                    + $"Duration: {_payloadDuration:F1}s\n"
+                    + (_payloadType == PayloadType.ApplyStatusEffect ? $"Effect: {_statusEffectType}\n" : "")
+                : "";
+
             return $"<b>Lifecycle Statistics</b>\n"
                 + $"Active Spells: {activeCount}\n"
                 + $"Total Spawned: {_totalSpawned}\n"
@@ -901,6 +1041,7 @@ namespace Spellwright.Tests.Manual
                 + $"Active Events: {_collisionEvents.Count}\n"
                 + $"Targets: {targetCount}\n"
                 + $"Type: {_generatorType}\n"
+                + payloadInfo
                 + $"\n<b>Controls</b>\n"
                 + $"Spawn Spell: {_spawnKey}\n"
                 + $"Spawn Targets: {_spawnTargetKey}\n"

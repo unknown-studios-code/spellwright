@@ -4,6 +4,9 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Transforms;
+using CollisionEvent = Spellwright.Components.Collision.CollisionEvent;
+using HealthComponent = Spellwright.Components.Health;
 
 namespace Spellwright.Jobs.Collision
 {
@@ -16,51 +19,73 @@ namespace Spellwright.Jobs.Collision
         public ComponentLookup<ProjectileTag> ProjectileLookup;
 
         [ReadOnly]
-        public ComponentLookup<DamageableTag> DamageableLookup;
+        public ComponentLookup<HealthComponent> HealthLookup;
+
+        [ReadOnly]
+        public ComponentLookup<LocalTransform> TransformLookup;
 
         [BurstCompile]
         public void Execute(TriggerEvent triggerEvent)
         {
-            Entity entityA = triggerEvent.EntityA;
-            Entity entityB = triggerEvent.EntityB;
+            if (!TryGetProjectileAndTarget(triggerEvent.EntityA, triggerEvent.EntityB, out Entity projectile, out Entity target))
+            {
+                return;
+            }
 
+            float3 impactPosition = GetImpactPosition(target);
+            CreateCollisionEvent(projectile, target, impactPosition);
+        }
+
+        [BurstCompile]
+        private bool TryGetProjectileAndTarget(Entity entityA, Entity entityB, out Entity projectile, out Entity target)
+        {
             bool isAProjectile = ProjectileLookup.HasComponent(entityA);
             bool isBProjectile = ProjectileLookup.HasComponent(entityB);
-            bool isADamageable = DamageableLookup.HasComponent(entityA);
-            bool isBDamageable = DamageableLookup.HasComponent(entityB);
-
-            Entity projectile = Entity.Null;
-            Entity target = Entity.Null;
+            bool isADamageable = HealthLookup.HasComponent(entityA);
+            bool isBDamageable = HealthLookup.HasComponent(entityB);
 
             if (isAProjectile && isBDamageable)
             {
                 projectile = entityA;
                 target = entityB;
+                return true;
             }
-            else if (isBProjectile && isADamageable)
+
+            if (isBProjectile && isADamageable)
             {
                 projectile = entityB;
                 target = entityA;
+                return true;
             }
-            else
+
+            projectile = Entity.Null;
+            target = Entity.Null;
+            return false;
+        }
+
+        [BurstCompile]
+        private float3 GetImpactPosition(Entity target)
+        {
+            if (TransformLookup.HasComponent(target))
             {
-                return;
+                return TransformLookup[target].Position;
             }
+            return float3.zero;
+        }
 
-            int sortKey = projectile.Index;
-            Entity collisionEventEntity = ECB.CreateEntity(sortKey);
-
+        [BurstCompile]
+        private void CreateCollisionEvent(Entity projectile, Entity target, float3 impactPosition)
+        {
             ECB.AddComponent(
-                sortKey,
-                collisionEventEntity,
-                new Components.Collision.CollisionEvent
+                projectile.Index,
+                projectile,
+                new CollisionEvent
                 {
                     ProjectileEntity = projectile,
                     TargetEntity = target,
-                    ImpactPosition = float3.zero,
+                    ImpactPosition = impactPosition,
                 }
             );
-            ECB.DestroyEntity(sortKey, projectile);
         }
     }
 }

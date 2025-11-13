@@ -270,22 +270,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f0cf41b2501ebb42bad3dc6daf4fee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Spellwright.Tests.Manual::Spellwright.Tests.Manual.SpellTester
-  spawnPosition:
+  _spawnKey: 1
+  _spawnCount: 1
+  _spawnRadius: 1
+  _spellSpeed: 10
+  _spellLifetime: 5
+  _spawnPosition:
     x: 0
     y: 0
     z: 0
-  spawnDirection:
-    x: 0
-    y: 0
-    z: 1
-  velocityColor: {r: 0, g: 1, b: 1, a: 1}
-  spawnPointColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lifetimeFullColor: {r: 0, g: 1, b: 0, a: 1}
-  lifetimeExpiredColor: {r: 1, g: 0, b: 0, a: 1}
-  statsPosition: {x: 10, y: 10}
-  generatorType: 0
-  collisionEventColor: {r: 1, g: 0, b: 0, a: 1}
-  collisionRadiusColor: {r: 1, g: 0.5, b: 0, a: 0.3}
+  _showVelocityVectors: 1
+  _showSpawnPoints: 1
+  _showLifetimeIndicators: 1
+  _showLifetimeText: 1
+  _vectorScale: 1
+  _velocityColor: {r: 0, g: 1, b: 1, a: 1}
+  _spawnPointColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _lifetimeFullColor: {r: 0, g: 1, b: 0, a: 1}
+  _lifetimeExpiredColor: {r: 1, g: 0, b: 0, a: 1}
+  _sphereRadius: 0.2
+  _showLifecycleStats: 1
+  _statsPosition: {x: 10, y: 10}
+  _generatorType: 0
+  _collisionRadius: 0.5
+  _coneAngle: 45
+  _coneRadius: 10
+  _aoeRadius: 5
+  _spawnTargets: 1
+  _targetCount: 5
+  _targetSpawnRadius: 5
+  _targetCollisionRadius: 0.5
+  _targetMaxHealth: 100
+  _spawnTargetKey: 34
+  _enablePayloads: 1
+  _payloadType: 0
+  _elementalType: 1
+  _statusEffectType: 2
+  _payloadAmount: 25
+  _payloadDuration: 3
+  _showCollisionEvents: 1
+  _showCollisionRadii: 1
+  _showTargetHealth: 1
+  _collisionEventColor: {r: 1, g: 0, b: 0, a: 1}
+  _collisionRadiusColor: {r: 1, g: 0.5, b: 0, a: 0.3}
+  _collisionEventDuration: 0.5
+  _autoSpawn: 0
+  _spawnInterval: 1
+  _verboseLogging: 1
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -298,6 +329,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecee607f55fb64b548556fc7c1aef3fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Spellwright.Tests.Manual::Spellwright.Tests.Manual.CameraController
+  _moveSpeed: 10
+  _sprintMultiplier: 2
+  _forwardKey: 37
+  _backwardKey: 33
+  _leftKey: 15
+  _rightKey: 18
+  _upKey: 19
+  _downKey: 31
+  _sprintKey: 51
+  _lockCursorOnStart: 1
+  _unlockCursorKey: 60
+  _mouseSensitivity: 2
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0

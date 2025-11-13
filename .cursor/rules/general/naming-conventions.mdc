@@ -1,0 +1,272 @@
+---
+description: Naming conventions for Unity DOTS/ECS components and systems in Spellwright, following official Unity DOTS patterns and industry best practices.
+alwaysApply: false
+---
+
+# Naming Conventions - DOTS/ECS
+
+Defines naming conventions for Unity DOTS/ECS components, systems, and jobs in Spellwright.
+
+## Purpose
+
+Establish consistent, self-documenting naming patterns that clarify component purpose, lifetime, and usage without requiring aliases or comments.
+
+## Scope
+
+**Applies To:**
+
+- All ECS components (`IComponentData`, `IBufferElementData`)
+- All systems and jobs
+- Enums and related types
+- File and folder naming
+
+## Component Type Suffixes
+
+Components use descriptive suffixes based on purpose and lifetime:
+
+| Type                | Suffix                   | Storage                  | Lifetime   | Example                            |
+| ------------------- | ------------------------ | ------------------------ | ---------- | ---------------------------------- |
+| **Request/Command** | `Request`                | `IBufferElementData`     | 1 frame    | `SpawnRequest`, `ConeRequest`      |
+| **Event/Result**    | `Event`                  | `IComponentData`         | 1 frame    | `CollisionEvent`                   |
+| **State**           | None                     | `IComponentData`         | Persistent | `Health`, `Speed`, `Lifetime`      |
+| **Modifier**        | `Modifier`               | `IComponentData`         | Persistent | `PierceModifier`, `HomingModifier` |
+| **Collection**      | `Stack`, `Queue`, `List` | `IBufferElementData`     | Persistent | `StatusEffectStack`                |
+| **Tag**             | `Tag`                    | `IComponentData` (empty) | Persistent | `ProjectileTag`, `ValidatedTag`    |
+| **Config**          | `Data`                   | `IComponentData`         | Persistent | `ProjectileGeneratorData`          |
+
+## Naming Patterns
+
+### Requests (Temporary Input)
+
+**Purpose:**
+
+- Command or action to be processed
+- Created → Processed → Removed/Cleared (same frame)
+- Typically `IBufferElementData` (allows multiple per entity)
+
+**Examples:**
+
+- `SpawnRequest` - Request to spawn entity
+- `HealthModificationRequest` - Request to modify health
+- `ConeRequest` - Request to create cone area attack
+- `AoeRequest` - Request to create AoE attack
+
+### Events (Temporary Output)
+
+**Purpose:**
+
+- Result of an action
+- Created by one system → Consumed by another → Removed
+- Typically `IComponentData` (one per entity)
+
+**Examples:**
+
+- `CollisionEvent` - Result of collision detection
+- `DamageDealtEvent` - Result of damage application (hypothetical)
+
+### State (Persistent Core Data)
+
+**Purpose:**
+
+- Defines entity's core properties
+- Accessed frequently, rarely added/removed
+- No suffix for simple state
+
+**Examples:**
+
+- `Health` - Current and maximum health
+- `Speed` - Movement speed
+- `Lifetime` - Remaining time to live
+- `SpellOwner` - Reference to caster
+
+### Modifiers (Persistent Behavior)
+
+**Purpose:**
+
+- Alters how systems process the entity
+- Added/removed dynamically during gameplay
+- Always suffix with `Modifier`
+
+**Examples:**
+
+- `PierceModifier` - Projectile pierces targets
+- `ChainModifier` - Effect chains between targets
+- `HomingModifier` - Projectile tracks targets
+- `ForkModifier` - Projectile splits on impact
+
+### Collections (Persistent Buffers)
+
+**Purpose:**
+
+- Variable-sized collections per entity
+- Multiple items of same type
+- Use descriptive suffix: `Stack`, `Queue`, `List`
+
+**Examples:**
+
+- `StatusEffectStack` - Active status effects buffer
+- `PayloadRequest` - Payloads to apply buffer
+- `InventorySlot` - Inventory items buffer (hypothetical)
+
+### Tags (Empty Markers)
+
+**Purpose:**
+
+- Classification for query filtering
+- No data, only presence matters
+- Always suffix with `Tag`
+
+**Examples:**
+
+- `ProjectileTag` - Marks entity as projectile
+- `ValidatedTag` - Marks spell as validated
+- `EnemyTag` - Marks entity as enemy (hypothetical)
+
+### Configuration Data
+
+**Purpose:**
+
+- Static configuration/setup values
+- Rarely modified after creation
+- Suffix with `Data`
+
+**Examples:**
+
+- `ProjectileGeneratorData` - Projectile generation config
+- `ConeGeneratorData` - Cone generation config
+- `AreaOfEffectGeneratorData` - AoE generation config
+
+## Namespace Conflict Resolution
+
+When component name conflicts with namespace, use descriptive suffix instead of aliases.
+
+**BAD (requires aliases everywhere):**
+
+```csharp
+// Component: Spellwright.Components.StatusEffect.StatusEffect
+using StatusEffectComponent = Spellwright.Components.StatusEffect.StatusEffect;
+```
+
+**GOOD (clear and self-documenting):**
+
+```csharp
+// Component: Spellwright.Components.StatusEffect.StatusEffectStack
+using Spellwright.Components.StatusEffect;
+// Use StatusEffectStack directly
+```
+
+## System and Job Naming
+
+### Systems
+
+**Pattern:** `[Functionality]System`
+
+**Examples:**
+
+- `SpellMovementSystem`
+- `CollisionDetectionSystem`
+- `PayloadResolutionSystem`
+- `HealthModificationSystem`
+- `StatusEffectProcessingSystem`
+
+### Jobs
+
+**Pattern:** `[Action][Target]Job`
+
+**Examples:**
+
+- `ApplyVelocityJob`
+- `ProcessPayloadsJob`
+- `DestroyExpiredSpellsJob`
+- `ProjectileHitJob`
+- `ApplyHealthModificationsJob`
+
+## File and Folder Naming
+
+**Components:**
+
+- File matches struct name: `Health.cs`, `StatusEffectStack.cs`
+- Folder matches category: `Components/Payloads/`, `Components/StatusEffect/`
+
+**Systems:**
+
+- File matches struct name: `PayloadResolutionSystem.cs`
+- Folder matches category: `Systems/Payloads/`, `Systems/Health/`
+
+**Jobs:**
+
+- File matches struct name: `ProcessPayloadsJob.cs`
+- Folder matches category: `Jobs/Payloads/`, `Jobs/Health/`
+
+## Current Project Components
+
+**Requests (Temporary Input):**
+
+- `ConeRequest`, `AoeRequest`, `SpawnRequest`
+- `PayloadRequest`, `HealthModificationRequest`
+
+**Events (Temporary Output):**
+
+- `CollisionEvent`
+
+**State (Persistent Core Data):**
+
+- `Health`, `Speed`, `Lifetime`, `SpellOwner`
+
+**Modifiers (Persistent Behavior):**
+
+- `PierceModifier`, `ChainModifier`, `HomingModifier`
+- `ForkModifier`, `MultiShotModifier`
+
+**Buffers (Persistent Collections):**
+
+- `StatusEffectStack`
+
+**Tags (Empty Markers):**
+
+- `ProjectileTag`, `ValidatedTag`
+
+**Configuration Data:**
+
+- `ProjectileGeneratorData`, `ConeGeneratorData`
+- `AreaOfEffectGeneratorData`
+
+## Naming Checklist
+
+Before creating new components:
+
+- [ ] Suffix matches purpose (`Request`, `Event`, `Modifier`, etc.)
+- [ ] Name is self-documenting (no abbreviations)
+- [ ] No namespace conflicts (use descriptive suffix if needed)
+- [ ] Consistent with existing project patterns
+- [ ] File name matches struct name
+- [ ] Folder matches category
+
+## Integration
+
+This standard works with:
+
+- **Code Generation** (`general/code-generation.mdc`)
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
+- **Spell Components** (`concept/spell-components.mdc`)
+
+## Summary
+
+**PRIMARY RULE**: Use descriptive suffixes that clarify purpose and lifetime.
+
+**Key Patterns:**
+
+1. **Request** - Temporary input commands
+2. **Event** - Temporary output results
+3. **Modifier** - Persistent behavior changes
+4. **Stack/Queue/List** - Persistent collections
+5. **Tag** - Empty classification markers
+6. **Data** - Configuration/setup values
+7. **No suffix** - Simple persistent state
+
+**Remember:** Names should be self-documenting. If a component needs a comment to explain its purpose, the name is wrong.
+
+## References
+
+- [Unity DOTS Documentation](https://docs.unity3d.com/Packages/com.unity.entities@latest/)
+- [Entity Component System Samples](https://github.com/Unity-Technologies/EntityComponentSystemSamples)

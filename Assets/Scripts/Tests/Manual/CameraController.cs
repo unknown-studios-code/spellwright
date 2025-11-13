@@ -76,16 +76,20 @@ namespace Spellwright.Tests.Manual
 
         private void HandleCursorToggle()
         {
-            if (Keyboard.current == null || !Keyboard.current[_unlockCursorKey].wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current[_unlockCursorKey].wasPressedThisFrame)
             {
+                if (_cursorLocked)
+                {
+                    UnlockCursor();
+                }
+                else
+                {
+                    LockCursor();
+                }
                 return;
             }
 
-            if (_cursorLocked)
-            {
-                UnlockCursor();
-            }
-            else
+            if (Mouse.current != null && !_cursorLocked && Mouse.current.leftButton.wasPressedThisFrame)
             {
                 LockCursor();
             }

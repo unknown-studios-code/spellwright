@@ -1,24 +1,24 @@
 {
+    "allowUnsafeCode": false,
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "excludePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "name": "Spellwright.Authorings",
-    "rootNamespace": "Spellwright.Authorings",
+    "noEngineReferences": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
     "references": [
         "Unity.Entities",
         "Unity.Entities.Hybrid",
         "Unity.Mathematics",
         "Unity.Transforms",
+        "Unity.Collections",
         "Spellwright.Components",
         "Spellwright.Systems"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "rootNamespace": "Spellwright.Authorings",
+    "versionDefines": []
 }
-

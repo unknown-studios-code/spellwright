@@ -100,6 +100,7 @@
   <Project Path="Unity.Collections.Editor.csproj" />
   <Project Path="Unity.Numerics.Linear.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Config.Runtime.csproj" />
+  <Project Path="Spellwright.Authorings.csproj" />
   <Project Path="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.csproj" />
   <Project Path="Unity.RenderPipelines.Core.ShaderLibrary.csproj" />
   <Project Path="Unity.RenderPipelines.Core.Editor.Shared.csproj" />

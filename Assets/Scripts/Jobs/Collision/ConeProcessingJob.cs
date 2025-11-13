@@ -1,4 +1,5 @@
 ﻿using Spellwright.Components.Collision;
+using Spellwright.Components.Payloads;
 using Spellwright.Utilities;
 using Unity.Burst;
 using Unity.Collections;
@@ -6,6 +7,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
+using CollisionEvent = Spellwright.Components.Collision.CollisionEvent;
+using HealthComponent = Spellwright.Components.Health;
 
 namespace Spellwright.Jobs.Collision
 {
@@ -18,73 +21,89 @@ namespace Spellwright.Jobs.Collision
         public CollisionWorld CollisionWorld;
 
         [ReadOnly]
-        public ComponentLookup<DamageableTag> DamageableLookup;
+        public ComponentLookup<HealthComponent> HealthLookup;
 
         [ReadOnly]
         public ComponentLookup<LocalTransform> TransformLookup;
 
         [BurstCompile]
-        private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in ConeRequest request)
+        private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in ConeRequest request, in DynamicBuffer<PayloadRequest> payloadBuffer)
         {
             var hits = new NativeList<DistanceHit>(Allocator.Temp);
-            var filter = CollisionUtils.CreateEnvironmentFilter();
+            CollisionFilter filter = CollisionUtils.CreateEnvironmentFilter();
 
             if (CollisionWorld.OverlapSphere(request.Position, request.Radius, ref hits, filter))
             {
                 float3 coneForward = math.normalize(request.Direction);
-                float halfAngleRadians = math.radians(request.AngleDegrees * 0.5f);
-                float cosHalfAngle = math.cos(halfAngleRadians);
+                float cosHalfAngle = math.cos(math.radians(request.AngleDegrees * 0.5f));
 
                 for (int i = 0; i < hits.Length; i++)
                 {
                     DistanceHit hit = hits[i];
 
-                    if (!DamageableLookup.HasComponent(hit.Entity))
-                    {
+                    if (!IsValidTarget(hit.Entity, request.SourceEntity))
                         continue;
-                    }
-
-                    if (hit.Entity == request.SourceEntity)
-                    {
+                    if (!IsInConeArea(hit.Entity, request.Position, coneForward, cosHalfAngle))
                         continue;
-                    }
-
-                    if (!TransformLookup.HasComponent(hit.Entity))
-                    {
+                    if (!HasLineOfSight(hit.Entity, request.Position, request.CheckLineOfSight))
                         continue;
-                    }
 
                     float3 targetPosition = TransformLookup[hit.Entity].Position;
-
-                    if (!CollisionUtils.IsInCone(request.Position, coneForward, cosHalfAngle, targetPosition))
-                    {
-                        continue;
-                    }
-
-                    if (request.CheckLineOfSight)
-                    {
-                        if (!CollisionUtils.HasLineOfSight(CollisionWorld, request.Position, hit.Entity, TransformLookup))
-                        {
-                            continue;
-                        }
-                    }
-
-                    Entity collisionEvent = ECB.CreateEntity(sortKey);
-                    ECB.AddComponent(
-                        sortKey,
-                        collisionEvent,
-                        new Components.Collision.CollisionEvent
-                        {
-                            ProjectileEntity = request.SourceEntity,
-                            TargetEntity = hit.Entity,
-                            ImpactPosition = targetPosition,
-                        }
-                    );
+                    CreateCollisionEvent(sortKey, request.SourceEntity, hit.Entity, targetPosition, payloadBuffer);
                 }
             }
 
             hits.Dispose();
             ECB.DestroyEntity(sortKey, entity);
+        }
+
+        [BurstCompile]
+        private bool IsValidTarget(Entity target, Entity sourceEntity)
+        {
+            if (!HealthLookup.HasComponent(target))
+                return false;
+            if (target == sourceEntity)
+                return false;
+            if (!TransformLookup.HasComponent(target))
+                return false;
+            return true;
+        }
+
+        [BurstCompile]
+        private bool IsInConeArea(Entity target, float3 coneOrigin, float3 coneForward, float cosHalfAngle)
+        {
+            float3 targetPosition = TransformLookup[target].Position;
+            return CollisionUtils.IsInCone(coneOrigin, coneForward, cosHalfAngle, targetPosition);
+        }
+
+        [BurstCompile]
+        private bool HasLineOfSight(Entity target, float3 origin, bool checkLineOfSight)
+        {
+            if (!checkLineOfSight)
+                return true;
+            return CollisionUtils.HasLineOfSight(CollisionWorld, origin, target, TransformLookup);
+        }
+
+        [BurstCompile]
+        private void CreateCollisionEvent(int sortKey, Entity source, Entity target, float3 impactPosition, in DynamicBuffer<PayloadRequest> payloadBuffer)
+        {
+            Entity collisionEvent = ECB.CreateEntity(sortKey);
+            ECB.AddComponent(
+                sortKey,
+                collisionEvent,
+                new CollisionEvent
+                {
+                    ProjectileEntity = source,
+                    TargetEntity = target,
+                    ImpactPosition = impactPosition,
+                }
+            );
+
+            DynamicBuffer<PayloadRequest> eventPayloadBuffer = ECB.AddBuffer<PayloadRequest>(sortKey, collisionEvent);
+            for (int j = 0; j < payloadBuffer.Length; j++)
+            {
+                eventPayloadBuffer.Add(payloadBuffer[j]);
+            }
         }
     }
 }
