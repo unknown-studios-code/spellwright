@@ -5,17 +5,19 @@ alwaysApply: false
 
 # C# Documentation Standards
 
-Defines mandatory XML documentation standards for all C# scripts in Spellwright, following official C# guidelines and Unity/DOTS best practices.
+Defines XML documentation standards for C# scripts in Spellwright, following official C# guidelines and Unity/DOTS best practices.
+
+**IMPORTANT**: XML documentation should only be generated when explicitly requested by the user.
 
 ## Core Principles
 
 ### XML Documentation Format
 
-All public and internal types, members, and methods MUST use C# XML documentation with triple-slash `///` format.
+When requested, use C# XML documentation with triple-slash `///` format.
 
-### Mandatory Documentation Targets
+### Documentation Targets
 
-**MUST be documented:**
+**When generating XML documentation (only if requested):**
 
 - All public classes, structs, interfaces
 - All public and internal methods
@@ -283,9 +285,9 @@ This standard works with:
 
 ## Summary
 
-**PRIMARY RULE**: All public APIs must have complete XML documentation.
+**PRIMARY RULE**: Generate XML documentation ONLY when explicitly requested by the user.
 
-**Key Requirements:**
+**When generating documentation (if requested), include:**
 
 1. Triple-slash `///` format
 2. Summary + param + returns + exception tags
@@ -294,4 +296,4 @@ This standard works with:
 5. System group and update order
 6. Architecture layer identification
 
-**Remember**: Documentation is mandatory, not optional. Write for developers unfamiliar with the code.
+**Remember**: By default, generate clean code without XML documentation. Only add documentation when the user explicitly requests it.

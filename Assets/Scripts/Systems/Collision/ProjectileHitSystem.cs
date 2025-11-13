@@ -4,6 +4,8 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Physics;
 using Unity.Physics.Systems;
+using Unity.Transforms;
+using HealthComponent = Spellwright.Components.Health;
 
 namespace Spellwright.Systems.Collision
 {
@@ -29,7 +31,8 @@ namespace Spellwright.Systems.Collision
             {
                 ECB = ecb.AsParallelWriter(),
                 ProjectileLookup = SystemAPI.GetComponentLookup<ProjectileTag>(true),
-                DamageableLookup = SystemAPI.GetComponentLookup<DamageableTag>(true),
+                HealthLookup = SystemAPI.GetComponentLookup<HealthComponent>(true),
+                TransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true),
             };
 
             state.Dependency = job.Schedule(simulationSingleton, state.Dependency);
