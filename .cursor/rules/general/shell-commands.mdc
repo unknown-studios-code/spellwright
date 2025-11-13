@@ -1,86 +1,242 @@
 ---
-description: Defines how to create Git branches following project naming patterns, integrated with Notion artifacts (Epics, Stories, Tasks).
+description: Standards for creating Git branches following project naming patterns integrated with Notion artifacts.
 alwaysApply: false
 ---
 
-# Rules for Shell and Git Operations
+# Shell Commands Standards
 
-Defines how to create Git branches following project naming patterns, integrated with Notion artifacts (Epics, Stories, Tasks).
+Defines standards for Git branch creation and shell commands integrated with Notion project management.
 
-## Branch Creation Triggers
+## Branch Naming Pattern
 
-**Activate when user requests:**
+**Story Branches:**
 
-- "create a branch for SPWS-X" (Story)
-- "create branch for SPWT-X" (Task)
-- "create branch for task SPWT-X"
+All story branches follow this format:
 
-## Branch Patterns
+```
+feature/develop/SPWS-X
+```
 
-| Artifact Type         | Branch Pattern                  | Example                  |
-| --------------------- | ------------------------------- | ------------------------ |
-| User Story (SPWS-X)   | `feature/develop/SPWS-X`        | `feature/develop/SPWS-1` |
-| Feature Task (SPWT-X) | `feature/[parent-story]/SPWT-X` | `feature/SPWS-1/SPWT-5`  |
-| Tech Task (SPWT-X)    | `tech/[parent-story]/SPWT-X`    | `tech/SPWS-2/SPWT-8`     |
-| Bug Task (SPWT-X)     | `bug/[parent-story]/SPWT-X`     | `bug/SPWS-1/SPWT-12`     |
+**Task Branches:**
 
-## Workflow
+All task branches follow this format:
 
-### For User Stories (SPWS-X)
+```
+<type>/<story-id>/<task-id>
+```
 
-1. Identify: `SPWS-X` = Story (no Notion lookup needed)
-2. Pattern: `feature/develop/SPWS-X`
-3. Execute:
-   - `git checkout develop`
-   - `git pull origin develop`
-   - `git checkout -b feature/develop/SPWS-X`
-   - `git push -u origin feature/develop/SPWS-X`
-4. **Update Notion:**
-   - Use `notion-search` to find Story page with ID `SPWS-X`
-   - Use `notion-update-page` to set Branch property: `https://github.com/unknown-studios-code/spellwright/tree/feature/develop/SPWS-X`
-5. Confirm branch created and Notion updated to user
+**Examples:**
 
-### For Tasks (SPWT-X)
+Story branches:
 
-1. **Fetch from Notion:**
+```
+feature/develop/SPWS-1
+feature/develop/SPWS-5
+feature/develop/SPWS-12
+```
 
-   - Use `notion-search` with `query_type: "internal"` and query: "SPWT-X"
-   - Use `notion-fetch` to get:
-     - Task type: Feature, Tech, or Bug
-     - Parent Story: SPWS-X
+Task branches:
 
-2. **Apply pattern by type:**
+```
+feature/SPWS-1/SPWT-10
+tech/SPWS-3/SPWT-8
+bug/SPWS-5/SPWT-42
+```
 
-   - Feature → `feature/[parent-story]/SPWT-X`
-   - Tech → `tech/[parent-story]/SPWT-X`
-   - Bug → `bug/[parent-story]/SPWT-X`
+## Branch Types
 
-3. **Execute:**
+**For Task Branches:**
 
-   - `git checkout feature/develop/[parent-story]`
-   - `git pull origin feature/develop/[parent-story]`
-   - `git checkout -b [type]/[parent-story]/SPWT-X`
-   - `git push -u origin [type]/[parent-story]/SPWT-X`
+| Type      | Usage            | Applies to     |
+| --------- | ---------------- | -------------- |
+| `feature` | New features     | Tasks (SPWT-X) |
+| `tech`    | Technical tasks  | Tasks (SPWT-X) |
+| `bug`     | Bug fixes        | Tasks (SPWT-X) |
+| `hotfix`  | Production fixes | Tasks (SPWT-X) |
+| `docs`    | Documentation    | Tasks (SPWT-X) |
 
-4. **Update Notion:**
+**For Story Branches:**
 
-   - Use `notion-update-page` to set Branch property: `https://github.com/unknown-studios-code/spellwright/tree/[type]/[parent-story]/SPWT-X`
+Story branches always use `feature/develop/SPWS-X` format.
 
-5. **Confirm branch created and Notion updated to user**
+## Notion Artifact Hierarchy
 
-### If Notion Lookup Fails
+**Epic (SPWE-X):**
 
-1. Ask user for task type (Feature/Tech/Bug)
-2. Ask for parent story (SPWS-X)
-3. Apply pattern and create branch
+- High-level business initiative
+- Contains multiple stories
+- Not used directly in branch names
 
-## Important Notes
+**Story (SPWS-X):**
 
-- Stories (SPWS-X): Always use `feature/develop/` prefix
-- Tasks (SPWT-X): Always fetch type and parent from Notion first
-- Before creating: Always checkout and update base branch
-- After creating: Push branch to remote with `-u` flag to set upstream tracking
-- After push: Update Notion "Branch" property with GitHub tree URL
-- Confirm branch name, Notion update status, and report executed commands
-- Validate ID format (SPWS-X or SPWT-X) before proceeding
-- GitHub tree URL format: `https://github.com/unknown-studios-code/spellwright/tree/[branch-name]`
+- Feature or technical initiative
+- Contains multiple tasks
+- Branch format: `feature/develop/SPWS-X`
+
+**Task (SPWT-X):**
+
+- Specific implementation
+- Belongs to a story
+- Branch format: `<type>/<story-id>/<task-id>`
+
+## Branch Creation Workflow
+
+**For Story Branches:**
+
+1. Identify story from Notion (SPWS-X)
+2. Create branch: `feature/develop/SPWS-X`
+3. Update Notion story with branch URL
+
+**For Task Branches:**
+
+1. Identify task from Notion (SPWT-X)
+2. Get parent story (SPWS-X)
+3. Determine branch type
+4. Create branch: `<type>/<story-id>/<task-id>`
+5. Update Notion task with branch URL
+
+## Branch Type Selection
+
+**For Task Branches:**
+
+**DO:**
+
+- Use `feature/` for new functionality
+- Use `tech/` for refactoring, architecture
+- Use `bug/` for bug fixes
+- Use `hotfix/` for production issues
+- Use `docs/` for documentation only
+
+**DON'T:**
+
+- Mix types in same branch
+- Use custom types
+- Skip story reference
+- Create branches from wrong base
+
+**For Story Branches:**
+
+Always use `feature/develop/SPWS-X` format (no type selection needed).
+
+## Base Branch Selection
+
+**For Story Branches:**
+
+- Always branch from `develop`
+- Format: `feature/develop/SPWS-X`
+
+**For Task Branches:**
+
+- Branch from `develop` for feature, tech, bug types
+- Branch from `main` for hotfix type only
+- Branch from story branch for sub-tasks (rare)
+
+**DO:**
+
+- Verify base branch before creating
+- Pull latest changes
+- Ensure clean working directory
+
+**DON'T:**
+
+- Branch from outdated base
+- Branch from feature branches (usually)
+- Create branches with uncommitted changes
+
+## Git Commands
+
+**Create Story Branch:**
+
+```bash
+git checkout -b feature/develop/SPWS-X
+```
+
+**Create Task Branch:**
+
+```bash
+git checkout -b <type>/<story-id>/<task-id>
+```
+
+**Push Branch:**
+
+```bash
+git push -u origin <branch-name>
+```
+
+**Update Notion:**
+
+- Set Branch property with GitHub URL
+- Format: `https://github.com/owner/repo/tree/<branch-name>`
+
+## Validation Rules
+
+**Before Creating Story Branch:**
+
+- [ ] Story exists in Notion (SPWS-X)
+- [ ] Base branch is `develop`
+- [ ] Working directory is clean
+- [ ] Latest changes pulled
+
+**Before Creating Task Branch:**
+
+- [ ] Task exists in Notion (SPWT-X)
+- [ ] Story identified (SPWS-X)
+- [ ] Type is valid
+- [ ] Base branch is correct
+- [ ] Working directory is clean
+- [ ] Latest changes pulled
+
+## Best Practices
+
+**DO:**
+
+- Create one branch per story or task
+- Use lowercase for all parts
+- Follow exact pattern for each type
+- Update Notion after creation
+- Delete branches after merge
+- Keep branches short-lived
+
+**DON'T:**
+
+- Reuse branches for multiple stories/tasks
+- Use uppercase or special characters
+- Deviate from standard patterns
+- Leave stale branches
+- Create long-lived feature branches
+
+## Integration
+
+This standard works with:
+
+- **Commit Creation** (`general/commit-creation.mdc`)
+- **PR Creation** (`general/pr-creation.mdc`)
+- **Notion MCP** (`mcp/notion.mdc`)
+- **GitHub MCP** (`mcp/github.mdc`)
+
+## Summary
+
+**PRIMARY RULES**:
+
+**Story Branches:**
+
+- Format: `feature/develop/SPWS-X`
+- Always from `develop`
+- No type variation
+
+**Task Branches:**
+
+- Format: `<type>/<story-id>/<task-id>`
+- Type: feature/tech/bug/hotfix/docs
+- Story reference mandatory (SPWS-X)
+- Task reference mandatory (SPWT-X)
+
+**Key Requirements:**
+
+1. Story branches: `feature/develop/SPWS-X`
+2. Task branches: `<type>/<story-id>/<task-id>`
+3. Lowercase only
+4. Branch from correct base
+5. Update Notion with branch URL
+
+**Remember**: Branch names are permanent in Git history. Follow conventions strictly.

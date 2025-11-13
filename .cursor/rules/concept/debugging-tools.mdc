@@ -1,422 +1,339 @@
 ---
-description: Provides debugging techniques for DOTS/ECS including Entity Hierarchy inspection, profiling, thread-safe logging, Gizmos visualization, and performance benchmarking for spell systems.
+description: Debugging techniques for DOTS/ECS including Entity Hierarchy inspection, profiling, thread-safe logging, Gizmos visualization, and performance benchmarking.
 alwaysApply: false
 ---
 
-# Debugging Tools for Spellwright
+# DOTS/ECS Debugging Tools
 
-This file defines specific tools and techniques for debugging spell systems in Spellwright. Since execution occurs in DOTS/ECS, traditional debugging techniques don't work directly.
+Establishes debugging and observability practices for DOTS/ECS systems in Spellwright.
 
-## Tool 1: DOTS Hierarchy Window
+## Purpose
 
-### Mandatory Usage
+Provide effective debugging techniques for identifying and resolving issues in high-performance ECS systems.
 
-The **Entity Hierarchy Window** is your primary runtime inspection tool.
+## Scope
 
-### How to Activate
+**Applies To:**
 
-```
-Window > Entities > Hierarchy
-```
+- System execution debugging
+- Performance profiling
+- Entity inspection
+- Component validation
+- Burst compilation verification
 
-### What to Check
+## Unity Tools
 
-- **Entity names**: should reflect `spellName` from JSON
-- **Attached components**: verify that all expected components are present
-- **Component values**: inspect values of Velocity, Lifetime, DamageAmount, etc.
-- **Entity count**: monitor creation and destruction to detect leaks
+### Entities Hierarchy Window
 
-### Inspection Example
+**DO:**
 
-```
-Entity: Fireball_001
-  Components:
-    - ProjectileTag
-    - Velocity { Value: (30, 0, 0) }
-    - Lifetime { SpawnTime: 10.5, Duration: 5.0 }
-    - DamageAmount { Value: 25.0 }
-    - ElementalType { Type: Fire }
-```
+- Inspect entity structure and components
+- Verify component data values
+- Check entity archetypes
+- Monitor entity creation/destruction
+- Filter entities by component type
 
-## Tool 2: Entity Debugger
+**DON'T:**
 
-### Use for Deep Debugging
+- Rely solely on logging
+- Skip entity inspection
+- Assume component values without verification
 
-The **Entity Debugger** allows complex queries and filtering.
+### Systems Window
 
-### How to Activate
+**DO:**
 
-```
-Window > Entities > Entity Debugger
-```
+- Verify system update order
+- Check system execution time
+- Inspect EntityQuery results
+- Monitor system enable/disable state
+- Validate system dependencies
 
-### Useful Queries
+**DON'T:**
 
-**Find all spells with Homing:**
+- Assume system order without checking
+- Skip performance measurement
+- Ignore query entity counts
 
-```csharp
-EntityQuery query = GetEntityQuery(typeof(HomingTag), typeof(Velocity));
-```
+### Burst Inspector
 
-**Find spells that expired but weren't destroyed (potential leak):**
+**DO:**
 
-```csharp
-// In debug system
-[BurstCompile]
-public partial struct DetectExpiredEntitiesJob : IJobEntity
-{
-    public double CurrentTime;
+- Verify Burst compilation success
+- Check generated assembly code
+- Identify optimization opportunities
+- Validate SIMD usage
+- Check for managed code in jobs
 
-    void Execute(ref Lifetime lifetime, in Entity entity)
-    {
-        double expireTime = lifetime.SpawnTime + lifetime.Duration;
-        if (CurrentTime > expireTime)
-        {
-            UnityEngine.Debug.LogWarning($"Entity {entity} expired but wasn't destroyed!");
-        }
-    }
-}
-```
+**DON'T:**
 
-## Tool 3: Unity Profiler with DOTS
+- Assume Burst is working without verification
+- Skip assembly inspection for hot paths
+- Ignore Burst warnings
 
-### ALWAYS Profile Spell Systems
+### Unity Profiler
 
-Use the Profiler to detect performance bottlenecks.
+**DO:**
 
-### Critical Metrics
-
-- **System Update Time**: how long each ISystem takes
-- **Job Scheduling Overhead**: job scheduling overhead
-- **Structural Changes**: how many times EntityCommandBuffer is executed
-- **Memory Allocations**: detect unintentional allocations
+- Use Timeline view for system execution
+- Add custom profiler markers
+- Measure frame time per system
+- Track memory allocations
+- Profile in Player builds, not just Editor
+- Use Deep Profile for detailed analysis
 
-### How to Enable Detailed Profiling
+**DON'T:**
 
-```csharp
-[BurstCompile]
-public partial struct SpellMovementSystem : ISystem
-{
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
-    {
-        // Automatic profiling
-        // System name will appear in Profiler
-
-        var job = new MovementJob
-        {
-            DeltaTime = SystemAPI.Time.DeltaTime
-        };
-
-        job.ScheduleParallel();
-    }
-}
-```
-
-### Identify Performance Issues
-
-**Problem**: System update time too high (> 1ms for 100 entities)
-**Solution**: Check if Burst is enabled, use `[BurstCompile]`
-
-**Problem**: Many structural changes (> 10 per frame)
-**Solution**: Group commands in a single EntityCommandBuffer
-
-**Problem**: Memory allocations in hot path
-**Solution**: Use `DynamicBuffer` instead of `List`, avoid boxing
-
-## Tool 4: Custom Logging for DOTS
-
-### Thread-Safe Logger Implementation
-
-Since DOTS executes in parallel jobs, traditional logging can cause crashes.
-
-```csharp
-using Unity.Collections;
-using Unity.Entities;
-
-public struct DebugLogEvent : IBufferElementData
-{
-    public FixedString64Bytes Message;
-    public float Timestamp;
-}
-
-// System that collects logs from jobs
-[UpdateInGroup(typeof(PresentationSystemGroup))]
-public partial struct DebugLogCollectorSystem : ISystem
-{
-    public void OnUpdate(ref SystemState state)
-    {
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
-
-        foreach (var (buffer, entity) in
-                 SystemAPI.Query<DynamicBuffer<DebugLogEvent>>()
-                           .WithEntityAccess())
-        {
-            foreach (var logEvent in buffer)
-            {
-                UnityEngine.Debug.Log($"[{logEvent.Timestamp:F2}s] {logEvent.Message}");
-            }
-
-            buffer.Clear();
-        }
-
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
-    }
-}
-
-// Usage in an IJobEntity
-[BurstCompile]
-public partial struct HomingMovementJob : IJobEntity
-{
-    public double ElapsedTime;
-    public EntityCommandBuffer.ParallelWriter ECB;
-
-    void Execute(Entity entity, [ChunkIndexInQuery] int sortKey, ref Velocity velocity, in HomingData homing)
-    {
-        // Thread-safe logging
-        var logEntity = ECB.CreateEntity(sortKey);
-        var buffer = ECB.AddBuffer<DebugLogEvent>(sortKey, logEntity);
-        buffer.Add(new DebugLogEvent
-        {
-            Message = $"Homing entity {entity.Index}",
-            Timestamp = (float)ElapsedTime
-        });
-    }
-}
-```
-
-## Tool 5: Gizmos Visualization for Spells
-
-### Gizmos for Visual Runtime Debugging
-
-```csharp
-using Unity.Entities;
-using UnityEngine;
-
-// System that draws Gizmos for debugging
-public partial class SpellVisualizationSystem : SystemBase
-{
-    protected override void OnUpdate()
-    {
-        Entities
-            .WithoutBurst() // Gizmos are not Burst-compatible
-            .WithAll<ProjectileTag>()
-            .ForEach((in LocalTransform transform, in Velocity velocity, in Lifetime lifetime) =>
-            {
-                // Draw velocity direction
-                Debug.DrawRay(transform.Position, velocity.Value.normalized * 2f, Color.yellow);
-
-                // Draw sphere at projectile
-                Debug.DrawLine(transform.Position, transform.Position + new float3(0, 0.5f, 0), Color.red);
-            })
-            .Run();
-    }
-}
-```
-
-### Area of Effect Visualization
-
-```csharp
-Entities
-    .WithoutBurst()
-    .WithAll<AreaOfEffectTag>()
-    .ForEach((in LocalTransform transform, in RadiusComponent radius) =>
-    {
-        // Draw circle on ground
-        DrawCircle(transform.Position, radius.Value, Color.cyan);
-    })
-    .Run();
-
-void DrawCircle(float3 center, float radius, Color color)
-{
-    int segments = 32;
-    float angleStep = 360f / segments;
-
-    for (int i = 0; i < segments; i++)
-    {
-        float angle1 = i * angleStep * Mathf.Deg2Rad;
-        float angle2 = (i + 1) * angleStep * Mathf.Deg2Rad;
-
-        float3 p1 = center + new float3(Mathf.Cos(angle1) * radius, 0, Mathf.Sin(angle1) * radius);
-        float3 p2 = center + new float3(Mathf.Cos(angle2) * radius, 0, Mathf.Sin(angle2) * radius);
-
-        Debug.DrawLine(p1, p2, color);
-    }
-}
-```
-
-## Tool 6: Custom Inspector for SpellDefinition
-
-### Editor Script for Enhanced Inspection
-
-```csharp
-using UnityEngine;
-using UnityEditor;
-
-[CustomEditor(typeof(SpellDefinitionAuthoring))]
-public class SpellDefinitionEditor : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-
-        SpellDefinitionAuthoring authoring = (SpellDefinitionAuthoring)target;
-
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Spell Preview", EditorStyles.boldLabel);
-
-        if (GUILayout.Button("Validate JSON"))
-        {
-            bool isValid = ValidateSpellJson(authoring.spellJson);
-            if (isValid)
-            {
-                EditorUtility.DisplayDialog("Validation", "JSON is valid!", "OK");
-            }
-            else
-            {
-                EditorUtility.DisplayDialog("Validation", "JSON has errors. Check Console.", "OK");
-            }
-        }
-
-        if (GUILayout.Button("Test Spawn Spell"))
-        {
-            if (Application.isPlaying)
-            {
-                // Instantiate spell at runtime for testing
-                TestSpawnSpell(authoring);
-            }
-            else
-            {
-                EditorUtility.DisplayDialog("Error", "Enter Play Mode to test spawn.", "OK");
-            }
-        }
-    }
-
-    private bool ValidateSpellJson(string json)
-    {
-        try
-        {
-            var spell = Newtonsoft.Json.JsonConvert.DeserializeObject<SpellDefinition>(json);
-
-            // Custom validations
-            if (string.IsNullOrEmpty(spell.spellName))
-            {
-                Debug.LogError("spellName cannot be empty");
-                return false;
-            }
-
-            if (spell.payloads == null || spell.payloads.Length == 0)
-            {
-                Debug.LogError("Spell must have at least one payload");
-                return false;
-            }
-
-            Debug.Log("✓ Valid JSON!");
-            return true;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Validation error: {e.Message}");
-            return false;
-        }
-    }
-
-    private void TestSpawnSpell(SpellDefinitionAuthoring authoring)
-    {
-        // Code to spawn spell at camera viewpoint
-        var cameraPos = Camera.main.transform.position;
-        var cameraForward = Camera.main.transform.forward;
-
-        Debug.Log($"Spawning spell at {cameraPos} facing {cameraForward}");
-        // Call spawn system here
-    }
-}
-```
-
-## Tool 7: Debugging Checklist
-
-Use this checklist when a spell doesn't work as expected:
-
-### ✅ Phase 1: JSON and Baking
-
-- [ ] Does JSON pass schema validation?
-- [ ] Was SpellDefinition deserialized correctly?
-- [ ] Did Baker create the entity? (check in Hierarchy)
-- [ ] Are all expected components attached?
-- [ ] Do component values match JSON?
-
-### ✅ Phase 2: Movement and Behavior
-
-- [ ] Does entity have Velocity and is it moving?
-- [ ] Is LocalTransform being updated?
-- [ ] Is Homing adjusting direction correctly?
-- [ ] Is Lifetime being decremented?
-
-### ✅ Phase 3: Collision and Payloads
-
-- [ ] Is collision system detecting impacts?
-- [ ] Are Payloads being resolved?
-- [ ] Is damage being applied to targets?
-- [ ] Are status effects being applied?
-
-### ✅ Phase 4: Cleanup and Destruction
-
-- [ ] Are expired entities being destroyed?
-- [ ] Are there no orphaned entities (memory leaks)?
-- [ ] Is EntityCommandBuffer being executed?
-
-## Tool 8: Performance Benchmarks
+- Profile only in Editor (overhead differs)
+- Skip profiler markers for custom systems
+- Ignore GC allocations
+- Profile without representative scenarios
+
+## Logging Patterns
+
+### Thread-Safe Logging
+
+**DO:**
+
+- Use `UnityEngine.Debug.Log` from main thread only
+- Collect log data in jobs, output after completion
+- Use `NativeArray` or `NativeList` for job logging
+- Implement log levels (Info, Warning, Error)
+- Add system/component context to logs
+
+**DON'T:**
+
+- Log from parallel jobs directly
+- Use `Console.WriteLine` in Burst jobs
+- Log in hot paths without filtering
+- Skip log levels
+
+### Log Levels
+
+**Info:**
+
+- System initialization
+- Major state changes
+- Configuration loading
+
+**Warning:**
+
+- Validation failures
+- Deprecated API usage
+- Performance concerns
+
+**Error:**
+
+- Exceptions
+- Critical failures
+- Data corruption
+
+## Visualization Tools
+
+### Gizmos
+
+**DO:**
+
+- Visualize spell trajectories
+- Draw collision volumes (spheres, cones)
+- Show raycast paths
+- Indicate target acquisition
+- Use color coding for states
+- Enable/disable via debug flags
+
+**DON'T:**
+
+- Leave Gizmos in production builds
+- Draw excessive Gizmos (performance impact)
+- Use Gizmos as primary debugging method
+
+### Debug Draw
+
+**DO:**
+
+- Draw persistent debug shapes
+- Use for multi-frame debugging
+- Color-code by system or state
+- Add labels for clarity
+
+**DON'T:**
+
+- Forget to clear debug draws
+- Draw in release builds
+- Overuse (visual clutter)
+
+## Performance Benchmarking
+
+### Profiler Markers
+
+**DO:**
+
+- Add markers to all systems
+- Use consistent naming: `Spell.SystemName`
+- Measure job scheduling overhead
+- Track ECB playback time
+- Profile with realistic entity counts
+
+**DON'T:**
+
+- Skip marker naming conventions
+- Profile with unrealistic data
+- Ignore scheduling overhead
 
 ### Performance Targets
 
-Keep these metrics within limits:
+**System Budgets:**
 
-| System                   | Target    | Warning | Critical |
-| ------------------------ | --------- | ------- | -------- |
-| SpellMovementSystem      | < 0.5ms   | 1ms     | 2ms      |
-| CollisionDetectionSystem | < 0.8ms   | 1.5ms   | 3ms      |
-| PayloadResolutionSystem  | < 0.3ms   | 0.7ms   | 1ms      |
-| LifetimeSystem           | < 0.2ms   | 0.5ms   | 1ms      |
-| **Total (100 spells)**   | **< 2ms** | **4ms** | **8ms**  |
+- Movement: <0.5ms for 1000 entities
+- Collision: <1.0ms for 1000 entities
+- Payload: <0.3ms for 100 hits
+- Total spell systems: <2.0ms @60fps
 
-### Benchmark Script
+**DO:**
 
-```csharp
-using Unity.Entities;
-using Unity.Profiling;
+- Set clear performance targets
+- Measure against targets regularly
+- Profile on target hardware
+- Test with max expected entity counts
 
-public partial class SpellPerformanceBenchmark : SystemBase
-{
-    private ProfilerMarker m_MovementMarker = new ProfilerMarker("SpellMovement");
-    private ProfilerMarker m_CollisionMarker = new ProfilerMarker("SpellCollision");
+**DON'T:**
 
-    protected override void OnUpdate()
-    {
-        using (m_MovementMarker.Auto())
-        {
-            // Movement code
-        }
+- Skip performance validation
+- Test only on high-end hardware
+- Ignore worst-case scenarios
 
-        using (m_CollisionMarker.Auto())
-        {
-            // Collision code
-        }
-    }
-}
-```
+## Debugging Strategies
 
-## Important Notes
+### Isolation Testing
 
-- Use **Entity Hierarchy Window** as primary inspection tool
-- **ALWAYS** enable Burst Compilation for performance-critical systems
-- Use **ProfilerMarkers** to identify bottlenecks
-- Implement **thread-safe logging** using event buffers
-- Use **Debug.DrawRay/DrawLine** for debugging visualization (not in final builds)
-- Create **custom Inspectors** for edit-time validation
-- Follow the **debugging checklist** systematically
-- Keep **performance targets** always in mind
-- Use **EntityCommandBuffer** to group structural changes
-- **NEVER** use Debug.Log directly inside IJobEntity or ISystem with Burst
-- Configure **ProfilerMarkers** for each critical system
-- Regularly test with **100+ entities** simultaneously
+**DO:**
+
+- Create minimal reproduction scenes
+- Test systems in isolation
+- Use EditMode tests for logic
+- Use PlayMode tests for integration
+- Control frame timing explicitly
+
+**DON'T:**
+
+- Debug in full game context only
+- Mix multiple issues
+- Skip test creation
+- Assume timing without control
+
+### Component Inspection
+
+**DO:**
+
+- Print component values at key points
+- Verify component existence before access
+- Check for Entity.Null
+- Validate component data ranges
+- Use assertions for invariants
+
+**DON'T:**
+
+- Assume component values
+- Skip null checks
+- Ignore data validation
+- Remove assertions in production
+
+### System Execution
+
+**DO:**
+
+- Verify system runs when expected
+- Check EntityQuery matches
+- Validate update order
+- Monitor system enable state
+- Test with empty queries
+
+**DON'T:**
+
+- Assume system execution
+- Skip query validation
+- Ignore update order issues
+- Test only with entities present
+
+## Common Issues
+
+### Entity.Null References
+
+**Symptoms:**
+
+- NullReferenceException
+- Missing component access
+
+**Debug:**
+
+- Check entity existence before access
+- Verify entity creation timing
+- Use `EntityManager.Exists(entity)`
+
+### Race Conditions
+
+**Symptoms:**
+
+- Inconsistent behavior
+- Data corruption
+- Crashes in parallel jobs
+
+**Debug:**
+
+- Verify RO/RW access patterns
+- Check for shared mutable state
+- Use `ComponentLookup` correctly
+- Validate ECB usage
+
+### Performance Degradation
+
+**Symptoms:**
+
+- Frame time spikes
+- Gradual slowdown
+- GC allocations
+
+**Debug:**
+
+- Profile with Unity Profiler
+- Check Burst compilation
+- Verify zero GC allocations
+- Measure entity counts
+
+## Checklist
+
+Before debugging DOTS/ECS issues:
+
+- [ ] Entities Hierarchy window open
+- [ ] Systems window open for execution order
+- [ ] Profiler running with markers
+- [ ] Burst Inspector checked for compilation
+- [ ] Log levels configured
+- [ ] Gizmos enabled for visualization
+- [ ] Minimal reproduction scene created
+- [ ] Performance targets defined
+- [ ] Test on target hardware
+
+## Integration
+
+This standard works with:
+
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
+- **EditMode Tests** (`general/editmode-tests-generation.mdc`)
+- **PlayMode Tests** (`general/playmode-tests-generation.mdc`)
+
+## Summary
+
+**PRIMARY RULE**: Use Unity's built-in tools (Entities Hierarchy, Systems Window, Profiler, Burst Inspector) as primary debugging methods.
+
+**Key Requirements:**
+
+1. Inspect entities and systems with Unity tools
+2. Profile with realistic scenarios
+3. Use thread-safe logging
+4. Visualize with Gizmos for spatial debugging
+5. Create minimal reproduction scenes
+6. Measure against performance targets
+7. Verify Burst compilation
+
+**Remember**: DOTS debugging requires different tools than traditional Unity. Master the Entities Hierarchy and Systems windows.

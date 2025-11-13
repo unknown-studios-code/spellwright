@@ -147,6 +147,7 @@ csharp_prefer_simple_using_statement = true:suggestion
 # 3.11 'using' Directive Placement
 #──────────────────────────────────────────────────────────────────────────────────────────────
 csharp_using_directive_placement = outside_namespace:warning
+csharp_style_namespace_declarations = file_scoped:suggestion
 
 #──────────────────────────────────────────────────────────────────────────────────────────────
 # 3.12 Miscellaneous Preferences
@@ -223,7 +224,7 @@ csharp_preserve_single_line_blocks = true
 #──────────────────────────────────────────────────────────────────────────────────────────────
 # 4.5 Namespace Declaration
 #──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_style_namespace_declarations = block_scoped:silent
+csharp_style_namespace_declarations = file_scoped:suggestion
 dotnet_style_namespace_match_folder = true:suggestion
 
 #──────────────────────────────────────────────────────────────────────────────────────────────
@@ -231,6 +232,7 @@ dotnet_style_namespace_match_folder = true:suggestion
 #──────────────────────────────────────────────────────────────────────────────────────────────
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
+dotnet_diagnostic.IDE0005.severity = warning
 
 ###############################################################################################
 # SECTION 5: NAMING CONVENTIONS

@@ -43,11 +43,11 @@ Copy this template structure when creating an Epic. Remove all INSTRUCTION/FORMA
 **INSTRUCTION:** Use the "We believe that by... we will achieve... measured by..." format to connect actions to outcomes.
 
 - **We believe that by** [ACTION/CHANGE]
-  - **EXAMPLE:** "implementing a natural language spell creation system"
+    - **EXAMPLE:** "implementing a natural language spell creation system"
 - **We will achieve** [OUTCOME/BENEFIT]
-  - **EXAMPLE:** "75% reduction in spell creation time and 3x increase in spell variety"
+    - **EXAMPLE:** "75% reduction in spell creation time and 3x increase in spell variety"
 - **This will be measured by** [METRIC/KPI]
-  - **EXAMPLE:** "average time to create a spell, number of unique spells in game, and designer satisfaction surveys"
+    - **EXAMPLE:** "average time to create a spell, number of unique spells in game, and designer satisfaction surveys"
 
 ---
 
@@ -108,13 +108,13 @@ _List what is explicitly NOT being addressed. Be specific to avoid misunderstand
 **EXAMPLE:**
 
 - 🔴 **Technical Risk:** LLM API may generate invalid JSON
-  - Mitigation: Implement 3-layer validation
+    - Mitigation: Implement 3-layer validation
 - 🟡 **Dependency Risk:** Depends on Unity DOTS knowledge
-  - Mitigation: Team training sessions
+    - Mitigation: Team training sessions
 - 🟠 **Scope Risk:** Feature requests may cause scope creep
-  - Mitigation: Strict change control
+    - Mitigation: Strict change control
 - 🔵 **Timeline Risk:** Integration complexity unknown
-  - Mitigation: Early prototype to validate
+    - Mitigation: Early prototype to validate
 
 ---
 
@@ -123,14 +123,14 @@ _List what is explicitly NOT being addressed. Be specific to avoid misunderstand
 **INSTRUCTION:** Provide links to all relevant documentation, designs, and references. Use specific URLs when available.
 
 - **🎨 Design Files:**
-  - [Figma: Spell Creation UI Mockups](URL)
-  - [Miro: Architecture Diagram](URL)
+    - [Figma: Spell Creation UI Mockups](URL)
+    - [Miro: Architecture Diagram](URL)
 - **📚 Documentation:**
-  - [Technical Specification: Spell System v1.0](URL)
-  - [Unity DOTS Architecture Reference](URL)
+    - [Technical Specification: Spell System v1.0](URL)
+    - [Unity DOTS Architecture Reference](URL)
 - **🌐 External Resources:**
-  - [Reference: Diablo 4 Skill System Analysis](URL)
-  - [Academic Paper: Procedural Content Generation](URL)
+    - [Reference: Diablo 4 Skill System Analysis](URL)
+    - [Academic Paper: Procedural Content Generation](URL)
 ```
 
 ---

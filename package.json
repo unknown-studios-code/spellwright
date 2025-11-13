@@ -34,7 +34,9 @@
         "url": "git+https://github.com/unknown-studios-code/spellwright.git"
     },
     "scripts": {
-        "prepare": "husky",
-        "test": "echo \"Warning: no test specified\" && exit 0"
+        "format": "npm run format:csharpier && npm run format:prettier",
+        "format:csharpier": "dotnet csharpier format Assets/Scripts --ignore-path .formatterignore",
+        "format:prettier": "prettier --write \"**/*.{json,md,yml,yaml}\" --ignore-path .formatterignore",
+        "prepare": "husky"
     }
 }

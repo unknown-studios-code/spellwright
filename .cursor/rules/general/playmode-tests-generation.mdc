@@ -1,284 +1,305 @@
 ---
-description: Defines PlayMode test generation standards for Spellwright, establishing best practices for asynchronous integration tests in Unity DOTS/ECS projects.
+description: PlayMode test generation standards for asynchronous integration tests in Unity DOTS/ECS projects.
 alwaysApply: false
 ---
 
 # PlayMode Test Generation Standards
 
-PlayMode tests are asynchronous integration tests that validate system execution, frame-based behavior, and runtime ECS interactions.
+PlayMode tests are asynchronous integration tests that validate system execution, frame-based behavior, and ECS infrastructure.
 
 ## Core Principles
 
-- **Asynchronous**: Execute over multiple frames using `yield return`
-- **Integration-focused**: Test full system pipelines
-- **Runtime-dependent**: Require Unity's game loop
-- **Slower**: More expensive than EditMode tests
-- **Realistic**: Simulate actual game scenarios
+- **Asynchronous**: Use `yield return null` for frame delays
+- **Integration**: Test system interactions
+- **Realistic**: Use full ECS infrastructure
+- **Frame-Based**: Test behavior over multiple frames
+- **Complete**: Validate end-to-end workflows
 
 Use `[UnityTest]` attribute (not `[Test]`).
 
-## When to Use PlayMode Tests
+## When to Use
 
-**Use For:**
+**Use PlayMode For:**
 
-- System execution and update logic
-- Frame-based behavior (time, delta time)
-- EntityCommandBuffer playback timing
-- Multi-system integration
-- Lifecycle tests (spawn, move, destroy)
+- System execution and update loops
+- Frame-based behavior
+- Integration between systems
+- EntityCommandBuffer playback
+- System update order
+- Multi-frame scenarios
+- Performance profiling
 
-**DO NOT Test:**
+**Use EditMode Instead For:**
 
-- Pure job logic (use EditMode)
-- Component data structure (use EditMode)
-- Entity query construction (use EditMode)
+- Pure logic validation
+- Component structure
+- Query filtering
+- Synchronous calculations
 
 ## Test Structure
 
-**Inherit from `PlayModeTestBase`:**
+### Base Class
+
+**Return `IEnumerator`:**
+
+- Use `yield return null` for frame delays
+- Use `yield return new WaitForSeconds(time)` for time delays
+- Use `yield return new WaitUntil(() => condition)` for condition waits
+
+### Naming Conventions
+
+**Test Class:**
+
+- Format: `<System>IntegrationTests` or `<Feature>IntegrationTests`
+- Examples: `SpellMovementIntegrationTests`, `CollisionIntegrationTests`
+- Namespace: `Spellwright.Tests.PlayMode.<Category>`
+
+**Test Methods:**
+
+- Format: `<Scenario>_<ExpectedResult>`
+- Examples: `ProjectileMovesForward_AfterOneSecond`, `CollisionDetected_WhenEntitiesOverlap`
+
+## Test Patterns
+
+### System Execution Testing
+
+**DO:**
+
+- Create World and systems
+- Update systems explicitly
+- Wait for frames with `yield return null`
+- Verify state after execution
+- Clean up World in teardown
+
+**DON'T:**
+
+- Test system internal logic (use EditMode)
+- Skip frame delays
+- Forget World cleanup
+- Test multiple systems without clear separation
+
+### Multi-Frame Testing
+
+**DO:**
+
+- Use `yield return null` for frame advancement
+- Track state across frames
+- Verify incremental changes
+- Test frame-dependent behavior
+
+**DON'T:**
+
+- Assume immediate execution
+- Skip necessary frame delays
+- Test too many frames (keep tests fast)
+
+### EntityCommandBuffer Testing
+
+**DO:**
+
+- Create ECB from system singleton
+- Record structural changes
+- Wait for playback (next frame)
+- Verify changes after playback
+
+**DON'T:**
+
+- Expect immediate structural changes
+- Forget to wait for playback
+- Test ECB internals
+
+## Assertion Guidelines
+
+**DO:**
+
+- Assert after frame delays
+- Use specific assertions
+- Include descriptive messages
+- Verify intermediate states
+- Check final outcomes
+
+**DON'T:**
+
+- Assert before frame delays
+- Use vague assertions
+- Skip intermediate checks
+- Assume timing
+
+## Test Organization
+
+**Directory Structure:**
+
+```
+Assets/Scripts/Tests/PlayMode/
+├── Systems/
+│   ├── MovementIntegrationTests.cs
+│   ├── CollisionIntegrationTests.cs
+│   └── SpawningIntegrationTests.cs
+└── Workflows/
+    ├── SpellLifecycleTests.cs
+    └── CombatFlowTests.cs
+```
+
+**File Organization:**
+
+1. Using statements
+2. Namespace declaration
+3. `[TestFixture]` class
+4. Setup/Teardown methods
+5. Test methods (IEnumerator)
+6. Helper methods
+
+## Frame Management
+
+### Waiting Patterns
+
+**Single Frame:**
 
 ```csharp
-using NUnit.Framework;
-using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine.TestTools;
-using Spellwright.Tests.Utilities;
+yield return null;
+```
 
-namespace Spellwright.Tests.PlayMode.Systems.Movement
+**Multiple Frames:**
+
+```csharp
+for (int i = 0; i < 10; i++)
 {
-    [TestFixture]
-    public class SpellMovementSystemTests : PlayModeTestBase
-    {
-        [UnityTest]
-        public IEnumerator SpellMovement_AfterThreeFrames_AccumulatesMovement()
-        {
-            Entity spell = EntityCreationUtils.CreateMovingEntity(EntityManager, new float3(1, 0, 0), float3.zero);
-
-            yield return AdvanceSimulationTime(0.016f);
-            yield return AdvanceSimulationTime(0.016f);
-            yield return AdvanceSimulationTime(0.016f);
-
-            LocalTransform transform = EntityManager.GetComponentData<LocalTransform>(spell);
-            float distance = math.length(transform.Position);
-
-            Assert.Greater(distance, 0.045f, "Spell should have moved");
-        }
-    }
+    yield return null;
 }
 ```
 
-**Base class provides:**
+**Time-Based:**
 
-- `World` - Test world instance
-- `EntityManager` - Entity manager
-- `InitializationGroup` / `SimulationGroup` - Pre-configured system groups
-- `AdvanceSimulationTime(float seconds)` - Advances time and updates SimulationGroup
-- `AdvanceInitializationTime(float seconds)` - Advances time and updates InitializationGroup
-- Automatic setup/teardown
+```csharp
+yield return new WaitForSeconds(1.0f);
+```
 
-**Systems automatically configured:**
+**Condition-Based:**
 
-- `BeginInitializationEntityCommandBufferSystem`
-- `SpawnRequestValidationSystem`
-- `SpellSpawnSystem`
-- `SpellMovementSystem`
-- `LifecycleSystem`
-- `EndSimulationEntityCommandBufferSystem`
+```csharp
+yield return new WaitUntil(() => EntityManager.Exists(entity));
+```
 
-## Recommended Test Coverage
+### Frame Timing
 
-**3-5 tests per system:**
+**DO:**
 
-1. Basic functionality (happy path)
-2. Edge cases (empty, zero values)
-3. Frame progression
-4. Integration with other systems
+- Wait minimum necessary frames
+- Use condition-based waits when possible
+- Keep tests under 5 seconds
+- Document frame requirements
 
-**Aim for 15-25 total PlayMode tests.**
+**DON'T:**
+
+- Wait arbitrary frame counts
+- Use excessive time delays
+- Create long-running tests
+- Skip frame waits when needed
 
 ## Best Practices
 
-### 1. Use EntityCreationUtils
+**DO:**
 
-```csharp
-// Good: Centralized creation
-Entity prefab = EntityCreationUtils.CreateValidPrefab(EntityManager);
-Entity request = EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, position, direction);
+- Test system integration
+- Verify update order
+- Test frame-dependent behavior
+- Clean up World resources
+- Use realistic scenarios
+- Test error conditions
+- Profile performance
 
-// Bad: Inline creation
-Entity prefab = EntityManager.CreateEntity();
-EntityManager.AddComponentData(prefab, new Speed { Value = 10f });
+**DON'T:**
+
+- Test pure logic (use EditMode)
+- Skip frame delays
+- Create flaky tests
+- Test Unity internals
+- Ignore cleanup
+- Create slow tests (>5s)
+
+## Common Patterns
+
+### System Update Pattern
+
+**Structure:**
+
+```
+1. Create World and systems
+2. Create test entities
+3. Update systems
+4. Wait for frame
+5. Assert results
+6. Cleanup World
 ```
 
-### 2. Advance Time Explicitly
+### Integration Test Pattern
 
-```csharp
-// Good: Explicit time control
-yield return AdvanceSimulationTime(0.016f);
-yield return AdvanceSimulationTime(0.5f);
+**Structure:**
 
-// Bad: Generic wait (doesn't update World.Time)
-yield return new WaitForSeconds(0.5f);
+```
+1. Setup complete scenario
+2. Trigger behavior
+3. Wait for execution
+4. Verify intermediate state
+5. Continue execution
+6. Verify final state
+7. Cleanup
 ```
 
-### 3. Account for ECB Playback Timing
+## Performance Testing
 
-```csharp
-[UnityTest]
-public IEnumerator SpellSpawn_WithValidRequest_CreatesSpell()
-{
-    Entity prefab = EntityCreationUtils.CreateValidPrefab(EntityManager);
-    Entity caster = EntityManager.CreateEntity();
-    EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, float3.zero, new float3(0, 0, 1));
+**DO:**
 
-    yield return AdvanceInitializationTime(0.016f);
-    yield return AdvanceInitializationTime(0.016f);
+- Use Unity Profiler markers
+- Measure frame time
+- Test with realistic entity counts
+- Verify performance targets
+- Document performance expectations
 
-    int spellCount = EntityManager.CreateEntityQuery(typeof(Velocity)).CalculateEntityCount();
-    Assert.AreEqual(1, spellCount);
-}
-```
+**DON'T:**
 
-### 4. Test One Behavior Per Test
+- Test micro-optimizations
+- Skip performance validation
+- Use unrealistic entity counts
+- Ignore performance regressions
 
-```csharp
-// Good: Single responsibility
-[UnityTest]
-public IEnumerator SpellMovement_AfterThreeFrames_AccumulatesMovement()
-{
-    Entity spell = EntityCreationUtils.CreateMovingEntity(EntityManager, new float3(1, 0, 0), float3.zero);
+## Test Checklist
 
-    yield return AdvanceSimulationTime(0.016f);
-    yield return AdvanceSimulationTime(0.016f);
-    yield return AdvanceSimulationTime(0.016f);
+Before submitting tests, verify:
 
-    LocalTransform transform = EntityManager.GetComponentData<LocalTransform>(spell);
-    float distance = math.length(transform.Position);
+- [ ] Uses `[UnityTest]` attribute
+- [ ] Returns `IEnumerator`
+- [ ] Follows naming conventions
+- [ ] Waits for necessary frames
+- [ ] Tests integration, not logic
+- [ ] Includes cleanup
+- [ ] Descriptive test names
+- [ ] Assertion messages included
+- [ ] Tests realistic scenarios
+- [ ] Execution time < 5 seconds
+- [ ] Proper namespace
+- [ ] World cleanup in teardown
 
-    Assert.Greater(distance, 0.045f);
-}
+## Integration
 
-// Bad: Testing multiple behaviors
-[UnityTest]
-public IEnumerator SpellLifecycle_SpawnMoveAndDestroy_WorksCorrectly()
-{
-    // Testing spawn, move, and destroy in one test makes debugging difficult
-}
-```
+This standard works with:
 
-## Anti-Patterns
-
-### 1. Don't Test Without Time Advancement
-
-```csharp
-// BAD: Missing second frame for ECB playback
-[UnityTest]
-public IEnumerator SpellSpawn_WithValidRequest_CreatesSpell()
-{
-    EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, pos, dir);
-
-    yield return AdvanceInitializationTime(0.016f);
-
-    int spellCount = EntityManager.CreateEntityQuery(typeof(Velocity)).CalculateEntityCount();
-    Assert.AreEqual(1, spellCount); // FAILS: ECB not played back yet
-}
-
-// GOOD: Account for ECB playback
-[UnityTest]
-public IEnumerator SpellSpawn_WithValidRequest_CreatesSpell()
-{
-    EntityCreationUtils.CreateValidatedSpawnRequest(EntityManager, prefab, caster, pos, dir);
-
-    yield return AdvanceInitializationTime(0.016f); // Frame 1
-    yield return AdvanceInitializationTime(0.016f); // Frame 2: ECB playback
-
-    int spellCount = EntityManager.CreateEntityQuery(typeof(Velocity)).CalculateEntityCount();
-    Assert.AreEqual(1, spellCount); // PASSES
-}
-```
-
-### 2. Don't Test Job Logic
-
-```csharp
-// BAD: This should be an EditMode test
-[UnityTest]
-public IEnumerator ApplyVelocity_UpdatesPosition()
-{
-    Entity entity = EntityCreationUtils.CreateMovingEntity(EntityManager, velocity, position);
-    var transform = EntityManager.GetComponentData<LocalTransform>(entity);
-    transform.Position += velocity * deltaTime;
-    EntityManager.SetComponentData(entity, transform);
-    Assert.AreEqual(expectedPosition, transform.Position);
-}
-
-// GOOD: Test system integration
-[UnityTest]
-public IEnumerator SpellMovement_AfterThreeFrames_AccumulatesMovement()
-{
-    Entity spell = EntityCreationUtils.CreateMovingEntity(EntityManager, velocity, position);
-    yield return AdvanceSimulationTime(0.016f);
-    yield return AdvanceSimulationTime(0.016f);
-    yield return AdvanceSimulationTime(0.016f);
-    LocalTransform transform = EntityManager.GetComponentData<LocalTransform>(spell);
-    Assert.Greater(math.length(transform.Position), 0.045f);
-}
-```
-
-### 3. Don't Manually Configure Systems
-
-```csharp
-// BAD: Custom system setup
-[SetUp]
-public void SetUp()
-{
-    _world = new World("TestWorld");
-    _entityManager = _world.EntityManager;
-    var system = _world.CreateSystem<SpellMovementSystem>();
-}
-
-// GOOD: Inherit from PlayModeTestBase
-public class SpellMovementSystemTests : PlayModeTestBase
-{
-    // All systems already configured
-}
-```
-
-## Test Naming Convention
-
-**Format**: `MethodUnderTest_Scenario_ExpectedBehavior`
-
-**Examples:**
-
-- `SpellMovement_AfterThreeFrames_AccumulatesMovement()`
-- `Lifecycle_AfterDuration_EntityDestroyed()`
-- `SpellSpawn_WithValidRequest_CreatesSpell()`
-- `SpellMovement_WithZeroVelocity_DoesNotMove()`
-
-## Checklist
-
-- [ ] Use `[UnityTest]` (not `[Test]`)
-- [ ] Inherit from `PlayModeTestBase`
-- [ ] Use `AdvanceSimulationTime` or `AdvanceInitializationTime`
-- [ ] Use `EntityCreationUtils` for test data
-- [ ] Don't test job logic (use EditMode)
-- [ ] One behavior per test
-- [ ] Account for ECB playback timing (2 frames for spawn)
-- [ ] Clear assertion messages
-- [ ] 3-5 tests per system
-
-## Troubleshooting
-
-**Entities Not Spawning:**
-Add second frame for ECB playback:
-
-```csharp
-yield return AdvanceInitializationTime(0.016f); // Frame 1
-yield return AdvanceInitializationTime(0.016f); // Frame 2: ECB playback
-```
-
-**Tests Fail Intermittently:**
-Ensure time advancement is explicit using `AdvanceSimulationTime` or `AdvanceInitializationTime`.
+- **EditMode Tests** (`general/editmode-tests-generation.mdc`)
+- **Code Generation** (`general/code-generation.mdc`)
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
 
 ## Summary
 
-PlayMode tests are asynchronous integration tests using `[UnityTest]` that inherit from `PlayModeTestBase`. Use `AdvanceSimulationTime(seconds)` and `AdvanceInitializationTime(seconds)` for time control. Account for ECB playback timing (2 frames). Test system execution, not job logic. Aim for 3-5 tests per system.
+**PRIMARY RULE**: PlayMode tests are asynchronous integration tests for system execution validation.
+
+**Key Requirements:**
+
+1. Use `[UnityTest]` attribute
+2. Return `IEnumerator`
+3. Use `yield return null` for frames
+4. Test system integration
+5. Wait for ECB playback
+6. Clean up World resources
+7. Keep tests under 5 seconds
+
+**Remember**: PlayMode tests validate integration and frame-based behavior. Use EditMode for pure logic testing.

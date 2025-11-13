@@ -1,9 +1,10 @@
+﻿using Spellwright.Components.Common;
+using Spellwright.Components.Spawning;
+using Spellwright.Jobs.Spawning;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Spellwright.Components.Common;
-using Spellwright.Components.Spawning;
-using Spellwright.Jobs.Spawning;
+using Unity.Physics;
 
 namespace Spellwright.Systems.Spawning
 {
@@ -18,16 +19,14 @@ namespace Spellwright.Systems.Spawning
         {
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
 
-            _query = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<SpawnRequest, ValidatedTag>()
-                .Build(ref state);
+            _query = new EntityQueryBuilder(Allocator.Temp).WithAll<SpawnRequest, ValidatedTag>().Build(ref state);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecbSingleton = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>();
-            var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
+            BeginInitializationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>();
+            EntityCommandBuffer ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
             var spawnJob = new SpawnJob
             {
@@ -36,7 +35,8 @@ namespace Spellwright.Systems.Spawning
                 TransformLookup = SystemAPI.GetComponentLookup<Unity.Transforms.LocalTransform>(true),
                 SpeedLookup = SystemAPI.GetComponentLookup<Speed>(true),
                 LifetimeLookup = SystemAPI.GetComponentLookup<Lifetime>(true),
-                CurrentTime = SystemAPI.Time.ElapsedTime
+                PhysicsVelocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocity>(true),
+                CurrentTime = SystemAPI.Time.ElapsedTime,
             };
 
             state.Dependency = spawnJob.ScheduleParallel(_query, state.Dependency);

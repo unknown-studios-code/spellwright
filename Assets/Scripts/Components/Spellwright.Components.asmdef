@@ -5,7 +5,7 @@
         "Unity.Entities",
         "Unity.Mathematics",
         "Unity.Collections",
-        "Spellwright.Utilities"
+        "Unity.Physics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
