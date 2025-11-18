@@ -1,9 +1,9 @@
+﻿using Spellwright.Components.Common;
+using Spellwright.Components.Spawning;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
-using Spellwright.Components.Common;
-using Spellwright.Components.Spawning;
 
 namespace Spellwright.Jobs.Spawning
 {
@@ -12,15 +12,19 @@ namespace Spellwright.Jobs.Spawning
     {
         public EntityCommandBuffer.ParallelWriter ECB;
 
-        [ReadOnly] public ComponentLookup<SpellOwner> SpellOwnerLookup;
-        [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
-        [ReadOnly] public ComponentLookup<Speed> SpeedLookup;
-        [ReadOnly] public ComponentLookup<Lifetime> LifetimeLookup;
+        [ReadOnly]
+        public ComponentLookup<SpellOwner> SpellOwnerLookup;
 
-        private void Execute(
-            [EntityIndexInQuery] int sortKey,
-            Entity entity,
-            in SpawnRequest request)
+        [ReadOnly]
+        public ComponentLookup<LocalTransform> TransformLookup;
+
+        [ReadOnly]
+        public ComponentLookup<Speed> SpeedLookup;
+
+        [ReadOnly]
+        public ComponentLookup<Lifetime> LifetimeLookup;
+
+        private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in SpawnRequest request)
         {
             if (IsValidPrefab(request.PrefabEntity, entity))
             {
@@ -39,25 +43,33 @@ namespace Spellwright.Jobs.Spawning
 
             if (!SpellOwnerLookup.HasComponent(prefabEntity))
             {
-                UnityEngine.Debug.LogWarning($"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing SpellOwner component");
+                UnityEngine.Debug.LogWarning(
+                    $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing SpellOwner component"
+                );
                 isValid = false;
             }
 
             if (!TransformLookup.HasComponent(prefabEntity))
             {
-                UnityEngine.Debug.LogWarning($"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing LocalTransform component");
+                UnityEngine.Debug.LogWarning(
+                    $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing LocalTransform component"
+                );
                 isValid = false;
             }
 
             if (!SpeedLookup.HasComponent(prefabEntity))
             {
-                UnityEngine.Debug.LogWarning($"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing Speed component");
+                UnityEngine.Debug.LogWarning(
+                    $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing Speed component"
+                );
                 isValid = false;
             }
 
             if (!LifetimeLookup.HasComponent(prefabEntity))
             {
-                UnityEngine.Debug.LogWarning($"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing Lifetime component");
+                UnityEngine.Debug.LogWarning(
+                    $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing Lifetime component"
+                );
                 isValid = false;
             }
 
@@ -65,4 +77,3 @@ namespace Spellwright.Jobs.Spawning
         }
     }
 }
-

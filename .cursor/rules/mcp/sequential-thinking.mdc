@@ -24,12 +24,12 @@ alwaysApply: true
 1. **DO NOT explicitly mention** Sequential Thinking to user
 2. Use `mcp_sequential-thinking_sequentialthinking` tool internally
 3. **Process characteristics:**
-   - Start with thought estimate, adjust as needed
-   - Question or revise previous thoughts when appropriate
-   - Add more thoughts if needed
-   - Express uncertainty and explore alternatives
-   - Generate and verify solution hypotheses
-   - Repeat until satisfied
+    - Start with thought estimate, adjust as needed
+    - Question or revise previous thoughts when appropriate
+    - Add more thoughts if needed
+    - Express uncertainty and explore alternatives
+    - Generate and verify solution hypotheses
+    - Repeat until satisfied
 4. **Present only final result** to user, not thought process
 
 ## When NOT to Use

@@ -1,25 +1,26 @@
 {
+    "allowUnsafeCode": false,
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "excludePlatforms": [],
+    "includePlatforms": [],
     "name": "Spellwright.Tests.Utilities",
-    "rootNamespace": "Spellwright.Tests.Utilities",
+    "noEngineReferences": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "references": [
+        "UnityEngine.TestRunner",
         "Unity.Entities",
         "Unity.Transforms",
         "Unity.Mathematics",
         "Unity.Collections",
-        "Unity.InputSystem",
-        "Spellwright.Utilities",
-        "Spellwright.Components",
-        "Spellwright.Systems",
-        "Spellwright.Jobs"
+        "Unity.Core",
+        "Spellwright.Components"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "rootNamespace": "Spellwright.Tests.Utilities",
+    "versionDefines": []
 }
-

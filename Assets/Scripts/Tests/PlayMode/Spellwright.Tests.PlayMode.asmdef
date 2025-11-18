@@ -1,29 +1,26 @@
 {
-    "name": "Spellwright.Tests.PlayMode",
-    "rootNamespace": "Spellwright.Tests.PlayMode",
-    "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Unity.Entities",
-        "Unity.Transforms",
-        "Unity.Mathematics",
-        "Unity.Collections",
-        "Spellwright.Utilities",
-        "Spellwright.Components",
-        "Spellwright.Jobs",
-        "Spellwright.Systems"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "nunit.framework.dll"
-    ],
     "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "includePlatforms": [],
+    "name": "Spellwright.Tests.PlayMode",
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "UnityEngine.TestRunner.dll"
+    ],
+    "references": [
+        "UnityEngine.TestRunner",
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.Transforms",
+        "Unity.Burst",
+        "Unity.Physics",
+        "Spellwright.Components",
+        "Spellwright.Systems",
+        "Spellwright.Jobs",
+        "Spellwright.Tests.Utilities"
+    ]
 }

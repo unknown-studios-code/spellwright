@@ -1,217 +1,154 @@
 ---
-description: Provides the foundational overview of Spellwright architecture, the Generator/Modifier/Payload model, and when to consult specific technical documentation files.
+description: Foundational overview of Spellwright architecture, the Generator/Modifier/Payload model, and when to consult specific technical documentation.
 alwaysApply: false
 ---
 
-# Spellwright: Project Overview
+# Spellwright Concept Overview
 
-**Spellwright** is a procedural spell generation system that allows designers and players to create unique magical abilities through natural language. The project combines the creative power of natural language with the high-performance execution of Unity DOTS (Data-Oriented Technology Stack).
+Provides high-level architecture overview and navigation to detailed technical documentation.
 
-## Project Goal
+## Purpose
 
-Create a system where the phrase "a fireball that chases enemies and explodes into a shower of embers" is not just a design note, but a direct input that the engine can compile and execute in real-time.
+Establish foundational understanding of Spellwright's spell system architecture and guide developers to appropriate documentation.
 
-## Three-Pillar Architecture
+## Architecture Overview
 
-Spellwright relies on three fundamental pillars that work in synergy:
+**Three-Layer Spell Model:**
 
-### 1. Data-Oriented Runtime (DOTS/ECS)
+1. **Generator** - Defines spell delivery method (Projectile, Cone, AoE, Self-Cast)
+2. **Modifier** - Alters behavior during flight (Homing, Chain, Pierce, Fork)
+3. **Payload** - Applies effects on impact (Damage, Heal, Status, Spawn)
 
-- Built on Unity's Data-Oriented Technology Stack
-- Ensures high-performance execution and scalability
-- Enables processing hundreds or thousands of spells simultaneously
-- Uses Entity Component System (ECS) for data organization
-- **Performance by default** through cache locality and parallel processing
-
-### 2. AI Interpretation Layer (LLM)
-
-- Uses Large Language Models to interpret natural language
-- Acts as a "compiler" that translates human intent into structured data
-- Generates rigidly structured and validated JSON output
-- Implements three-layer validation (API Function Calling, Few-Shot Prompting, Client-side)
-
-### 3. Procedural Assembly System
-
-- Bridge between AI and game engine
-- Receives structured JSON and dynamically assembles ECS entities
-- Uses the Generator/Modifier/Payload pattern
-- Baking system converts JSON to optimized ECS components
-
-## Conceptual Model: Generator/Modifier/Payload
-
-Every spell in Spellwright is defined by three main components:
-
-### Generator (Mandatory - One per spell)
-
-Defines how the spell originates and moves:
-
-- **Projectile** - Moves in a straight or curved line
-- **Cone** - Cone-shaped area of effect
-- **Area of Effect** - Circular area of effect
-- **Self Cast** - Effect applied to the caster themselves
-
-### Modifier (Optional - Zero or more per spell)
-
-Alters the basic behavior of the generator:
-
-- **Homing** - Automatically pursues targets
-- **Chain** - Jumps between multiple enemies
-- **Pierce** - Pierces through targets
-- **Fork** - Splits into multiple projectiles
-- **Multi-shot** - Fires multiple projectiles at once
-
-### Payload (Mandatory - One or more per spell)
-
-Defines the effects applied on impact:
-
-- **Damage** - Causes damage of a specific elemental type
-- **Heal** - Restores hit points
-- **Apply Status** - Applies status effects (burn, slow, stun)
-- **Spawn Entity** - Generates new entities on impact
-
-## Unity Project Structure
-
-The project is organized following the ECS architecture:
+**Execution Flow:**
 
 ```
-Assets/
-├── Scripts/
-│   ├── Authorings/     # Authoring components
-│   ├── Components/     # ECS components (IComponentData)
-│   ├── Systems/        # ECS systems (ISystem/SystemBase)
-│   ├── Jobs/           # Parallel jobs (IJob/IJobEntity)
-│   ├── Utilities/      # Utilities and helpers
-│   └── Networking/     # Communication with LLM API
-├── Prefabs/            # Entity prefabs
-└── Resources/          # ScriptableObjects and resources
+Natural Language → LLM → JSON → Validation → Baking → Runtime
 ```
 
-## Spell Creation Flow
+**Runtime Pipeline:**
 
 ```
-1. User → Natural Language Description
-   "Create a chain lightning that jumps between three enemies"
-
-2. LLM → Processing and Translation
-   Analyzes intent and context
-
-3. Structured JSON → Three-Layer Validation
-   Layer 1: API Function Calling
-   Layer 2: Few-Shot Prompting
-   Layer 3: Client-side validation
-
-4. Baking System (SystemBase) → ECS Entity Creation
-   Transforms JSON into ECS components
-
-5. Runtime Systems (ISystem) → Execution
-   Frame-by-frame spell simulation
+Spawn → Movement → Collision → Payload → Lifecycle
 ```
 
-## Fundamental Architectural Decisions
+## Documentation Structure
 
-### Performance by Default
+### Implementation Patterns
 
-- **ISystem** is mandatory for all spell simulation logic (movement, collision, lifetime)
-- **SystemBase** is used only for one-time configuration tasks (JSON baking)
-- **Unmanaged components** are mandatory for runtime entities (no managed types)
-- **Burst Compiler** is applied to all simulation systems
-- **Zero GC** in hot paths - no memory allocations during spell execution
+**For DOTS/ECS Architecture:**
 
-### Clear Separation of Responsibilities
+- Consult `dots-architecture.mdc`
+- Topics: ISystem vs SystemBase, Burst, ECB, jobs
 
-- **SystemBase** → JSON baking, initial configuration (convenience, managed data)
-- **ISystem** → Frame-by-frame spell simulation (performance, Burst-compatible)
-- **Jobs** → Parallel processing of heavy logic (IJobEntity)
-- **EntityCommandBuffer** → All structural changes (batched for efficiency)
+**For Spell Components:**
 
-### Component Design
+- Consult `spell-components.mdc`
+- Topics: Generators, modifiers, payloads, compatibility
 
-- Use only **blittable types**: int, float, bool, float3, Entity
-- **Never** use: string, class, List<T>, Dictionary<K,V>, or any managed type
-- Use **FixedString** for text (e.g., FixedString64Bytes)
-- Use **DynamicBuffer<T>** for variable-size collections (e.g., multiple payloads)
-- Keep components **small and focused** (Single Responsibility Principle)
+**For JSON Contract:**
 
-## When to Consult Specific Concept Files
+- Consult `json-schema.mdc`
+- Topics: Schema, validation, enums, ranges
 
-The following files contain detailed implementation references and should be loaded **on-demand**:
+**For LLM Integration:**
 
-### `@dots-architecture.mdc` - When:
+- Consult `llm-integration.mdc`
+- Topics: API communication, validation, error handling
 
-- Implementing new ECS systems (ISystem/SystemBase)
-- Working with EntityCommandBuffer
-- Creating Jobs for parallel processing
-- Defining system execution order
-- Need code examples for DOTS patterns
+**For Debugging:**
 
-### `@json-schema.mdc` - When:
+- Consult `debugging-tools.mdc`
+- Topics: Profiling, logging, visualization, performance
 
-- Working with LLM API integration
-- Validating spell JSON
-- Adding new spell properties
-- Need complete schema definition
-- Creating or modifying spell JSON examples
+### Code Standards
 
-### `@llm-integration.mdc` - When:
+**For Code Generation:**
 
-- Implementing API communication
-- Setting up async/await patterns
-- Configuring validation layers
-- Handling network errors and retries
-- Working with Function Calling/Few-Shot prompting
+- Consult `general/code-generation.mdc`
+- Topics: System/job patterns, naming, structure
 
-### `@spell-components.mdc` - When:
+**For Documentation:**
 
-- Implementing new Generator types
-- Creating new Modifier behaviors
-- Adding new Payload effects
-- Need full system implementation examples
-- Understanding component-to-system mapping
+- Consult `general/documentation-standards.mdc`
+- Topics: XML comments, ECS documentation
 
-### `@debugging-tools.mdc` - When:
+**For Testing:**
 
-- Debugging spell behavior issues
-- Profiling performance bottlenecks
-- Inspecting entities at runtime
-- Need thread-safe logging patterns
-- Setting up visualization/Gizmos
+- Consult `general/editmode-tests-generation.mdc` (unit tests)
+- Consult `general/playmode-tests-generation.mdc` (integration tests)
 
-## Design Principles
+## Core Principles
 
-1. **Composition over Inheritance** - Spells are composed of independent components
-2. **Modularity** - New generators/modifiers/payloads can be added without changing existing code
-3. **Determinism** - Same input always generates same output
-4. **Scalability** - System designed to support thousands of simultaneous spells
-5. **Extensibility** - Architecture allows expansion for VFX, SFX and AI-powered balancing
+**DO:**
 
-## Deep Architecture Reference
+- Follow Generator/Modifier/Payload model
+- Validate JSON before baking
+- Use DOTS/ECS patterns consistently
+- Test with EditMode and PlayMode tests
+- Document all public APIs
 
-When facing complex conceptual questions that other rule files cannot fully answer, **consult the detailed architecture document** located at `.cursor/docs/Spellwright_ Geração Procedural de Magias Unity.md`.
+**DON'T:**
 
-This comprehensive document provides:
+- Duplicate technical details across files
+- Mix architecture layers
+- Skip validation steps
+- Bypass DOTS patterns
+- Leave code undocumented
 
-- **In-depth architectural rationale** - Detailed explanations of why design decisions were made
-- **Performance theory** - Deep dive into cache locality, memory layout, and CPU optimization
-- **Complete system integration** - How all pillars work together in detail
-- **Expanded examples** - Full end-to-end spell creation workflows
-- **Academic references** - Citations and technical justifications
-- **Advanced patterns** - Complex ECS patterns and their trade-offs
+## Quick Reference
 
-**When to consult the detailed document:**
+**Creating a New Generator:**
 
-- When rule files provide "what" and "how" but you need to understand "why"
-- When facing architectural decisions not covered in other rule files
-- When you need to understand the theoretical foundation of a design pattern
-- When debugging complex integration issues between systems
-- When extending the architecture with new features
+1. Define component in `spell-components.mdc`
+2. Add to JSON schema in `json-schema.mdc`
+3. Implement following `dots-architecture.mdc`
+4. Test following `editmode-tests-generation.mdc`
 
-## Important Notes
+**Creating a New Modifier:**
 
-- This project requires intermediate to advanced knowledge of Unity DOTS/ECS
-- DOTS usage is not optional - it's fundamental to the architecture
-- All implementation must follow established performance patterns
-- The Generator/Modifier/Payload model must be strictly respected
-- JSON validation is critical - never blindly trust LLM output
-- Always maintain separation between data (components) and logic (systems)
-- For implementation details, consult specific concept files on-demand
-- For deep conceptual understanding, refer to the detailed architecture document
+1. Check compatibility in `spell-components.mdc`
+2. Add to JSON schema in `json-schema.mdc`
+3. Implement system following `dots-architecture.mdc`
+4. Test integration with `playmode-tests-generation.mdc`
+
+**Creating a New Payload:**
+
+1. Define effect in `spell-components.mdc`
+2. Add to JSON schema in `json-schema.mdc`
+3. Implement following `dots-architecture.mdc`
+4. Test with both EditMode and PlayMode tests
+
+## Integration Points
+
+**LLM to Engine:**
+
+- Natural language → JSON (via LLM)
+- JSON validation (three layers)
+- Baking to ECS components
+
+**Runtime Systems:**
+
+- Movement (Generator-based)
+- Collision detection
+- Payload resolution
+- Lifecycle management
+
+**Testing Strategy:**
+
+- EditMode: Logic validation
+- PlayMode: Integration testing
+- Performance: Profiling with targets
+
+## Summary
+
+**PRIMARY RULE**: Consult specific technical documentation for implementation details. This overview provides navigation only.
+
+**Key Documents:**
+
+- `dots-architecture.mdc` - ECS patterns
+- `spell-components.mdc` - Spell architecture
+- `json-schema.mdc` - Data contract
+- `llm-integration.mdc` - LLM patterns
+- `debugging-tools.mdc` - Debugging techniques
+
+**Remember**: This file is a map, not the territory. Follow links to detailed documentation for implementation guidance.

@@ -1,7 +1,4 @@
 {
-    "enforcement": "active",
-    "name": "Master Branch Protection",
-    "target": "branch",
     "bypass_actors": [
         {
             "actor_id": 5,
@@ -15,9 +12,10 @@
             "include": ["refs/heads/master"]
         }
     },
+    "enforcement": "active",
+    "name": "Master Branch Protection",
     "rules": [
         {
-            "type": "required_status_checks",
             "parameters": {
                 "required_status_checks": [
                     {
@@ -28,16 +26,11 @@
                     },
                     {
                         "context": "Build Unity Project (Windows)"
-                    },
-                    {
-                        "context": "Unity Edit Mode Tests"
-                    },
-                    {
-                        "context": "Unity Play Mode Tests"
                     }
                 ],
                 "strict_required_status_checks_policy": true
-            }
+            },
+            "type": "required_status_checks"
         },
         {
             "type": "non_fast_forward"
@@ -54,5 +47,6 @@
         {
             "type": "update"
         }
-    ]
+    ],
+    "target": "branch"
 }

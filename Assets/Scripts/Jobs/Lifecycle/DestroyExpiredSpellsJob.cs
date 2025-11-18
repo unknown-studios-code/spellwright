@@ -1,7 +1,6 @@
+﻿using Spellwright.Components.Common;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
-using Spellwright.Components.Common;
 
 namespace Spellwright.Jobs.Lifecycle
 {
@@ -14,11 +13,10 @@ namespace Spellwright.Jobs.Lifecycle
         [BurstCompile]
         private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in Lifetime lifetime)
         {
-            if (CurrentTime > lifetime.SpawnTime + lifetime.Duration)
+            if (CurrentTime >= lifetime.SpawnTime + lifetime.Duration)
             {
                 ECB.DestroyEntity(sortKey, entity);
             }
         }
     }
 }
-

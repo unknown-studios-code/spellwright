@@ -13,319 +13,325 @@ This file defines mandatory code generation standards for Spellwright. The goal 
 
 **CRITICAL**: When generating code, DO NOT include comments unless explicitly requested by the user.
 
-- **No explanatory comments**: Code should be self-explanatory through clear naming
-- **No inline documentation**: Avoid `//` or `/* */` style comments
-- **No XML documentation**: Do not add `///` XML doc comments
-- **No TODO/FIXME**: Never add placeholder comments
+**Never include:**
 
-### Exceptions
+- Explanatory comments
+- Inline documentation (`//` or `/* */`)
+- XML documentation (`///`)
+- TODO/FIXME placeholders
 
-Comments are allowed ONLY in these specific cases:
+**Exceptions (only when):**
 
-1. **User explicitly requests**: "add comments explaining X"
-2. **Complex algorithms**: Mathematical formulas or non-obvious logic that cannot be simplified
-3. **Unity/DOTS attributes**: Required attributes like `[BurstCompile]`, `[GenerateAuthoringComponent]`
-4. **Legal/License headers**: When required by project standards
+1. User explicitly requests comments
+2. Complex mathematical formulas that cannot be simplified
+3. Unity/DOTS required attributes (`[BurstCompile]`, `[GenerateAuthoringComponent]`)
+4. Legal/license headers required by project
 
-## Code Quality Standards
+## Naming Conventions
 
-Since we don't use comments, code quality is paramount:
+### DO
 
-### 1. Clear Naming Conventions
+**Variables & Fields:**
 
-**Variables and Fields:**
-```csharp
-float projectileSpeed;
-float3 targetPosition;
-Entity currentTarget;
-```
+- Use descriptive, full words: `projectileSpeed`, `targetPosition`, `currentTarget`
+- Use meaningful prefixes: `_query` for private fields, `is/has` for booleans
+- Match Unity conventions: `DeltaTime`, `ElapsedTime`
 
 **Methods:**
-```csharp
-public void ProcessCollision(Entity source, Entity target)
-public bool TryFindTarget(out Entity target)
-public void ApplyDamage(Entity target, float amount)
+
+- Start with verbs: `ProcessCollision`, `ApplyDamage`, `CalculateTrajectory`
+- Use `Try` prefix for methods that may fail: `TryFindTarget`
+- Use `Is/Has/Can` for boolean checks: `IsTargetValid`, `HasComponent`
+
+**Types:**
+
+- Components: `ProjectileSpeed`, `HomingTarget`, `DamagePayload`
+- Systems: `ProjectileMovementSystem`, `CollisionDetectionSystem`
+- Jobs: `ApplyVelocityJob`, `SpawnJob`, `DestroyExpiredSpellsJob`
+
+### DON'T
+
+- Single-letter variables (except loop counters `i`, `j`)
+- Abbreviations: `pos` → use `position`, `vel` → use `velocity`
+- Hungarian notation: `fSpeed`, `iCount`
+- Redundant prefixes: `ProjectileProjectileSpeed`
+
+## Code Structure
+
+### DO
+
+**File Organization:**
+
+1. Using statements (grouped and sorted)
+2. Namespace declaration
+3. Type definition
+4. Fields (grouped by access modifier)
+5. Properties
+6. Methods (grouped by purpose)
+
+**Method Size:**
+
+- Keep methods small and focused (< 20 lines)
+- Extract complex logic into well-named helper methods
+- One responsibility per method
+
+**Logic Clarity:**
+
+- Use early returns to reduce nesting
+- Extract validation into separate methods
+- Break complex conditions into named booleans
+
+### DON'T
+
+- Mix concerns in single method
+- Create methods > 50 lines without extraction
+- Use deep nesting (> 3 levels)
+- Inline complex logic without extraction
+
+## DOTS/ECS Patterns
+
+### Components
+
+**DO**
+
+- Use `IComponentData` for unmanaged data
+- Use `IBufferElementData` for dynamic arrays
+- Keep components small and focused
+- Use blittable types only (no managed references)
+
+**DON'T**
+
+- Add methods to components
+- Use managed types (string, class references)
+- Create large, multi-purpose components
+
+### Systems with Jobs (MANDATORY)
+
+**DO**
+
+**System Structure:**
+
+- Implement `ISystem` (not `SystemBase`)
+- Add `[BurstCompile]` attribute
+- Create `EntityQuery` in `OnCreate`
+- Schedule jobs in `OnUpdate`
+- Manage `state.Dependency` for job chains
+
+**Job Structure:**
+
+- Implement `IJobEntity`
+- Add `[BurstCompile]` attribute
+- Use `[ReadOnly]` for lookups that don't write
+- Use `in` for read-only component parameters
+- Use `ref` for read-write component parameters
+
+**File Organization:**
+
+- Systems in `Assets/Scripts/Systems/[Category]/`
+- Jobs in `Assets/Scripts/Jobs/[Category]/`
+- One system per file, one job per file
+
+**EntityCommandBuffer (for structural changes):**
+
+- Get singleton in `OnUpdate`
+- Use `ecb.AsParallelWriter()` for jobs
+- Pass `[EntityIndexInQuery] int sortKey` to job
+- Use `sortKey` for all ECB operations
+
+**DON'T**
+
+- Use `SystemBase` (use `ISystem` instead)
+- Use `foreach` directly in system (use jobs)
+- Forget `[BurstCompile]` attribute
+- Mix system logic with job logic
+- Use `EntityManager` directly in jobs
+- Forget to manage `state.Dependency`
+- Put jobs in same file as system
+
+### Job Patterns
+
+**DO**
+
+**Simple Job (no structural changes):**
+
+```
+System:
+- Create EntityQuery in OnCreate
+- Create job instance in OnUpdate
+- Assign public fields (DeltaTime, lookups)
+- Call job.ScheduleParallel(_query, state.Dependency)
+- Assign result to state.Dependency
+
+Job:
+- Public fields for data (DeltaTime, lookups)
+- Execute method with component parameters
+- Use ref/in appropriately
 ```
 
-**Systems:**
-```csharp
-public partial struct ProjectileMovementSystem : ISystem
-public partial struct HomingTargetAcquisitionSystem : ISystem
+**Job with EntityCommandBuffer:**
+
+```
+System:
+- Get ECB singleton in OnUpdate
+- Create ECB from singleton
+- Pass ecb.AsParallelWriter() to job
+- Schedule job with state.Dependency
+
+Job:
+- Public ECB.ParallelWriter field
+- Execute with [EntityIndexInQuery] int sortKey
+- Use sortKey for all ECB operations
 ```
 
-**Components:**
-```csharp
-public struct ProjectileSpeed : IComponentData
-public struct HomingTarget : IComponentData
-public struct DamagePayload : IComponentData
+**DON'T**
+
+- Schedule jobs without managing dependencies
+- Use regular `EntityCommandBuffer` (not ParallelWriter) in jobs
+- Forget `[EntityIndexInQuery]` parameter with ECB
+- Access `EntityManager` from jobs
+- Use managed types in job fields
+
+## Common Patterns
+
+### Magic Numbers
+
+**DO**
+
+- Define named constants: `private const float MAX_RANGE = 10f;`
+- Use component values: `speed.Value`, `radius.Value`
+- Document units in constant names: `MAX_RANGE_METERS`
+
+**DON'T**
+
+- Use literal numbers without context: `if (distance < 5.0f)`
+- Repeat same value in multiple places
+
+### Validation
+
+**DO**
+
+- Extract validation to separate methods: `IsTargetValid(entity)`
+- Use early returns for invalid cases
+- Check for `Entity.Null` before operations
+
+**DON'T**
+
+- Inline complex validation logic
+- Nest multiple validation checks
+- Skip null/validity checks
+
+### Iteration
+
+**DO**
+
+- Use `SystemAPI.Query<>()` in jobs
+- Use `foreach` with query pattern
+- Filter with `.WithAll<>()`, `.WithNone<>()`
+
+**DON'T**
+
+- Use `Entities.ForEach` (deprecated)
+- Manually iterate entity arrays without queries
+- Use `GetComponent` in loops (use queries)
+
+## Directory Structure
+
+```
+Assets/Scripts/
+├── Components/
+│   ├── Common/          (Velocity, Lifetime, SpellOwner)
+│   ├── Generators/      (ProjectileTag, ConeTag, GeneratorData)
+│   ├── Modifiers/       (HomingModifier, ChainModifier)
+│   ├── Payloads/        (PayloadElement, PayloadType)
+│   ├── Collision/       (CollisionEvent, CollisionRadius)
+│   └── Spawning/        (SpawnRequest)
+├── Systems/
+│   ├── Movement/        (SpellMovementSystem)
+│   ├── Collision/       (CollisionDetectionSystem)
+│   ├── Spawning/        (SpellSpawnSystem)
+│   └── Lifecycle/       (LifecycleSystem)
+├── Jobs/
+│   ├── Movement/        (ApplyVelocityJob)
+│   ├── Collision/       (DetectCollisionsJob)
+│   ├── Spawning/        (SpawnJob)
+│   └── Lifecycle/       (DestroyExpiredSpellsJob)
+└── Tests/
+    ├── EditMode/        (Unit tests)
+    └── PlayMode/        (Integration tests)
 ```
 
-### 2. Self-Documenting Code Structure
+## Performance Best Practices
 
-**Good (No comments needed):**
-```csharp
-public void Execute(Entity projectile, RefRW<Position> position, in Velocity velocity)
-{
-    float deltaTime = SystemAPI.Time.DeltaTime;
-    float3 movement = velocity.Value * deltaTime;
-    position.ValueRW.Value += movement;
-}
-```
+### DO
 
-**Bad (Needs comments due to unclear code):**
-```csharp
-public void Execute(Entity e, RefRW<Position> p, in Velocity v)
-{
-    float dt = SystemAPI.Time.DeltaTime;
-    p.ValueRW.Value += v.Value * dt;
-}
-```
+**Burst Compilation:**
 
-### 3. Small, Focused Methods
+- Always add `[BurstCompile]` to systems and jobs
+- Use only unmanaged types
+- Avoid managed allocations
 
-Break complex logic into well-named methods instead of using comments:
+**Parallel Execution:**
 
-**Good:**
-```csharp
-private bool IsTargetValid(Entity target)
-{
-    return SystemAPI.HasComponent<Targetable>(target) &&
-           !SystemAPI.HasComponent<Dead>(target);
-}
+- Use `ScheduleParallel()` for independent operations
+- Chain dependencies with `state.Dependency`
+- Use `ComponentLookup` with `[ReadOnly]` when possible
 
-private Entity FindNearestTarget(float3 position, float range)
-{
-    Entity nearest = Entity.Null;
-    float minDistance = range;
+**Memory:**
 
-    foreach (var (targetPos, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<Targetable>().WithEntityAccess())
-    {
-        float distance = math.distance(position, targetPos.ValueRO.Position);
-        if (distance < minDistance && IsTargetValid(entity))
-        {
-            minDistance = distance;
-            nearest = entity;
-        }
-    }
+- Use `Allocator.Temp` for short-lived allocations
+- Dispose native containers immediately after use
+- Prefer stack allocation over heap
 
-    return nearest;
-}
-```
+### DON'T
 
-**Bad:**
-```csharp
-private Entity FindNearestTarget(float3 position, float range)
-{
-    Entity nearest = Entity.Null;
-    float minDistance = range;
-
-    // Loop through all entities with Targetable component
-    foreach (var (targetPos, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<Targetable>().WithEntityAccess())
-    {
-        // Calculate distance to target
-        float distance = math.distance(position, targetPos.ValueRO.Position);
-
-        // Check if it's closer and valid
-        if (distance < minDistance && SystemAPI.HasComponent<Targetable>(entity) && !SystemAPI.HasComponent<Dead>(entity))
-        {
-            minDistance = distance;
-            nearest = entity;
-        }
-    }
-
-    return nearest;
-}
-```
-
-### 4. Consistent Patterns
-
-Follow established DOTS/ECS patterns consistently:
-
-**Component Definition:**
-```csharp
-public struct ProjectileSpeed : IComponentData
-{
-    public float Value;
-}
-```
-
-**System Definition:**
-```csharp
-[BurstCompile]
-public partial struct ProjectileMovementSystem : ISystem
-{
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
-    {
-        foreach (var (transform, speed) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<ProjectileSpeed>>())
-        {
-            float3 forward = transform.ValueRO.Forward();
-            transform.ValueRW.Position += forward * speed.ValueRO.Value * SystemAPI.Time.DeltaTime;
-        }
-    }
-}
-```
-
-## Code Organization
-
-### File Structure
-
-Each file should have clear, logical organization:
-
-1. **Using statements** (grouped and sorted)
-2. **Namespace declaration**
-3. **Type definition** (class/struct)
-4. **Fields** (grouped by access modifier)
-5. **Properties** (grouped by access modifier)
-6. **Methods** (grouped by purpose)
-
-**Example:**
-```csharp
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
-
-namespace Spellwright.Generators
-{
-    public struct ProjectileGenerator : IComponentData
-    {
-        public float Speed;
-        public float Lifetime;
-        public Entity ProjectilePrefab;
-    }
-
-    [BurstCompile]
-    public partial struct ProjectileSpawnSystem : ISystem
-    {
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
-            EntityCommandBuffer ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
-            foreach (var (generator, entity) in SystemAPI.Query<RefRO<ProjectileGenerator>>().WithEntityAccess())
-            {
-                SpawnProjectile(ecb, generator.ValueRO, entity);
-            }
-        }
-
-        private void SpawnProjectile(EntityCommandBuffer ecb, ProjectileGenerator generator, Entity source)
-        {
-            Entity projectile = ecb.Instantiate(generator.ProjectilePrefab);
-            ecb.SetComponent(projectile, new ProjectileSpeed { Value = generator.Speed });
-            ecb.SetComponent(projectile, new Lifetime { Value = generator.Lifetime });
-        }
-    }
-}
-```
-
-### Whitespace and Formatting
-
-- One blank line between methods
-- No blank lines between field declarations
-- Consistent indentation (4 spaces or 1 tab)
-- Opening braces on new line (K&R style for Unity C#)
+- Use managed types in Burst-compiled code
+- Allocate in hot paths
+- Use `Allocator.Persistent` without disposal
+- Forget to dispose native containers
 
 ## Generated Code Checklist
 
-When generating code, ensure:
+Before submitting generated code, verify:
 
-- [ ] No comments (unless explicitly requested or exception applies)
-- [ ] Clear, descriptive variable names
-- [ ] Clear, descriptive method names
-- [ ] Clear, descriptive type names
-- [ ] Methods are small and focused
+- [ ] No comments (unless explicitly requested)
+- [ ] Clear, descriptive names (no abbreviations)
+- [ ] Methods are small and focused (< 20 lines)
 - [ ] Logic is self-explanatory
-- [ ] Follows DOTS/ECS patterns
-- [ ] Consistent formatting
-- [ ] Proper using statements
-- [ ] Correct namespace
-- [ ] No spelling errors in identifiers
-
-## Anti-Patterns to Avoid
-
-### 1. Over-Commented Code
-```csharp
-// BAD: Don't do this
-// Set the speed
-projectile.speed = 10f; // Speed is 10
-```
-
-### 2. Unclear Names with Comments
-```csharp
-// BAD: Don't do this
-float s; // speed
-float3 p; // position
-```
-
-**Instead:**
-```csharp
-// GOOD: Self-documenting
-float speed;
-float3 position;
-```
-
-### 3. Magic Numbers
-```csharp
-// BAD: Don't do this
-if (distance < 5.0f)
-```
-
-**Instead:**
-```csharp
-// GOOD: Named constant
-private const float MAX_TARGETING_RANGE = 5.0f;
-
-if (distance < MAX_TARGETING_RANGE)
-```
-
-### 4. Long Methods with Comments
-```csharp
-// BAD: Don't do this
-public void Update()
-{
-    // Acquire target
-    // ... 20 lines of code ...
-
-    // Calculate trajectory
-    // ... 20 lines of code ...
-
-    // Apply movement
-    // ... 20 lines of code ...
-}
-```
-
-**Instead:**
-```csharp
-// GOOD: Extracted methods
-public void Update()
-{
-    Entity target = AcquireTarget();
-    float3 trajectory = CalculateTrajectory(target);
-    ApplyMovement(trajectory);
-}
-
-private Entity AcquireTarget() { ... }
-private float3 CalculateTrajectory(Entity target) { ... }
-private void ApplyMovement(float3 trajectory) { ... }
-```
+- [ ] Systems use `ISystem` (not `SystemBase`)
+- [ ] Systems delegate to jobs via `IJobEntity`
+- [ ] Jobs in separate files under `Assets/Scripts/Jobs/`
+- [ ] `[BurstCompile]` on systems and jobs
+- [ ] `EntityQuery` created in `OnCreate`
+- [ ] `state.Dependency` properly managed
+- [ ] `[ReadOnly]` on lookups that don't write
+- [ ] `in`/`ref` parameters used correctly
+- [ ] ECB uses `ParallelWriter` in jobs
+- [ ] `[EntityIndexInQuery]` with ECB operations
+- [ ] Consistent formatting (4 spaces, K&R braces)
+- [ ] Proper using statements and namespace
+- [ ] No spelling errors
 
 ## Integration with Other Standards
 
 This standard works in conjunction with:
 
-- **DOTS Architecture**: Follow component/system patterns defined in `concept/dots-architecture`
-- **Spell Components**: Follow generator/modifier/payload patterns in `concept/spell-components`
-- **JSON Schema**: Follow data structures in `concept/json-schema`
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
+- **Spell Components** (`concept/spell-components.mdc`)
+- **JSON Schema** (`concept/json-schema.mdc`)
 
 ## Summary
 
 **PRIMARY RULE**: Generate clean, comment-free code that is self-documenting through:
 
-1. Clear naming conventions
-2. Small, focused methods
-3. Consistent patterns
-4. Logical organization
-5. Self-explanatory logic
+1. **Clear naming** - descriptive variables, methods, types
+2. **Small methods** - focused, single-responsibility
+3. **Job-based systems** - parallel execution via `IJobEntity`
+4. **Consistent patterns** - follow DOTS/ECS conventions
+5. **Self-explanatory logic** - no comments needed
 
-**Remember**: If code needs comments to be understood, it needs to be refactored, not commented.
+**Remember:**
+
+- If code needs comments → refactor it
+- Systems delegate to jobs → never use `SystemBase`
+- Jobs in separate files → organized by category
+- Always use Burst → maximum performance

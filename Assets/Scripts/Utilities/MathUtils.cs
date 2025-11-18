@@ -1,4 +1,4 @@
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 
 namespace Spellwright.Utilities
 {
@@ -11,4 +11,3 @@ namespace Spellwright.Utilities
         }
     }
 }
-

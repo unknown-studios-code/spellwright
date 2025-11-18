@@ -18,6 +18,8 @@ This directory contains the rulesets (rule sets) configured for the Spellwright 
 
 #### 1. **Master Branch Protection** (`01-master-protection.json`)
 
+> ⚠️ **Temporary Warning:** Unity Edit Mode and Play Mode test workflows are currently disabled in CI while the new automated test suites are being implemented. The corresponding status checks in this ruleset should only be enabled again after those tests are restored.
+
 Protection for the main production branch (adapted for solo development).
 
 - ✅ Status checks must pass:
@@ -39,6 +41,8 @@ Protection for the main production branch (adapted for solo development).
 ---
 
 #### 2. **Develop Branch Protection** (`02-develop-protection.json`)
+
+> ⚠️ **Temporary Warning:** The Unity Edit Mode test workflow is currently disabled in CI while the new automated test suite is being implemented. The related status check in this ruleset should be re-enabled once those tests are available again.
 
 Protection for the main development branch.
 

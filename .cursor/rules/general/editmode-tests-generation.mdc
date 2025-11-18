@@ -1,466 +1,264 @@
 ---
-description: Defines EditMode test generation standards for Spellwright, establishing best practices for synchronous unit tests in Unity DOTS/ECS projects.
+description: EditMode test generation standards for synchronous unit tests in Unity DOTS/ECS projects.
 alwaysApply: false
 ---
 
 # EditMode Test Generation Standards
 
-This file defines mandatory EditMode test generation standards for Spellwright. EditMode tests are fast, synchronous unit tests that validate ECS components, queries, and logic in isolation without Unity's game loop.
-
-> **Note**: For integration tests requiring Unity runtime and frame updates, see `playmode-tests-generation.mdc`.
+EditMode tests are fast, synchronous unit tests that validate ECS components, queries, and job logic in isolation.
 
 ## Core Principles
 
-EditMode tests are:
-
 - **Synchronous**: Execute immediately without frame delays
 - **Fast**: Complete in milliseconds
-- **Isolated**: Test components and logic without full ECS infrastructure
-- **Editor-only**: Run exclusively in Unity Editor
+- **Isolated**: Test logic without full ECS infrastructure
+- **Minimal**: Focus on business logic, not Unity APIs
 - **Deterministic**: Same input always produces same output
 
-Use `[Test]` attribute (not `[UnityTest]`) for all EditMode tests.
+Use `[Test]` attribute (not `[UnityTest]`).
 
-## When to Use EditMode Tests
+## When to Use
 
-**Use EditMode Tests For:**
+**Use EditMode For:**
 
+- Job logic validation (manually replicated)
 - Component data validation
-- Entity creation and manipulation
-- EntityCommandBuffer playback logic
-- Component queries and filtering
-- Pure logic without Unity services (Input, Physics, Time)
-- Tag component behavior
+- Entity query filtering
+- Component structure verification
+- Pure calculation logic
+- Data transformation
 
-**Example scenarios:**
+**Use PlayMode Instead For:**
 
-- "Does this prefab have all required components?"
-- "Does ECB.Instantiate create an entity after playback?"
-- "Does the query return only validated requests?"
-
-## Test Naming Convention
-
-**Format**: `MethodUnderTest_Scenario_ExpectedBehavior`
-
-**Examples:**
-
-```csharp
-SpawnRequest_WithValidPrefab_CreatesEntity()
-InvalidPrefab_MissingSpeed_FailsValidation()
-ECB_AfterPlayback_InstantiatesEntity()
-Query_WithValidatedTag_ReturnsOnlyValidated()
-Component_HasCorrectValue()
-```
+- System execution
+- Frame-based behavior
+- Integration between systems
+- Unity API interactions
+- EntityCommandBuffer playback
 
 ## Test Structure
 
-```csharp
-using NUnit.Framework;
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Collections;
-using Unity.Transforms;
+### Base Class
 
-namespace Spellwright.Tests.EditMode.Systems.Spawning
-{
-    [TestFixture]
-    public class SpellSpawnSystemTests
-    {
-        private World _world;
-        private EntityManager _entityManager;
+**Inherit from `EditModeTestBase`:**
 
-        [SetUp]
-        public void SetUp()
-        {
-            _world = new World("TestWorld");
-            _entityManager = _world.EntityManager;
-        }
+- Provides: `World`, `EntityManager`, `ECB`
+- Automatic setup/teardown
+- Located in `Spellwright.Tests.Utilities`
 
-        [TearDown]
-        public void TearDown()
-        {
-            if (_world != null && _world.IsCreated)
-            {
-                _world.Dispose();
-            }
-        }
+### Naming Conventions
 
-        [Test]
-        public void SpawnRequest_WithValidPrefab_CreatesEntity()
-        {
-            Entity prefab = CreateValidPrefab();
-            Entity request = CreateSpawnRequest(prefab);
+**Test Class:**
 
-            Assert.IsTrue(_entityManager.Exists(request));
-        }
+- Format: `<ComponentOrJob>Tests`
+- Examples: `ApplyVelocityJobTests`, `LifetimeComponentTests`
+- Namespace: `Spellwright.Tests.EditMode.<Category>`
 
-        private Entity CreateValidPrefab()
-        {
-            Entity prefab = _entityManager.CreateEntity();
-            _entityManager.AddComponentData(prefab, new Speed { Value = 10f });
-            _entityManager.AddComponentData(prefab, new Lifetime { Duration = 5f });
-            return prefab;
-        }
+**Test Methods:**
 
-        private Entity CreateSpawnRequest(Entity prefab)
-        {
-            Entity request = _entityManager.CreateEntity();
-            _entityManager.AddComponentData(request, new SpawnRequest
-            {
-                PrefabEntity = prefab
-            });
-            return request;
-        }
-    }
-}
+- Format: `<MethodName>_<Scenario>_<ExpectedResult>`
+- Examples: `Execute_AppliesVelocity_UpdatesPosition`, `Query_WithProjectileTag_ReturnsOnlyProjectiles`
+
+## Test Patterns
+
+### Job Logic Testing
+
+**DO:**
+
+- Manually replicate job logic
+- Test calculation correctness
+- Verify component updates
+- Use EntityManager directly
+
+**DON'T:**
+
+- Schedule actual jobs
+- Test job scheduling
+- Test Burst compilation
+- Test parallel execution
+
+### Query Testing
+
+**DO:**
+
+- Create entities with specific components
+- Verify query returns correct entities
+- Test WithAll/WithNone filters
+- Count expected results
+
+**DON'T:**
+
+- Test EntityQuery performance
+- Test query caching
+- Test query scheduling
+
+### Component Testing
+
+**DO:**
+
+- Verify component data structure
+- Test component creation
+- Validate default values
+- Check blittable types
+
+**DON'T:**
+
+- Test Unity's component system
+- Test component storage
+- Test component archetypes
+
+## Assertion Guidelines
+
+**DO:**
+
+- Use specific assertions: `AreEqual`, `IsTrue`, `IsNull`
+- Include descriptive messages
+- Test one concept per assertion
+- Use tolerance for float comparisons: `AreEqual(expected, actual, 0.001f)`
+
+**DON'T:**
+
+- Use generic `IsTrue` for equality
+- Skip assertion messages
+- Combine multiple assertions
+- Compare floats with exact equality
+
+## Test Organization
+
+**Directory Structure:**
+
 ```
+Assets/Scripts/Tests/EditMode/
+├── Components/
+│   ├── CommonComponentTests.cs
+│   └── GeneratorComponentTests.cs
+├── Jobs/
+│   ├── Movement/
+│   │   └── ApplyVelocityJobTests.cs
+│   └── Spawning/
+│       └── SpawnJobTests.cs
+└── Systems/
+    ├── MovementSystemTests.cs
+    └── CollisionSystemTests.cs
+```
+
+**File Organization:**
+
+1. Using statements
+2. Namespace declaration
+3. `[TestFixture]` class
+4. Test methods
+5. Helper methods
+
+## Helper Utilities
+
+**Use `EntityCreationUtils` for:**
+
+- `CreateMovingEntity(manager, velocity, position)`
+- `CreateEntityWithLifetime(manager, spawnTime, duration)`
+- `CreateValidPrefab(manager)`
+- `CreateSpawnRequest(manager, prefab, caster, position, direction)`
+
+**Benefits:**
+
+- Consistent entity creation
+- Reduced boilerplate
+- Reusable test data
+- Clear test intent
 
 ## Best Practices
 
-### 1. World Management
+**DO:**
 
-**Always create and dispose test worlds:**
+- Test one thing per test method
+- Use descriptive test names
+- Arrange-Act-Assert pattern
+- Clean up resources in teardown
+- Use helper utilities
+- Include edge cases
+- Test boundary conditions
+
+**DON'T:**
+
+- Test multiple scenarios in one method
+- Use magic numbers without constants
+- Skip cleanup
+- Test Unity internals
+- Duplicate entity creation logic
+- Ignore edge cases
+
+## Common Patterns
+
+### Arrange-Act-Assert
+
+**Structure:**
+
+```
+Arrange: Create entities and set up state
+Act: Execute the logic being tested
+Assert: Verify expected outcomes
+```
+
+### Edge Cases to Test
+
+- Null/Entity.Null values
+- Zero values
+- Negative values
+- Maximum values
+- Empty collections
+- Boundary conditions
+
+### Float Comparison
+
+**DO:**
 
 ```csharp
-[SetUp]
-public void SetUp()
-{
-    _world = new World("TestWorld");
-    _entityManager = _world.EntityManager;
-}
-
-[TearDown]
-public void TearDown()
-{
-    if (_world != null && _world.IsCreated)
-    {
-        _world.Dispose();
-    }
-}
+Assert.AreEqual(expected, actual, 0.001f, "Position should match");
 ```
 
-### 2. Entity Creation Helpers
-
-**Create reusable helper methods:**
+**DON'T:**
 
 ```csharp
-private Entity CreateValidPrefab()
-{
-    Entity prefab = _entityManager.CreateEntity();
-    _entityManager.AddComponentData(prefab, new SpellOwner { OwnerEntity = Entity.Null });
-    _entityManager.AddComponentData(prefab, new Speed { Value = 10f });
-    _entityManager.AddComponentData(prefab, new Lifetime { Duration = 5f });
-    return prefab;
-}
-
-private Entity CreateInvalidPrefab_MissingSpeed()
-{
-    Entity prefab = _entityManager.CreateEntity();
-    _entityManager.AddComponentData(prefab, new SpellOwner { OwnerEntity = Entity.Null });
-    _entityManager.AddComponentData(prefab, new Lifetime { Duration = 5f });
-    return prefab;
-}
+Assert.AreEqual(expected, actual); // Exact float comparison
 ```
 
-### 3. Testing EntityCommandBuffer
-
-**Test after playback, use queries for validation:**
-
-```csharp
-[Test]
-public void ECB_AfterPlayback_InstantiatesEntity()
-{
-    Entity prefab = CreateValidPrefab();
-    var ecb = new EntityCommandBuffer(Allocator.TempJob);
-
-    ecb.Instantiate(prefab);
-    ecb.Playback(_entityManager);
-    ecb.Dispose();
-
-    int entityCount = _entityManager.CreateEntityQuery(typeof(Speed)).CalculateEntityCount();
-    Assert.AreEqual(2, entityCount);
-}
-
-[Test]
-public void ECB_AfterPlayback_SetsComponent()
-{
-    Entity prefab = CreateValidPrefab();
-    Entity caster = _entityManager.CreateEntity();
-    var ecb = new EntityCommandBuffer(Allocator.TempJob);
-
-    Entity deferredSpell = ecb.Instantiate(prefab);
-    ecb.SetComponent(deferredSpell, new SpellOwner { OwnerEntity = caster });
-    ecb.Playback(_entityManager);
-    ecb.Dispose();
-
-    var query = _entityManager.CreateEntityQuery(typeof(SpellOwner));
-    var entities = query.ToEntityArray(Allocator.Temp);
-
-    bool foundCaster = false;
-    foreach (var entity in entities)
-    {
-        if (entity != prefab && entity != caster)
-        {
-            SpellOwner owner = _entityManager.GetComponentData<SpellOwner>(entity);
-            if (owner.OwnerEntity == caster)
-            {
-                foundCaster = true;
-                break;
-            }
-        }
-    }
-    entities.Dispose();
-
-    Assert.IsTrue(foundCaster);
-}
-```
-
-### 4. Component Validation
-
-**Direct component checks:**
-
-```csharp
-[Test]
-public void Prefab_HasAllRequiredComponents()
-{
-    Entity prefab = CreateValidPrefab();
-
-    Assert.IsTrue(_entityManager.HasComponent<SpellOwner>(prefab));
-    Assert.IsTrue(_entityManager.HasComponent<Speed>(prefab));
-    Assert.IsTrue(_entityManager.HasComponent<Lifetime>(prefab));
-}
-
-[Test]
-public void Speed_HasCorrectValue()
-{
-    Entity prefab = CreateValidPrefab();
-
-    Speed speed = _entityManager.GetComponentData<Speed>(prefab);
-
-    Assert.AreEqual(10f, speed.Value);
-}
-```
-
-### 5. Query Testing
-
-**Test query behavior:**
-
-```csharp
-[Test]
-public void Query_WithValidatedTag_ReturnsOnlyValidated()
-{
-    Entity validRequest = CreateValidatedSpawnRequest();
-    Entity invalidRequest = CreateSpawnRequest();
-
-    var query = _entityManager.CreateEntityQuery(
-        typeof(SpawnRequest),
-        typeof(ValidatedTag)
-    );
-
-    int count = query.CalculateEntityCount();
-
-    Assert.AreEqual(1, count);
-}
-```
-
-### 6. NativeContainer Disposal
-
-**Always dispose NativeContainers:**
-
-```csharp
-[Test]
-public void Query_ReturnsCorrectEntities()
-{
-    CreateTestEntities();
-
-    var query = _entityManager.CreateEntityQuery(typeof(Speed));
-    var entities = query.ToEntityArray(Allocator.Temp);
-
-    Assert.AreEqual(3, entities.Length);
-
-    entities.Dispose();
-}
-```
-
-## Anti-Patterns
-
-### 1. Don't Test Systems Directly
-
-**BAD: Systems need full ECS infrastructure**
-
-```csharp
-[Test]
-public void System_UpdateOnce_ProcessesRequests()
-{
-    var system = _world.GetOrCreateSystem<SpellSpawnSystem>();
-    var systemState = _world.Unmanaged.ResolveSystemStateRef(system);
-    system.OnUpdate(ref systemState);
-}
-```
-
-**GOOD: Test component logic or use PlayMode for system integration**
-
-```csharp
-[Test]
-public void ComponentLogic_Validates()
-{
-    Entity prefab = CreateValidPrefab();
-    bool isValid = _entityManager.HasComponent<Speed>(prefab);
-    Assert.IsTrue(isValid);
-}
-```
-
-### 2. Don't Use ComponentLookup in EditMode
-
-**BAD: ComponentLookup requires SystemAPI**
-
-```csharp
-[Test]
-public void BadLookupTest()
-{
-    var lookup = _entityManager.GetComponentLookup<Speed>();
-}
-```
-
-**GOOD: Use EntityManager directly**
-
-```csharp
-[Test]
-public void GoodComponentTest()
-{
-    Entity entity = CreateValidPrefab();
-    Speed speed = _entityManager.GetComponentData<Speed>(entity);
-    Assert.AreEqual(10f, speed.Value);
-}
-```
-
-### 3. Don't Access Deferred Entities
-
-**BAD: Trying to access entity before ECB playback**
-
-```csharp
-[Test]
-public void BadDeferredEntityTest()
-{
-    var ecb = new EntityCommandBuffer(Allocator.TempJob);
-    Entity deferredEntity = ecb.Instantiate(prefab);
-
-    Assert.IsTrue(_entityManager.Exists(deferredEntity));
-
-    ecb.Dispose();
-}
-```
-
-**GOOD: Use queries after playback**
-
-```csharp
-[Test]
-public void GoodPlaybackTest()
-{
-    var ecb = new EntityCommandBuffer(Allocator.TempJob);
-    ecb.Instantiate(prefab);
-
-    ecb.Playback(_entityManager);
-    ecb.Dispose();
-
-    int count = _entityManager.CreateEntityQuery(typeof(Speed)).CalculateEntityCount();
-    Assert.AreEqual(2, count);
-}
-```
-
-## Assembly Definition
-
-**Spellwright.Tests.EditMode.asmdef:**
-
-```json
-{
-    "name": "Spellwright.Tests.EditMode",
-    "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Unity.Entities",
-        "Unity.Mathematics",
-        "Unity.Collections",
-        "Unity.Transforms",
-        "Spellwright.Components",
-        "Spellwright.Systems",
-        "Spellwright.Jobs"
-    ],
-    "includePlatforms": ["Editor"],
-    "overrideReferences": true,
-    "precompiledReferences": ["nunit.framework.dll"],
-    "defineConstraints": ["UNITY_INCLUDE_TESTS"]
-}
-```
-
-## Assertions
-
-### Preferred Assertions for EditMode
-
-**Entity existence:**
-
-```csharp
-Assert.IsTrue(_entityManager.Exists(entity));
-Assert.IsFalse(_entityManager.Exists(entity));
-```
-
-**Component presence:**
-
-```csharp
-Assert.IsTrue(_entityManager.HasComponent<Speed>(entity));
-Assert.IsFalse(_entityManager.HasComponent<Speed>(entity));
-```
-
-**Value comparison:**
-
-```csharp
-Assert.AreEqual(expected, actual);
-Assert.AreNotEqual(unexpected, actual);
-```
-
-**Component data:**
-
-```csharp
-Speed speed = _entityManager.GetComponentData<Speed>(entity);
-Assert.AreEqual(10f, speed.Value);
-```
-
-**Query results:**
-
-```csharp
-int count = _entityManager.CreateEntityQuery(typeof(Speed)).CalculateEntityCount();
-Assert.AreEqual(expectedCount, count);
-```
-
-**Assertion messages:**
-
-```csharp
-Assert.AreEqual(1, count, "Should create exactly one entity");
-Assert.IsTrue(hasComponent, "Prefab must have Speed component");
-```
-
-## Test Maintenance
-
-### EditMode Test Checklist
-
-- [ ] All tests use `[Test]` (not `[UnityTest]`)
-- [ ] World is properly disposed in `[TearDown]`
-- [ ] NativeContainers are disposed
-- [ ] No `yield return` statements
-- [ ] No system execution (use PlayMode for that)
-- [ ] ECB tests validate after playback
-- [ ] Helper methods are reused
-- [ ] Test names follow naming convention
-- [ ] No hard-coded magic numbers
-- [ ] Clear assertion messages
+## Test Checklist
+
+Before submitting tests, verify:
+
+- [ ] Inherits from `EditModeTestBase`
+- [ ] Uses `[Test]` attribute (not `[UnityTest]`)
+- [ ] Follows naming conventions
+- [ ] One concept per test
+- [ ] Descriptive test names
+- [ ] Includes assertion messages
+- [ ] Uses float tolerance for comparisons
+- [ ] Tests edge cases
+- [ ] Uses helper utilities
+- [ ] Proper namespace
+- [ ] No Unity API testing
+- [ ] Fast execution (< 100ms per test)
+
+## Integration
+
+This standard works with:
+
+- **PlayMode Tests** (`general/playmode-tests-generation.mdc`)
+- **Code Generation** (`general/code-generation.mdc`)
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
 
 ## Summary
 
-**EditMode Tests:**
+**PRIMARY RULE**: EditMode tests are synchronous unit tests for isolated logic validation.
 
-- Fast, synchronous unit tests
-- Test components, queries, ECB logic in isolation
-- Use `[Test]` attribute
-- Always dispose World and NativeContainers
-- Validate after ECB playback using queries
-- Focus on component data and logic correctness
+**Key Requirements:**
+
+1. Inherit from `EditModeTestBase`
+2. Use `[Test]` attribute
+3. Manual job logic replication
+4. Descriptive naming
+5. Arrange-Act-Assert pattern
+6. Float tolerance for comparisons
+7. Edge case coverage
+
+**Remember**: EditMode tests should be fast, isolated, and deterministic. Use PlayMode for integration testing.

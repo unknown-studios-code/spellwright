@@ -1,0 +1,7 @@
+{
+    "endOfLine": "lf",
+    "preprocessorSymbolSets": ["UNITY_EDITOR", "UNITY_STANDALONE", "ENABLE_DOTS"],
+    "printWidth": 200,
+    "tabWidth": 4,
+    "useTabs": false
+}

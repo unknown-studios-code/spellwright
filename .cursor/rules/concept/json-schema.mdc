@@ -1,631 +1,239 @@
 ---
-description: Provides the complete JSON schema that defines the data contract between LLM and game engine, including validation rules, examples, and C# data structures for spell definitions.
+description: Complete JSON schema defining the data contract between LLM and game engine, including validation rules and data structures for spell definitions.
 alwaysApply: false
 ---
 
 # JSON Schema for Spell Definition
 
-This file contains the complete JSON schema that defines the data contract between the LLM and the game engine in Spellwright. This is the mandatory format that every spell must follow.
+Defines the mandatory data contract between the LLM and the Spellwright engine for spell generation.
 
-## Complete JSON Schema
+## Purpose
 
-```json
-{
-  "type": "object",
-  "properties": {
-    "spellName": {
-      "type": "string",
-      "description": "The descriptive name of the spell.",
-      "minLength": 1,
-      "maxLength": 100
-    },
-    "generator": {
-      "type": "object",
-      "description": "Defines the fundamental form and delivery method of the spell.",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["projectile", "cone", "self_cast", "area_of_effect"],
-          "description": "Type of spell generator."
-        },
-        "speed": {
-          "type": "number",
-          "description": "Initial speed for projectiles (units/second).",
-          "minimum": 0,
-          "maximum": 1000
-        },
-        "lifetime": {
-          "type": "number",
-          "description": "Duration in seconds for projectiles or areas of effect.",
-          "minimum": 0.1,
-          "maximum": 60
-        },
-        "count": {
-          "type": "integer",
-          "description": "Number of projectiles to be fired.",
-          "minimum": 1,
-          "maximum": 100
-        },
-        "radius": {
-          "type": "number",
-          "description": "Radius for areas of effect or cones (units).",
-          "minimum": 0.1,
-          "maximum": 100
-        },
-        "angle": {
-          "type": "number",
-          "description": "Angle for cone-type generators (degrees).",
-          "minimum": 1,
-          "maximum": 360
-        }
-      },
-      "required": ["type"],
-      "allOf": [
-        {
-          "if": {
-            "properties": { "type": { "const": "projectile" } }
-          },
-          "then": {
-            "required": ["speed", "lifetime"]
-          }
-        },
-        {
-          "if": {
-            "properties": { "type": { "const": "area_of_effect" } }
-          },
-          "then": {
-            "required": ["radius", "lifetime"]
-          }
-        },
-        {
-          "if": {
-            "properties": { "type": { "const": "cone" } }
-          },
-          "then": {
-            "required": ["radius", "angle", "lifetime"]
-          }
-        }
-      ]
-    },
-    "modifiers": {
-      "type": "array",
-      "description": "A list of behaviors that alter the basic functionality of the generator.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "homing",
-              "chain",
-              "pierce",
-              "multi_shot",
-              "on_impact_trigger",
-              "fork"
-            ],
-            "description": "Type of modifier."
-          },
-          "turn_speed": {
-            "type": "number",
-            "description": "Turn speed for 'homing' modifier (units/second).",
-            "minimum": 0,
-            "maximum": 100
-          },
-          "max_bounces": {
-            "type": "integer",
-            "description": "Maximum number of bounces for 'chain' modifier.",
-            "minimum": 1,
-            "maximum": 20
-          },
-          "pierce_count": {
-            "type": "integer",
-            "description": "Number of targets that can be pierced.",
-            "minimum": 1,
-            "maximum": 50
-          },
-          "fork_count": {
-            "type": "integer",
-            "description": "Number of projectiles generated on fork.",
-            "minimum": 2,
-            "maximum": 10
-          },
-          "fork_angle": {
-            "type": "number",
-            "description": "Spread angle for fork (degrees).",
-            "minimum": 1,
-            "maximum": 180
-          },
-          "spread_angle": {
-            "type": "number",
-            "description": "Spread angle for multi-shot (degrees).",
-            "minimum": 0,
-            "maximum": 180
-          }
-        },
-        "required": ["type"],
-        "allOf": [
-          {
-            "if": {
-              "properties": { "type": { "const": "homing" } }
-            },
-            "then": {
-              "required": ["turn_speed"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "chain" } }
-            },
-            "then": {
-              "required": ["max_bounces"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "pierce" } }
-            },
-            "then": {
-              "required": ["pierce_count"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "fork" } }
-            },
-            "then": {
-              "required": ["fork_count", "fork_angle"]
-            }
-          }
-        ]
-      },
-      "maxItems": 10
-    },
-    "payloads": {
-      "type": "array",
-      "description": "A list of effects that are applied on impact or activation.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["damage", "heal", "apply_status_effect", "spawn_entity"],
-            "description": "Type of payload."
-          },
-          "amount": {
-            "type": "number",
-            "description": "Amount of damage or healing.",
-            "minimum": 0,
-            "maximum": 10000
-          },
-          "elemental_type": {
-            "type": "string",
-            "enum": ["fire", "frost", "shock", "physical", "holy"],
-            "description": "Elemental type of damage."
-          },
-          "effect_name": {
-            "type": "string",
-            "enum": ["slow", "burn", "stun", "poison"],
-            "description": "Name of status effect to be applied."
-          },
-          "duration": {
-            "type": "number",
-            "description": "Duration for status effects (seconds).",
-            "minimum": 0.1,
-            "maximum": 60
-          },
-          "entity_prefab": {
-            "type": "string",
-            "description": "Name of entity prefab to be spawned."
-          }
-        },
-        "required": ["type"],
-        "allOf": [
-          {
-            "if": {
-              "properties": { "type": { "const": "damage" } }
-            },
-            "then": {
-              "required": ["amount", "elemental_type"]
-            }
-          },
-          {
-            "if": {
-              "properties": { "type": { "const": "heal" } }
-            },
-            "then": {
-              "required": ["amount"]
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "type": { "const": "apply_status_effect" }
-              }
-            },
-            "then": {
-              "required": ["effect_name", "duration"]
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "type": { "const": "spawn_entity" }
-              }
-            },
-            "then": {
-              "required": ["entity_prefab"]
-            }
-          }
-        ]
-      },
-      "minItems": 1,
-      "maxItems": 10
-    }
-  },
-  "required": ["spellName", "generator", "payloads"]
-}
-```
+Ensure all spell JSONs follow a single, validatable contract to enable automatic validation and consistent baking.
 
-## Valid JSON Examples
+## Scope
 
-### Example 1: Simple Fireball
+**Applies To:**
 
-```json
-{
-  "spellName": "Fireball",
-  "generator": {
-    "type": "projectile",
-    "speed": 30.0,
-    "lifetime": 5.0
-  },
-  "modifiers": [],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 25.0,
-      "elemental_type": "fire"
-    }
-  ]
-}
-```
+- JSON input/output between LLM and engine
+- Generator, modifiers, and payloads fields
+- Validation rules and constraints
 
-### Example 2: Chain Lightning
+## Required Fields
 
-```json
-{
-  "spellName": "Chain Lightning",
-  "generator": {
-    "type": "projectile",
-    "speed": 100.0,
-    "lifetime": 2.0
-  },
-  "modifiers": [
-    {
-      "type": "chain",
-      "max_bounces": 3
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 15.0,
-      "elemental_type": "shock"
-    }
-  ]
-}
-```
+**Top-Level:**
 
-### Example 3: Homing Fireball with Burn
+- `spellName` (string) - Unique spell identifier
+- `generator` (object) - Spell delivery method
+- `payloads` (array) - At least one effect
 
-```json
-{
-  "spellName": "Homing Fireball",
-  "generator": {
-    "type": "projectile",
-    "speed": 25.0,
-    "lifetime": 8.0
-  },
-  "modifiers": [
-    {
-      "type": "homing",
-      "turn_speed": 5.0
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 30.0,
-      "elemental_type": "fire"
-    },
-    {
-      "type": "apply_status_effect",
-      "effect_name": "burn",
-      "duration": 5.0
-    }
-  ]
-}
-```
+**Optional:**
 
-### Example 4: Frost Cone with Slow
+- `modifiers` (array) - Behavior modifications
 
-```json
-{
-  "spellName": "Frost Cone",
-  "generator": {
-    "type": "cone",
-    "radius": 10.0,
-    "angle": 60.0,
-    "lifetime": 1.5
-  },
-  "modifiers": [],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 18.0,
-      "elemental_type": "frost"
-    },
-    {
-      "type": "apply_status_effect",
-      "effect_name": "slow",
-      "duration": 3.0
-    }
-  ]
-}
-```
+## Generator Schema
 
-### Example 5: Piercing Spear
+**Required:**
 
-```json
-{
-  "spellName": "Piercing Spear",
-  "generator": {
-    "type": "projectile",
-    "speed": 50.0,
-    "lifetime": 4.0
-  },
-  "modifiers": [
-    {
-      "type": "pierce",
-      "pierce_count": 5
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 20.0,
-      "elemental_type": "physical"
-    }
-  ]
-}
-```
+- `type` (enum) - Generator type
 
-### Example 6: Complex Spell with Multiple Modifiers
+**Type: `projectile`**
 
-```json
-{
-  "spellName": "Arcane Missile Storm",
-  "generator": {
-    "type": "projectile",
-    "speed": 40.0,
-    "lifetime": 6.0
-  },
-  "modifiers": [
-    {
-      "type": "homing",
-      "turn_speed": 3.0
-    },
-    {
-      "type": "fork",
-      "fork_count": 3,
-      "fork_angle": 30.0
-    }
-  ],
-  "payloads": [
-    {
-      "type": "damage",
-      "amount": 12.0,
-      "elemental_type": "holy"
-    }
-  ]
-}
-```
+- `speed` (number) - Movement speed (0.1-1000)
+- `lifetime` (number) - Duration in seconds (0.1-60)
 
-## Recommended Default Values
+**Type: `cone`**
 
-When LLM doesn't specify values, use these defaults:
+- `radius` (number) - Cone reach (0.1-100)
+- `angle` (number) - Cone angle in degrees (1-180)
+- `lifetime` (number) - Duration in seconds (0.1-60)
 
-### Generator Defaults
+**Type: `area_of_effect`**
 
-```json
-{
-  "projectile": {
-    "speed": 30.0,
-    "lifetime": 5.0
-  },
-  "area_of_effect": {
-    "radius": 5.0,
-    "lifetime": 2.0
-  },
-  "cone": {
-    "radius": 8.0,
-    "angle": 60.0,
-    "lifetime": 1.5
-  }
-}
-```
+- `radius` (number) - AoE radius (0.1-100)
+- `lifetime` (number) - Duration in seconds (0.1-60)
 
-### Modifier Defaults
+**Type: `self_cast`**
 
-```json
-{
-  "homing": {
-    "turn_speed": 5.0
-  },
-  "chain": {
-    "max_bounces": 3
-  },
-  "pierce": {
-    "pierce_count": 3
-  },
-  "fork": {
-    "fork_count": 3,
-    "fork_angle": 30.0
-  }
-}
-```
+- `duration` (number) - Effect duration (0.1-60)
 
-### Payload Defaults
+## Modifier Schema
 
-```json
-{
-  "damage": {
-    "amount": 20.0
-  },
-  "heal": {
-    "amount": 15.0
-  },
-  "apply_status_effect": {
-    "duration": 3.0
-  }
-}
-```
+**Optional Array of Objects:**
 
-## Custom Validation Rules
+**Type: `homing`**
 
-In addition to schema validation, implement these rules:
+- `turn_speed` (number) - Rotation speed (0.1-1000)
+- `max_range` (number) - Detection range (1-100)
 
-### Rule 1: At Least One Payload
+**Type: `chain`**
 
-```csharp
-if (spellData.payloads == null || spellData.payloads.Length == 0)
-{
-    errors.Add("Spell must have at least one payload");
-    return false;
-}
-```
+- `max_bounces` (number) - Chain count (1-20)
+- `chain_radius` (number) - Search radius (1-50)
 
-### Rule 2: Reasonable Numeric Values
+**Type: `pierce`**
 
-```csharp
-// Reasonable speed
-if (speed <= 0 || speed > 1000)
-{
-    errors.Add($"Speed out of range: {speed}");
-}
+- `pierce_count` (number) - Pierce count (1-20)
 
-// Reasonable damage
-if (damage <= 0 || damage > 10000)
-{
-    errors.Add($"Damage out of range: {damage}");
-}
+**Type: `fork`**
 
-// Reasonable lifetime
-if (lifetime < 0.1f || lifetime > 60f)
-{
-    errors.Add($"Lifetime out of range: {lifetime}");
-}
-```
+- `fork_count` (number) - Split count (2-10)
+- `fork_angle` (number) - Spread angle (1-180)
 
-### Rule 3: Invalid Combinations
+**Type: `multi_shot`**
 
-```csharp
-// Homing doesn't make sense with cone or area
-if (generator.type == "cone" || generator.type == "area_of_effect")
-{
-    if (modifiers.Any(m => m.type == "homing"))
-    {
-        errors.Add("Homing is not compatible with cone or area of effect");
-    }
-}
+- `projectile_count` (number) - Projectile count (2-20)
+- `spread_angle` (number) - Spread angle (1-180)
 
-// Pierce and chain are mutually exclusive
-bool hasPierce = modifiers.Any(m => m.type == "pierce");
-bool hasChain = modifiers.Any(m => m.type == "chain");
-if (hasPierce && hasChain)
-{
-    errors.Add("Pierce and Chain cannot be used together");
-}
-```
+## Payload Schema
 
-## Corresponding C# Structures
+**Required Array (Minimum 1):**
 
-```csharp
-[System.Serializable]
-public class SpellDefinition
-{
-    public string spellName;
-    public GeneratorData generator;
-    public ModifierData[] modifiers;
-    public PayloadData[] payloads;
-}
+**Type: `damage`**
 
-[System.Serializable]
-public class GeneratorData
-{
-    public string type; // "projectile", "cone", "self_cast", "area_of_effect"
-    public float speed;
-    public float lifetime;
-    public int count;
-    public float radius;
-    public float angle;
-}
+- `amount` (number) - Damage value (1-10000)
+- `elemental_type` (enum) - Damage type
 
-[System.Serializable]
-public class ModifierData
-{
-    public string type; // "homing", "chain", "pierce", etc.
-    public float turn_speed;
-    public int max_bounces;
-    public int pierce_count;
-    public int fork_count;
-    public float fork_angle;
-    public float spread_angle;
-}
+**Type: `heal`**
 
-[System.Serializable]
-public class PayloadData
-{
-    public string type; // "damage", "heal", "apply_status_effect", "spawn_entity"
-    public float amount;
-    public string elemental_type; // "fire", "frost", "shock", "physical", "holy"
-    public string effect_name; // "slow", "burn", "stun", "poison"
-    public float duration;
-    public string entity_prefab;
-}
-```
+- `amount` (number) - Heal value (1-10000)
 
-## Deserialization in Unity
+**Type: `apply_status_effect`**
 
-```csharp
-using Newtonsoft.Json;
+- `effect_name` (enum) - Status effect type
+- `duration` (number) - Effect duration (0.1-60)
+- `intensity` (number) - Effect strength (1-100)
 
-public class SpellJsonParser
-{
-    public SpellDefinition ParseSpellJson(string jsonString)
-    {
-        try
-        {
-            return JsonConvert.DeserializeObject<SpellDefinition>(jsonString);
-        }
-        catch (JsonException e)
-        {
-            Debug.LogError($"Error deserializing JSON: {e.Message}");
-            throw;
-        }
-    }
-}
-```
+**Type: `spawn_entity`**
 
-## Important Notes
+- `entity_prefab` (string) - Prefab identifier
+- `spawn_count` (number) - Entity count (1-100)
 
-- This schema is the **mandatory contract** between LLM and game engine
-- **Always validate** against this schema before processing
-- Use **default values** when optional properties are not specified
-- Implement **custom validation rules** in addition to schema validation
-- The **spellName** field is mandatory and should be unique
-- The **generator** field is mandatory and must have **type** defined
-- The **payloads** array is mandatory and must have **at least one element**
-- The **modifiers** array is optional and can be empty
-- Conditional properties are validated using **allOf/if/then** in JSON Schema
-- Use **Newtonsoft.Json** or **System.Text.Json** for deserialization
-- Keep this schema **synchronized** with the LLM prompt
+## Enumerations
+
+**Generator Types:**
+
+- `projectile`, `cone`, `area_of_effect`, `self_cast`
+
+**Modifier Types:**
+
+- `homing`, `chain`, `pierce`, `fork`, `multi_shot`
+
+**Payload Types:**
+
+- `damage`, `heal`, `apply_status_effect`, `spawn_entity`
+
+**Elemental Types:**
+
+- `fire`, `frost`, `shock`, `physical`, `holy`, `arcane`, `poison`
+
+**Effect Names:**
+
+- `slow`, `burn`, `stun`, `poison`, `bleed`, `freeze`, `silence`
+
+## Validation Rules
+
+**DO:**
+
+- Validate against schema before processing
+- Enforce required fields per type
+- Check numeric ranges
+- Verify enum values
+- Ensure at least one payload
+- Validate modifier compatibility
+- Reject invalid combinations
+
+**DON'T:**
+
+- Accept empty payloads array
+- Allow invalid combinations (homing + cone/aoe)
+- Allow pierce + chain together
+- Accept types outside enums
+- Accept numbers outside ranges
+- Skip validation
+
+## Numeric Ranges
+
+| Field                  | Minimum | Maximum | Recommended |
+| ---------------------- | ------- | ------- | ----------- |
+| `speed`                | 0.1     | 1000    | 5-30        |
+| `lifetime`             | 0.1     | 60      | 1-10        |
+| `radius`               | 0.1     | 100     | 1-20        |
+| `angle`                | 1       | 180     | 30-90       |
+| `turn_speed`           | 0.1     | 1000    | 50-200      |
+| `max_bounces`          | 1       | 20      | 2-5         |
+| `pierce_count`         | 1       | 20      | 2-5         |
+| `fork_count`           | 2       | 10      | 2-4         |
+| `projectile_count`     | 2       | 20      | 3-7         |
+| `amount` (damage/heal) | 1       | 10000   | 10-100      |
+| `duration`             | 0.1     | 60      | 1-10        |
+| `intensity`            | 1       | 100     | 10-50       |
+
+## Compatibility Matrix
+
+| Modifier   | Compatible Generators            | Incompatible Modifiers |
+| ---------- | -------------------------------- | ---------------------- |
+| homing     | projectile                       | -                      |
+| chain      | projectile, cone, area_of_effect | pierce                 |
+| pierce     | projectile                       | chain                  |
+| fork       | projectile                       | -                      |
+| multi_shot | all                              | -                      |
+
+## Validation Checklist
+
+Before accepting JSON:
+
+- [ ] Required fields present: `spellName`, `generator`, `payloads`
+- [ ] `generator.type` is valid enum value
+- [ ] Generator required fields present per type
+- [ ] `modifiers` array has valid types and fields
+- [ ] `payloads` array has at least one entry
+- [ ] Payload types are valid enum values
+- [ ] Payload required fields present per type
+- [ ] Invalid combinations rejected (homing+cone/aoe, pierce+chain)
+- [ ] Numeric values within ranges
+- [ ] Enum values are valid
+
+## Three-Layer Validation
+
+**Layer 1: LLM API (Function Calling)**
+
+- Schema enforcement at API level
+- Type validation
+- Required field validation
+
+**Layer 2: LLM Prompt (Few-Shot)**
+
+- Example-based guidance
+- Pattern reinforcement
+- Edge case handling
+
+**Layer 3: Client-Side (Schema + Rules)**
+
+- Complete schema validation
+- Range checking
+- Compatibility validation
+- Business rule enforcement
+
+## Integration
+
+This standard works with:
+
+- **LLM Integration** (`concept/llm-integration.mdc`)
+- **Spell Components** (`concept/spell-components.mdc`)
+- **DOTS Architecture** (`concept/dots-architecture.mdc`)
+
+## Summary
+
+**PRIMARY RULE**: All spell JSON must validate against schema before processing.
+
+**Key Requirements:**
+
+1. Required: `spellName`, `generator`, `payloads`
+2. Generator: Valid type with required fields
+3. Modifiers: Optional, validate compatibility
+4. Payloads: At least one, valid type and fields
+5. Ranges: All numeric values within limits
+6. Enums: All enum values are valid
+
+**Remember**: Schema validation is the first line of defense. Fail early with clear error messages.
