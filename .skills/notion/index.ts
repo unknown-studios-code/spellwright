@@ -8,6 +8,7 @@ import { GetBlockUseCase } from "./src/application/get-block";
 import { GetBotInfoUseCase } from "./src/application/get-bot-info";
 import { GetDatabaseUseCase } from "./src/application/get-database";
 import { GetPageUseCase } from "./src/application/get-page";
+import { GetPageByTaskIdUseCase } from "./src/application/get-page-by-task-id";
 import { GetPageContentUseCase } from "./src/application/get-page-content";
 import { GetUserUseCase } from "./src/application/get-user";
 import { ListCommentsUseCase } from "./src/application/list-comments";
@@ -70,6 +71,11 @@ export async function getDatabase(databaseId: string) {
 export async function getPage(pageId: string) {
     const useCase = new GetPageUseCase(adapter);
     return await useCase.execute({ pageId });
+}
+
+export async function getPageByTaskId(taskId: string) {
+    const useCase = new GetPageByTaskIdUseCase(adapter);
+    return await useCase.execute({ taskId });
 }
 
 export async function getPageContent(blockId: string) {

@@ -1,8 +1,8 @@
 import { Client } from "@notionhq/client";
-import { BlockObjectRequest } from "@notionhq/client/build/src/api-endpoints";
 import * as dotenv from "dotenv";
 import { IBlock, IComment, IDatabase, IPage, ISearchResult, ITeamspace, IUser } from "../domain/entities";
 import { INotionRepository } from "../domain/interfaces";
+import { createParagraphBlock, createTitleProperty, extractTitle, mapBlock, mapComment, mapDatabase, mapPage, mapSearchResult, mapUser, paginate, parseTaskId } from "./notion-utils";
 
 dotenv.config({ path: "./.env" });
 
@@ -34,22 +34,14 @@ export class NotionAdapter implements INotionRepository {
      * @returns {Promise<ISearchResult>} The search results.
      */
     async search(query?: string, sort?: "last_edited_time" | "relevance"): Promise<ISearchResult> {
-        const args: any = {
-            query,
-            page_size: 100,
-        };
-
+        const args: any = { query, page_size: 100 };
         if (sort && sort !== "relevance") {
-            args.sort = {
-                direction: "descending",
-                timestamp: sort,
-            };
+            args.sort = { direction: "descending", timestamp: sort };
         }
 
         const response = await this.client.search(args);
-
         return {
-            results: response.results.map((item) => this.mapSearchResult(item)),
+            results: response.results.map(mapSearchResult),
             next_cursor: response.next_cursor,
             has_more: response.has_more,
         };
@@ -62,33 +54,31 @@ export class NotionAdapter implements INotionRepository {
      */
     async getPage(pageId: string): Promise<IPage> {
         const response = await this.client.pages.retrieve({ page_id: pageId });
-        return this.mapPage(response);
+        return mapPage(response);
+    }
+
+    /**
+     * Gets a page by its task ID property across all data sources in the workspace.
+     * @param {string} taskId - The task ID (e.g., "SPWT-1").
+     * @returns {Promise<IPage | null>} The page if found, null otherwise.
+     */
+    async getPageByTaskId(taskId: string): Promise<IPage | null> {
+        const parsed = parseTaskId(taskId);
+        if (!parsed) return null;
+
+        const dataSources = await this.getAllDataSources();
+        const results = await Promise.all(dataSources.map((id) => this.queryDataSourceForTask(id, parsed)));
+
+        return results.find((r) => r !== null) ?? null;
     }
 
     /**
      * Retrieves all blocks (content) of a page or block.
-     * Handles pagination to ensure all children are retrieved.
      * @param {string} blockId - The UUID of the parent block/page.
      * @returns {Promise<IBlock[]>} A list of child blocks.
      */
     async getPageContent(blockId: string): Promise<IBlock[]> {
-        const blocks: IBlock[] = [];
-        let cursor: string | undefined = undefined;
-        let hasMore = true;
-
-        while (hasMore) {
-            const response = await this.client.blocks.children.list({
-                block_id: blockId,
-                start_cursor: cursor,
-                page_size: 100,
-            });
-
-            blocks.push(...response.results.map((b) => this.mapBlock(b)));
-            cursor = response.next_cursor ?? undefined;
-            hasMore = response.has_more;
-        }
-
-        return blocks;
+        return paginate((cursor) => this.client.blocks.children.list({ block_id: blockId, start_cursor: cursor, page_size: 100 }), mapBlock);
     }
 
     /**
@@ -96,22 +86,7 @@ export class NotionAdapter implements INotionRepository {
      * @returns {Promise<IUser[]>} A list of users.
      */
     async listUsers(): Promise<IUser[]> {
-        const users: IUser[] = [];
-        let cursor: string | undefined = undefined;
-        let hasMore = true;
-
-        while (hasMore) {
-            const response = await this.client.users.list({
-                start_cursor: cursor,
-                page_size: 100,
-            });
-
-            users.push(...response.results.map((u) => this.mapUser(u)));
-            cursor = response.next_cursor ?? undefined;
-            hasMore = response.has_more;
-        }
-
-        return users;
+        return paginate((cursor) => this.client.users.list({ start_cursor: cursor, page_size: 100 }), mapUser);
     }
 
     /**
@@ -121,7 +96,7 @@ export class NotionAdapter implements INotionRepository {
      */
     async getUser(userId: string): Promise<IUser> {
         const response = await this.client.users.retrieve({ user_id: userId });
-        return this.mapUser(response);
+        return mapUser(response);
     }
 
     /**
@@ -131,7 +106,7 @@ export class NotionAdapter implements INotionRepository {
     async getBotInfo(): Promise<{ bot: IUser; workspace_name?: string }> {
         const response = await this.client.users.me({});
         return {
-            bot: this.mapUser(response),
+            bot: mapUser(response),
             workspace_name: (response as any).bot?.workspace_name,
         };
     }
@@ -147,82 +122,34 @@ export class NotionAdapter implements INotionRepository {
             parent: { page_id: pageId },
             rich_text: [{ text: { content } }],
         });
-        return this.mapComment(response);
+        return mapComment(response);
     }
 
     /**
      * Lists all comments on a block/page.
-     * Handles pagination.
      * @param {string} blockId - The UUID of the block/page.
      * @returns {Promise<IComment[]>} A list of comments.
      */
     async listComments(blockId: string): Promise<IComment[]> {
-        const comments: IComment[] = [];
-        let cursor: string | undefined = undefined;
-        let hasMore = true;
-
-        while (hasMore) {
-            const response = await this.client.comments.list({
-                block_id: blockId,
-                start_cursor: cursor,
-                page_size: 100,
-            });
-
-            comments.push(...response.results.map((c) => this.mapComment(c)));
-            cursor = response.next_cursor ?? undefined;
-            hasMore = response.has_more;
-        }
-        return comments;
+        return paginate((cursor) => this.client.comments.list({ block_id: blockId, start_cursor: cursor, page_size: 100 }), mapComment);
     }
 
     /**
      * Creates a new page in a parent page or database.
      * @param {Object} parent - Parent location.
+     * @param {string} [parent.page_id] - Parent page UUID.
+     * @param {string} [parent.database_id] - Parent database UUID.
      * @param {string} title - Page title.
      * @param {string} [content] - Initial content.
      * @returns {Promise<IPage>} The created page.
      */
     async createPage(parent: { page_id?: string; database_id?: string }, title: string, content?: string): Promise<IPage> {
         const parentArg: any = parent.database_id ? { database_id: parent.database_id } : { page_id: parent.page_id };
+        const children = content ? [createParagraphBlock(content)] : [];
+        const properties = createTitleProperty(title, !!parent.database_id);
 
-        const children: BlockObjectRequest[] = content
-            ? [
-                  {
-                      object: "block",
-                      type: "paragraph",
-                      paragraph: {
-                          rich_text: [{ text: { content } }],
-                      },
-                  },
-              ]
-            : [];
-
-        const properties: any = {};
-
-        if (parent.page_id) {
-            properties.title = [
-                {
-                    type: "text",
-                    text: { content: title },
-                },
-            ];
-        } else {
-            properties.Name = {
-                title: [
-                    {
-                        type: "text",
-                        text: { content: title },
-                    },
-                ],
-            };
-        }
-
-        const response = await this.client.pages.create({
-            parent: parentArg,
-            properties,
-            children,
-        });
-        return this.mapPage(response);
+        const response = await this.client.pages.create({ parent: parentArg, properties, children });
+        return mapPage(response);
     }
 
     /**
@@ -238,7 +165,7 @@ export class NotionAdapter implements INotionRepository {
         if (archived !== undefined) args.archived = archived;
 
         const response = await this.client.pages.update(args);
-        return this.mapPage(response);
+        return mapPage(response);
     }
 
     /**
@@ -248,51 +175,17 @@ export class NotionAdapter implements INotionRepository {
      * @returns {Promise<IPage>} The new page instance.
      */
     async movePage(pageId: string, newParentId: string): Promise<IPage> {
-        const original = await this.client.pages.retrieve({ page_id: pageId });
-        const content = await this.getPageContent(pageId);
-
-        let parentArg: any = { page_id: newParentId };
-        try {
-            await this.client.pages.retrieve({ page_id: newParentId });
-        } catch (e) {
-            parentArg = { database_id: newParentId };
-        }
-
-        const originalObj = original as any;
-        const props = originalObj.properties;
-        let title = "Moved Page";
-
-        for (const key in props) {
-            if (props[key].type === "title") {
-                title = props[key].title?.[0]?.plain_text || title;
-                break;
-            }
-        }
-
-        const children: BlockObjectRequest[] = content
-            .map((b) => {
-                if (!b.content) return null;
-                return {
-                    object: "block",
-                    type: "paragraph",
-                    paragraph: {
-                        rich_text: [{ text: { content: b.content } }],
-                    },
-                } as BlockObjectRequest;
-            })
-            .filter((b): b is BlockObjectRequest => b !== null);
+        const { title, children } = await this.getPageCopyData(pageId);
+        const parentArg = await this.resolveParent(newParentId);
 
         const newPage = await this.client.pages.create({
             parent: parentArg,
-            properties: {
-                title: [{ type: "text", text: { content: title } }],
-            } as any,
+            properties: { title: [{ type: "text", text: { content: title } }] } as any,
             children,
         });
 
         await this.client.pages.update({ page_id: pageId, archived: true });
-
-        return this.mapPage(newPage);
+        return mapPage(newPage);
     }
 
     /**
@@ -302,47 +195,18 @@ export class NotionAdapter implements INotionRepository {
      */
     async duplicatePage(pageId: string): Promise<IPage> {
         const original = await this.client.pages.retrieve({ page_id: pageId });
-        const content = await this.getPageContent(pageId);
+        const { title, children } = await this.getPageCopyData(pageId);
+
         const originalObj = original as any;
-
-        let title = "Untitled (Copy)";
-        const props = originalObj.properties;
-        for (const key in props) {
-            if (props[key].type === "title") {
-                const rawTitle = props[key].title?.[0]?.plain_text;
-                if (rawTitle) title = `${rawTitle} (Copy)`;
-                break;
-            }
-        }
-
-        const parent = originalObj.parent;
-
-        const titleKey = originalObj.parent.type === "database_id" ? Object.keys(props).find((k) => props[k].type === "title") || "Name" : "title";
-
-        const children: BlockObjectRequest[] = content
-            .map((b) => {
-                if (!b.content) return null;
-                return {
-                    object: "block",
-                    type: "paragraph",
-                    paragraph: {
-                        rich_text: [{ text: { content: b.content } }],
-                    },
-                } as BlockObjectRequest;
-            })
-            .filter((b): b is BlockObjectRequest => b !== null);
+        const titleKey = this.getTitlePropertyKey(originalObj);
 
         const newPage = await this.client.pages.create({
-            parent: parent as any,
-            properties: {
-                [titleKey]: {
-                    title: [{ type: "text", text: { content: title } }],
-                },
-            } as any,
+            parent: originalObj.parent as any,
+            properties: { [titleKey]: { title: [{ type: "text", text: { content: `${title} (Copy)` } }] } } as any,
             children,
         });
 
-        return this.mapPage(newPage);
+        return mapPage(newPage);
     }
 
     /**
@@ -358,31 +222,29 @@ export class NotionAdapter implements INotionRepository {
             title: [{ type: "text", text: { content: title } }],
             properties: properties as any,
         } as any);
-        return this.mapDatabase(response);
+        return mapDatabase(response);
     }
 
     /**
      * Updates a database.
      * @param {string} databaseId - Database UUID.
-     * @param {Object} updates - Updates.
-     * @returns {Promise<IDatabase>} Updated database.
+     * @param {Object} updates - Updates to apply.
+     * @param {string} [updates.title] - New title.
+     * @param {Record<string, any>} [updates.properties] - Property updates.
+     * @returns {Promise<IDatabase>} The updated database.
      */
     async updateDatabase(databaseId: string, updates: { title?: string; properties?: Record<string, any> }): Promise<IDatabase> {
         const args: any = { database_id: databaseId };
-        if (updates.title) {
-            args.title = [{ type: "text", text: { content: updates.title } }];
-        }
-        if (updates.properties) {
-            args.properties = updates.properties;
-        }
+        if (updates.title) args.title = [{ type: "text", text: { content: updates.title } }];
+        if (updates.properties) args.properties = updates.properties;
 
         const response = await this.client.databases.update(args);
-        return this.mapDatabase(response);
+        return mapDatabase(response);
     }
 
     /**
-     * Lists teamspaces.
-     * @returns {Promise<ITeamspace[]>} Empty list (not fully supported).
+     * Lists teamspaces (not fully supported).
+     * @returns {Promise<ITeamspace[]>} Empty list.
      */
     async listTeamspaces(): Promise<ITeamspace[]> {
         return [];
@@ -395,7 +257,7 @@ export class NotionAdapter implements INotionRepository {
      */
     async getDatabase(databaseId: string): Promise<IDatabase> {
         const response = await this.client.databases.retrieve({ database_id: databaseId });
-        return this.mapDatabase(response);
+        return mapDatabase(response);
     }
 
     /**
@@ -405,7 +267,7 @@ export class NotionAdapter implements INotionRepository {
      */
     async getBlock(blockId: string): Promise<IBlock> {
         const response = await this.client.blocks.retrieve({ block_id: blockId });
-        return this.mapBlock(response);
+        return mapBlock(response);
     }
 
     /**
@@ -415,19 +277,14 @@ export class NotionAdapter implements INotionRepository {
      * @returns {Promise<IBlock>} The updated block.
      */
     async updateBlock(blockId: string, content: string): Promise<IBlock> {
-        // We first need to know the type of the block to update it correctly
         const block = await this.client.blocks.retrieve({ block_id: blockId });
         const type = (block as any).type;
 
-        const update: any = {
+        const response = await this.client.blocks.update({
             block_id: blockId,
-            [type]: {
-                rich_text: [{ text: { content } }],
-            },
-        };
-
-        const response = await this.client.blocks.update(update);
-        return this.mapBlock(response);
+            [type]: { rich_text: [{ text: { content } }] },
+        });
+        return mapBlock(response);
     }
 
     /**
@@ -446,101 +303,92 @@ export class NotionAdapter implements INotionRepository {
      * @returns {Promise<IBlock[]>} The appended blocks.
      */
     async appendBlockChildren(blockId: string, children: { type: string; content: string }[]): Promise<IBlock[]> {
-        const blocks: BlockObjectRequest[] = children.map((child) => ({
-            object: "block",
-            type: child.type as any, // assuming type is valid
-            [child.type]: {
-                rich_text: [{ text: { content: child.content } }],
-            },
-        })) as unknown as BlockObjectRequest[];
+        const blocks = children.map((child) => ({
+            object: "block" as const,
+            type: child.type as any,
+            [child.type]: { rich_text: [{ text: { content: child.content } }] },
+        }));
 
-        const response = await this.client.blocks.children.append({
-            block_id: blockId,
-            children: blocks,
-        });
-
-        return response.results.map((b) => this.mapBlock(b));
+        const response = await this.client.blocks.children.append({ block_id: blockId, children: blocks as any });
+        return response.results.map(mapBlock);
     }
 
-    private mapSearchResult(item: any): IPage | IDatabase {
-        if (item.object === "page") {
-            return this.mapPage(item);
-        } else {
-            return this.mapDatabase(item);
-        }
+    /**
+     * Retrieves all data source IDs from the workspace.
+     * @returns {Promise<string[]>} List of data source IDs.
+     */
+    private async getAllDataSources(): Promise<string[]> {
+        const result = await this.client.search({ filter: { property: "object", value: "data_source" } });
+        return result.results.map((item: any) => item.id).filter(Boolean);
     }
 
-    private mapPage(item: any): IPage {
-        let title = "Untitled";
-        if (item.properties) {
-            for (const key in item.properties) {
-                if (item.properties[key].type === "title") {
-                    const titleObj = item.properties[key].title;
-                    if (titleObj && titleObj.length > 0) {
-                        title = titleObj[0].plain_text;
-                    }
-                    break;
-                }
+    /**
+     * Queries a data source for a task by its ID property.
+     * @param {string} dataSourceId - The data source UUID.
+     * @param {{ prefix: string; number: number }} task - The parsed task ID.
+     * @returns {Promise<IPage | null>} The page if found, null otherwise.
+     */
+    private async queryDataSourceForTask(dataSourceId: string, task: { prefix: string; number: number }): Promise<IPage | null> {
+        try {
+            const response = await this.client.dataSources.query({
+                data_source_id: dataSourceId,
+                filter: { property: "ID", unique_id: { equals: task.number } } as any,
+                page_size: 1,
+            });
+
+            const page = response.results[0] as any;
+            const idProp = page?.properties?.ID?.unique_id;
+
+            if (idProp?.prefix === task.prefix && idProp?.number === task.number) {
+                return mapPage(page);
             }
+        } catch {
+            // Data source doesn't have ID property
         }
-
-        return {
-            object: "page",
-            id: item.id,
-            url: item.url,
-            created_time: item.created_time,
-            last_edited_time: item.last_edited_time,
-            title,
-            parent: item.parent,
-            properties: item.properties,
-        };
+        return null;
     }
 
-    private mapDatabase(item: any): IDatabase {
-        return {
-            object: "database",
-            id: item.id,
-            url: item.url,
-            title: item.title?.[0]?.plain_text || "Untitled",
-            created_time: item.created_time,
-            last_edited_time: item.last_edited_time,
-            properties: item.properties,
-        };
+    /**
+     * Retrieves page data needed for copying (title and content blocks).
+     * @param {string} pageId - The page UUID.
+     * @returns {Promise<{ title: string; children: any[] }>} The page copy data.
+     */
+    private async getPageCopyData(pageId: string): Promise<{ title: string; children: any[] }> {
+        const original = await this.client.pages.retrieve({ page_id: pageId });
+        const content = await this.getPageContent(pageId);
+
+        const title = extractTitle((original as any).properties);
+        const children = content.filter((b) => b.content).map((b) => createParagraphBlock(b.content!));
+
+        return { title, children };
     }
 
-    private mapUser(item: any): IUser {
-        return {
-            id: item.id,
-            name: item.name,
-            email: item.person?.email,
-            type: item.type,
-            avatar_url: item.avatar_url,
-        };
-    }
-
-    private mapBlock(item: any): IBlock {
-        let content = undefined;
-        const type = item.type;
-        if (item[type] && item[type].rich_text && Array.isArray(item[type].rich_text)) {
-            content = item[type].rich_text.map((t: any) => t.plain_text).join("");
+    /**
+     * Resolves whether a parent ID is a page or database.
+     * @param {string} parentId - The parent UUID.
+     * @returns {Promise<{ page_id: string } | { database_id: string }>} The parent reference.
+     */
+    private async resolveParent(parentId: string): Promise<{ page_id: string } | { database_id: string }> {
+        try {
+            await this.client.pages.retrieve({ page_id: parentId });
+            return { page_id: parentId };
+        } catch {
+            return { database_id: parentId };
         }
-
-        return {
-            id: item.id,
-            type: item.type,
-            content,
-            has_children: item.has_children,
-            parent: item.parent,
-        };
     }
 
-    private mapComment(item: any): IComment {
-        return {
-            id: item.id,
-            text: item.rich_text.map((t: any) => t.plain_text).join(""),
-            created_by: this.mapUser(item.created_by),
-            created_time: item.created_time,
-            discussion_id: item.discussion_id,
-        };
+    /**
+     * Gets the title property key from a page object.
+     * @param {any} pageObj - The raw page object.
+     * @returns {string} The title property key.
+     */
+    private getTitlePropertyKey(pageObj: any): string {
+        if (pageObj.parent?.type !== "database_id") return "title";
+
+        const props = pageObj.properties;
+        for (const key in props) {
+            if (props[key].type === "title") return key;
+        }
+        return "Name";
     }
 }

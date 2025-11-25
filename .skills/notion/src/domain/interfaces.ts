@@ -23,6 +23,13 @@ export interface INotionRepository {
     getPage(pageId: string): Promise<IPage>;
 
     /**
+     * Gets a page by its task ID property across all databases in the workspace.
+     * @param {string} taskId - The task ID (e.g., "SPWT-1").
+     * @returns {Promise<IPage | null>} The page if found, null otherwise.
+     */
+    getPageByTaskId(taskId: string): Promise<IPage | null>;
+
+    /**
      * Retrieves a database by its ID.
      * @param {string} databaseId - The UUID of the database.
      * @returns {Promise<IDatabase>} The database details.
