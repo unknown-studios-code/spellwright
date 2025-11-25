@@ -1,0 +1,51 @@
+---
+description: Notion integration skills. Use when the user asks about Notion pages, databases, comments, blocks, or users.
+alwaysApply: false
+---
+
+# Notion Skills
+
+These functions are available for import from `.skills/notion/index`.
+
+**Import Path**: `../notion/index` (relative to `.skills/temp/`)
+
+## API Reference
+
+For the **exact function signatures, parameter types, and return values**, you MUST read the authoritative interface definition:
+
+> **READ THIS FIRST**: `.skills/notion/interface.d.ts`
+
+Do not guess parameters. Use the types defined in that file.
+
+## Available Capabilities
+
+The Notion skill module supports the following operations (see interface file for details):
+
+### Pages & Databases
+
+- Create, update, get, and move pages.
+- Create, update, and get databases.
+- Duplicate pages.
+
+### Blocks & Content
+
+- Get and delete blocks.
+- Update block content.
+- Append children to blocks.
+- Get full page content (list of blocks).
+
+### Comments & Users
+
+- List and create comments.
+- List users and teams.
+- Get user details and bot info.
+
+### Search
+
+- Search workspace for pages and databases.
+
+## Best Practices
+
+- **IDs**: Notion uses UUIDs (e.g., `123e4567-e89b-12d3-a456-426614174000`). Ensure you have the correct ID format.
+- **Properties**: When creating/updating pages or databases, the `properties` object must match the Notion API schema.
+- **Rich Text**: Many Notion properties use a Rich Text array format.

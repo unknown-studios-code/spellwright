@@ -285,11 +285,11 @@ Use these emoji-based categories for ALL risk sections:
 
 ## Notion Properties Configuration Guide
 
-**CRITICAL:** Notion Properties are configured via Notion MCP, NOT written in artifact descriptions.
+**CRITICAL:** Notion Properties are configured via Notion Skills, NOT written in artifact descriptions.
 
 ### General Rules
 
-1. **Use Notion MCP** to set all properties directly in database
+1. **Use Notion Skills** to set all properties directly in database
 2. **NEVER copy** Notion Properties section into artifact descriptions
 3. **Always ask** which parent artifact (Epic/Story) when creating child artifacts
 4. **Branch/PR URLs** are added during development, not at creation
@@ -376,7 +376,7 @@ Before presenting ANY artifact, validate:
 - **Ask clarifying questions** if information is missing
 - **Read template file** when user requests artifact creation
 - **Validate before presenting** using appropriate Quality Checks
-- **Configure Notion via MCP** - never copy properties section to description
+- **Configure Notion via Skills** - never copy properties section to description
 
 ### Content Guidelines
 

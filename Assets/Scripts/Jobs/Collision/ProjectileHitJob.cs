@@ -1,4 +1,5 @@
-﻿using Spellwright.Components.Collision;
+using Spellwright.Components.Collision;
+using Spellwright.Components.Payloads;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -23,6 +24,9 @@ namespace Spellwright.Jobs.Collision
 
         [ReadOnly]
         public ComponentLookup<LocalTransform> TransformLookup;
+
+        [ReadOnly]
+        public BufferLookup<PayloadRequest> PayloadBufferLookup;
 
         [BurstCompile]
         public void Execute(TriggerEvent triggerEvent)
@@ -66,11 +70,7 @@ namespace Spellwright.Jobs.Collision
         [BurstCompile]
         private float3 GetImpactPosition(Entity target)
         {
-            if (TransformLookup.HasComponent(target))
-            {
-                return TransformLookup[target].Position;
-            }
-            return float3.zero;
+            return TransformLookup.HasComponent(target) ? TransformLookup[target].Position : float3.zero;
         }
 
         [BurstCompile]

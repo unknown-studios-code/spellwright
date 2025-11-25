@@ -21,6 +21,6 @@
         "Spellwright.Components",
         "Spellwright.Systems",
         "Spellwright.Jobs",
-        "Spellwright.Tests.Utilities"
+        "Spellwright.Tests.Core"
     ]
 }

@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.StatusEffect;
+using Spellwright.Components.StatusEffect;
 using Unity.Entities;
 
 namespace Spellwright.Components.Payloads

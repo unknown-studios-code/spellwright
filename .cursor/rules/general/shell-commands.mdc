@@ -211,8 +211,8 @@ This standard works with:
 
 - **Commit Creation** (`general/commit-creation.mdc`)
 - **PR Creation** (`general/pr-creation.mdc`)
-- **Notion MCP** (`mcp/notion.mdc`)
-- **GitHub MCP** (`mcp/github.mdc`)
+- **Notion Skills** (`skills/skill-notion.mdc`)
+- **GitHub Skills** (`skills/skill-github.mdc`)
 
 ## Summary
 

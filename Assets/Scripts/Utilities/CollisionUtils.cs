@@ -67,12 +67,7 @@ namespace Spellwright.Utilities
                 Filter = CreateLineOfSightFilter(),
             };
 
-            if (collisionWorld.CastRay(raycastInput, out RaycastHit rayHit))
-            {
-                return rayHit.Entity == targetEntity;
-            }
-
-            return true;
+            return !collisionWorld.CastRay(raycastInput, out RaycastHit rayHit) || rayHit.Entity == targetEntity;
         }
 
         public static bool HasLineOfSight(in CollisionWorld collisionWorld, in float3 origin, in float3 targetPosition)

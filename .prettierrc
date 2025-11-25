@@ -5,8 +5,9 @@
     "endOfLine": "lf",
     "overrides": [
         {
-            "files": "*.md",
+            "files": ["*.md", "*.mdc"],
             "options": {
+                "parser": "markdown",
                 "printWidth": 80,
                 "proseWrap": "preserve"
             }

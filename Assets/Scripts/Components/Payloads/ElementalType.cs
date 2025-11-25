@@ -1,4 +1,4 @@
-﻿namespace Spellwright.Components.Payloads
+namespace Spellwright.Components.Payloads
 {
     public enum ElementalType : byte
     {

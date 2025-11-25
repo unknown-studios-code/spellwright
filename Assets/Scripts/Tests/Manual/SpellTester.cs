@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 using Spellwright.Components;
 using Spellwright.Components.Collision;
 using Spellwright.Components.Common;
@@ -180,9 +179,11 @@ namespace Spellwright.Tests.Manual
         private EntityManager _entityManager;
         private Entity _testPrefab;
         private Entity _caster;
+
         private float _lastSpellSpeed;
         private float _lastSpellLifetime;
         private GeneratorType _lastGeneratorType;
+        private float _lastCollisionRadius;
         private float _lastConeAngle;
         private float _lastConeRadius;
         private float _lastAoeRadius;
@@ -192,6 +193,8 @@ namespace Spellwright.Tests.Manual
         private StatusEffectType _lastStatusEffectType;
         private float _lastPayloadAmount;
         private float _lastPayloadDuration;
+        private float _lastTargetCollisionRadius;
+
         private float _nextSpawnTime;
         private int _totalSpawned;
         private int _totalDestroyed;
@@ -201,7 +204,9 @@ namespace Spellwright.Tests.Manual
         private EntityQuery _collisionQuery;
         private readonly List<CollisionEventData> _collisionEvents = new();
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
+        private BlobAssetReference<Unity.Physics.Collider> _projectileColliderBlob;
+        private BlobAssetReference<Unity.Physics.Collider> _targetColliderBlob;
+
         private void Start()
         {
             if (!ValidateSetup())
@@ -214,7 +219,6 @@ namespace Spellwright.Tests.Manual
             InitializeTestEntities();
         }
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void Update()
         {
             HandleGeneratorTypeSelection();
@@ -227,7 +231,6 @@ namespace Spellwright.Tests.Manual
             CleanupExpiredCollisionEvents();
         }
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void OnDrawGizmos()
         {
             if (!Application.isPlaying || _entityManager == default || _targetQuery == default)
@@ -241,7 +244,6 @@ namespace Spellwright.Tests.Manual
             DrawInstantSpellPreview();
         }
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void OnGUI()
         {
             if (_showLifecycleStats && Application.isPlaying)
@@ -250,10 +252,10 @@ namespace Spellwright.Tests.Manual
             }
         }
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void OnDestroy()
         {
             CleanupEntities();
+            DisposeBlobs();
         }
 
         private bool ValidateSetup()
@@ -282,6 +284,8 @@ namespace Spellwright.Tests.Manual
 
         private void InitializeTestEntities()
         {
+            DisposeBlobs();
+
             _testPrefab = CreateTestPrefab();
             _caster = _entityManager.CreateEntity();
             CacheCurrentConfiguration();
@@ -337,6 +341,7 @@ namespace Spellwright.Tests.Manual
             return math.abs(_spellSpeed - _lastSpellSpeed) > POSITION_EPSILON
                 || math.abs(_spellLifetime - _lastSpellLifetime) > POSITION_EPSILON
                 || _generatorType != _lastGeneratorType
+                || math.abs(_collisionRadius - _lastCollisionRadius) > POSITION_EPSILON
                 || math.abs(_coneAngle - _lastConeAngle) > POSITION_EPSILON
                 || math.abs(_coneRadius - _lastConeRadius) > POSITION_EPSILON
                 || math.abs(_aoeRadius - _lastAoeRadius) > POSITION_EPSILON
@@ -350,10 +355,20 @@ namespace Spellwright.Tests.Manual
 
         private void RecreatePrefab()
         {
+            if (!_spellQuery.IsEmpty)
+            {
+                _entityManager.DestroyEntity(_spellQuery);
+            }
+
             if (_entityManager != default && _entityManager.Exists(_testPrefab))
             {
                 _entityManager.DestroyEntity(_testPrefab);
                 LogInfo("Prefab destroyed");
+            }
+
+            if (_projectileColliderBlob.IsCreated)
+            {
+                _projectileColliderBlob.Dispose();
             }
 
             _testPrefab = CreateTestPrefab();
@@ -367,6 +382,7 @@ namespace Spellwright.Tests.Manual
             _lastSpellSpeed = _spellSpeed;
             _lastSpellLifetime = _spellLifetime;
             _lastGeneratorType = _generatorType;
+            _lastCollisionRadius = _collisionRadius;
             _lastConeAngle = _coneAngle;
             _lastConeRadius = _coneRadius;
             _lastAoeRadius = _aoeRadius;
@@ -501,16 +517,20 @@ namespace Spellwright.Tests.Manual
         {
             _entityManager.AddComponentData(entity, new PhysicsVelocity { Linear = float3.zero, Angular = float3.zero });
 
-            Unity.Physics.Material material = Unity.Physics.Material.Default;
-            material.CollisionResponse = CollisionResponsePolicy.RaiseTriggerEvents;
+            if (!_projectileColliderBlob.IsCreated)
+            {
+                Unity.Physics.Material material = Unity.Physics.Material.Default;
+                material.CollisionResponse = CollisionResponsePolicy.RaiseTriggerEvents;
 
-            BlobAssetReference<Unity.Physics.Collider> collider = Unity.Physics.SphereCollider.Create(
-                new SphereGeometry { Center = float3.zero, Radius = _collisionRadius },
-                CollisionLayers.CreateProjectileFilter(),
-                material
-            );
+                _projectileColliderBlob = Unity.Physics.SphereCollider.Create(
+                    new SphereGeometry { Center = float3.zero, Radius = _collisionRadius },
+                    CollisionLayers.CreateProjectileFilter(),
+                    material
+                );
+                LogVerbose($"Created new Projectile Collider Blob (Radius: {_collisionRadius})");
+            }
 
-            _entityManager.AddComponentData(entity, new PhysicsCollider { Value = collider });
+            _entityManager.AddComponentData(entity, new PhysicsCollider { Value = _projectileColliderBlob });
             _entityManager.AddSharedComponentManaged(entity, new PhysicsWorldIndex { Value = 0 });
             _entityManager.AddComponentData(entity, new ProjectileTag());
 
@@ -531,7 +551,7 @@ namespace Spellwright.Tests.Manual
         private void SpawnTestSpells()
         {
             float3 cameraPosition = transform.position;
-            float3 cameraForward = new float3(transform.forward.x, transform.forward.y, transform.forward.z);
+            var cameraForward = new float3(transform.forward.x, transform.forward.y, transform.forward.z);
             float3 basePosition = CalculateBasePosition(cameraPosition, cameraForward);
             float3 baseDirection = cameraForward;
 
@@ -671,6 +691,27 @@ namespace Spellwright.Tests.Manual
 
         private void SpawnTargets()
         {
+            bool configChanged = math.abs(_targetCollisionRadius - _lastTargetCollisionRadius) > POSITION_EPSILON;
+            bool targetsExist = !_targetQuery.IsEmpty;
+
+            if (configChanged && targetsExist)
+            {
+                _entityManager.DestroyEntity(_targetQuery);
+                LogInfo("Destroyed existing targets due to configuration change");
+            }
+
+            if (!_targetColliderBlob.IsCreated || configChanged)
+            {
+                if (_targetColliderBlob.IsCreated)
+                {
+                    _targetColliderBlob.Dispose();
+                }
+
+                _targetColliderBlob = Unity.Physics.SphereCollider.Create(new SphereGeometry { Center = float3.zero, Radius = _targetCollisionRadius }, CollisionLayers.CreateEnemyFilter());
+                _lastTargetCollisionRadius = _targetCollisionRadius;
+                LogVerbose($"Created new Target Collider Blob (Radius: {_targetCollisionRadius})");
+            }
+
             float3 cameraPosition = transform.position;
             float3 cameraForward = transform.forward;
             float3 basePosition = cameraPosition + (cameraForward * 5f);
@@ -690,7 +731,7 @@ namespace Spellwright.Tests.Manual
         {
             float angle = 360f / _targetCount * index;
             float angleRad = math.radians(angle);
-            float3 offset = new float3(math.cos(angleRad) * _targetSpawnRadius, 0f, math.sin(angleRad) * _targetSpawnRadius);
+            var offset = new float3(math.cos(angleRad) * _targetSpawnRadius, 0f, math.sin(angleRad) * _targetSpawnRadius);
             return basePosition + offset;
         }
 
@@ -708,12 +749,7 @@ namespace Spellwright.Tests.Manual
             );
             _entityManager.AddComponentData(target, new Unity.Transforms.LocalToWorld());
 
-            BlobAssetReference<Unity.Physics.Collider> targetCollider = Unity.Physics.SphereCollider.Create(
-                new SphereGeometry { Center = float3.zero, Radius = _targetCollisionRadius },
-                CollisionLayers.CreateEnemyFilter()
-            );
-
-            _entityManager.AddComponentData(target, new PhysicsCollider { Value = targetCollider });
+            _entityManager.AddComponentData(target, new PhysicsCollider { Value = _targetColliderBlob });
             _entityManager.AddSharedComponentManaged(target, new PhysicsWorldIndex { Value = 0 });
             _entityManager.AddComponentData(target, new Health { Current = _targetMaxHealth, Maximum = _targetMaxHealth });
         }
@@ -790,7 +826,6 @@ namespace Spellwright.Tests.Manual
             float healthPercent = math.clamp(health.Current / health.Maximum, 0f, 1f);
             float3 barPosition = position + new float3(0f, _targetCollisionRadius + 0.3f, 0f);
             float barWidth = _targetCollisionRadius * 2f;
-            float barHeight = 0.1f;
 
             float3 barStart = barPosition - new float3(barWidth * 0.5f, 0f, 0f);
             float3 barEnd = barStart + new float3(barWidth, 0f, 0f);
@@ -811,7 +846,7 @@ namespace Spellwright.Tests.Manual
             }
 
             float3 cameraPosition = transform.position;
-            float3 cameraForward = new float3(transform.forward.x, transform.forward.y, transform.forward.z);
+            var cameraForward = new float3(transform.forward.x, transform.forward.y, transform.forward.z);
             float3 previewPosition = cameraPosition + (cameraForward * 2f);
 
             switch (_generatorType)
@@ -1066,7 +1101,30 @@ namespace Spellwright.Tests.Manual
                 _entityManager.DestroyEntity(_caster);
             }
 
+            if (!_spellQuery.IsEmpty)
+            {
+                _entityManager.DestroyEntity(_spellQuery);
+            }
+
+            if (!_targetQuery.IsEmpty)
+            {
+                _entityManager.DestroyEntity(_targetQuery);
+            }
+
             LogInfo($"Destroyed | Total spawned: {_totalSpawned} | Total destroyed: {_totalDestroyed}");
+        }
+
+        private void DisposeBlobs()
+        {
+            if (_projectileColliderBlob.IsCreated)
+            {
+                _projectileColliderBlob.Dispose();
+            }
+
+            if (_targetColliderBlob.IsCreated)
+            {
+                _targetColliderBlob.Dispose();
+            }
         }
 
         private void LogInfo(string message)

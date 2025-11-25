@@ -52,7 +52,7 @@ Maximize performance and determinism through standardized component, system, job
 - Use only blittable types: primitives, structs, fixed arrays
 - Use `DynamicBuffer<T>` for variable-length collections per entity
 - Use tag components (empty structs) for efficient queries
-- Document component purpose and which systems use it
+- Use descriptive names to indicate component purpose
 
 **DON'T:**
 
@@ -60,7 +60,6 @@ Maximize performance and determinism through standardized component, system, job
 - Create large, generic components with many fields
 - Mix multiple responsibilities in one component
 - Use nullable reference types
-- Skip XML documentation
 
 ## EntityCommandBuffer Patterns
 
@@ -107,7 +106,6 @@ Maximize performance and determinism through standardized component, system, job
 - Use `[UpdateInGroup(typeof(...))]` for grouping
 - Use `[UpdateBefore(typeof(...))]` for dependencies
 - Use `[UpdateAfter(typeof(...))]` for dependencies
-- Document update order in system XML comments
 
 **DON'T:**
 
@@ -166,7 +164,6 @@ Before submitting DOTS/ECS code:
 - [ ] Explicit update order defined with attributes
 - [ ] Tags and buffers used for efficient queries
 - [ ] Zero GC allocations in hot paths
-- [ ] XML documentation complete
 
 ## Integration
 

@@ -1,6 +1,7 @@
 using Spellwright.Components.StatusEffect;
 using Spellwright.Jobs.StatusEffect;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace Spellwright.Systems.StatusEffect
@@ -15,15 +16,15 @@ namespace Spellwright.Systems.StatusEffect
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            _statusEffectQuery = SystemAPI.QueryBuilder().WithAll<StatusEffectStack>().Build();
+            _statusEffectQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<StatusEffectStack>().Build(ref state);
+
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate(_statusEffectQuery);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (_statusEffectQuery.IsEmpty)
-                return;
-
             float deltaTime = SystemAPI.Time.DeltaTime;
             EndSimulationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
             EntityCommandBuffer ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
@@ -32,8 +33,5 @@ namespace Spellwright.Systems.StatusEffect
 
             state.Dependency = job.ScheduleParallel(_statusEffectQuery, state.Dependency);
         }
-
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state) { }
     }
 }

@@ -9,7 +9,7 @@ namespace Spellwright.Jobs.Health
     public partial struct ApplyHealthModificationsJob : IJobEntity
     {
         [BurstCompile]
-        private void Execute(ref Components.Health health, ref DynamicBuffer<HealthModificationRequest> modifierBuffer)
+        private readonly void Execute(ref Components.Health health, ref DynamicBuffer<HealthModificationRequest> modifierBuffer)
         {
             foreach (HealthModificationRequest modifier in modifierBuffer)
             {

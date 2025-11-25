@@ -14,7 +14,7 @@ Defines mandatory standards for creating Pull Requests in Spellwright following 
 3. Generate title (Conventional Commits format)
 4. Assign labels automatically (3-5 labels)
 5. Generate body (follow template structure)
-6. Create PR (use GitHub MCP)
+6. Create PR (use GitHub Skills)
 7. Assign creator
 8. Apply labels
 9. Update Notion task with PR URL
@@ -172,19 +172,19 @@ Defines mandatory standards for creating Pull Requests in Spellwright following 
 
 **Create PR:**
 
-- Use `mcp_github_create_pull_request`
+- Use `github_create_pull_request` skill
 - Default: `draft: false`
 - Base: target branch (usually `develop`)
 - Head: current branch
 
 **Assign Creator:**
 
-- Use `mcp_github_get_me` for user
-- Use `mcp_github_update_pull_request` to assign
+- Use `github_get_user` for user
+- Use `github_update_issue` to assign (PRs are issues in GitHub API)
 
 **Apply Labels:**
 
-- Use GitHub API/CLI
+- Use `github_add_labels` skill
 - Apply 3-5 labels automatically
 
 ## Notion Integration
@@ -193,7 +193,7 @@ Defines mandatory standards for creating Pull Requests in Spellwright following 
 
 - Set Pull Request property with PR URL
 - Format: `https://github.com/owner/repo/pull/123`
-- Update after PR creation
+- Update after PR creation using Notion skills
 
 ## Best Practices
 
@@ -222,8 +222,8 @@ This standard works with:
 
 - **Commit Creation** (`general/commit-creation.mdc`)
 - **PR Template** (`general/pr-template.mdc`)
-- **GitHub MCP** (`mcp/github.mdc`)
-- **Notion MCP** (`mcp/notion.mdc`)
+- **GitHub Skills** (`skills/skill-github.mdc`)
+- **Notion Skills** (`skills/skill-notion.mdc`)
 
 ## Summary
 

@@ -1,6 +1,7 @@
-﻿using Spellwright.Components.Collision;
+using Spellwright.Components.Collision;
 using Spellwright.Components.Payloads;
 using Spellwright.Jobs.Collision;
+using Spellwright.Utilities;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -16,15 +17,20 @@ namespace Spellwright.Systems.Collision
     [UpdateAfter(typeof(PhysicsSystemGroup))]
     public partial struct AoeProcessingSystem : ISystem
     {
-        private EntityQuery _aoeRequestQuery;
+        private EntityQuery _query;
+        private ComponentLookup<HealthComponent> _healthLookup;
+        private ComponentLookup<LocalTransform> _transformLookup;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            _query = new EntityQueryBuilder(Allocator.Temp).WithAll<AoeRequest, PayloadRequest>().Build(ref state);
+            _healthLookup = state.GetComponentLookup<HealthComponent>(true);
+            _transformLookup = state.GetComponentLookup<LocalTransform>(true);
+
             state.RequireForUpdate<PhysicsWorldSingleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
-
-            _aoeRequestQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<AoeRequest, PayloadRequest>().Build(ref state);
+            state.RequireForUpdate(_query);
         }
 
         [BurstCompile]
@@ -33,15 +39,19 @@ namespace Spellwright.Systems.Collision
             PhysicsWorld physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
             EntityCommandBuffer ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
 
+            _healthLookup.Update(ref state);
+            _transformLookup.Update(ref state);
+
             var job = new AoeProcessingJob
             {
                 ECB = ecb.AsParallelWriter(),
                 CollisionWorld = physicsWorld.CollisionWorld,
-                HealthLookup = SystemAPI.GetComponentLookup<HealthComponent>(true),
-                TransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                HealthLookup = _healthLookup,
+                TransformLookup = _transformLookup,
+                EnvironmentFilter = CollisionUtils.CreateEnvironmentFilter(),
             };
 
-            state.Dependency = job.ScheduleParallel(_aoeRequestQuery, state.Dependency);
+            state.Dependency = job.ScheduleParallel(_query, state.Dependency);
         }
     }
 }

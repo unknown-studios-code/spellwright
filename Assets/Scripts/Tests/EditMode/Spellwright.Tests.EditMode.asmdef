@@ -1,6 +1,19 @@
 {
+    "allowUnsafeCode": false,
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "excludePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "name": "Spellwright.Tests.EditMode",
-    "rootNamespace": "Spellwright.Tests.EditMode",
+    "noEngineReferences": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
@@ -13,21 +26,8 @@
         "Spellwright.Components",
         "Spellwright.Jobs",
         "Spellwright.Systems",
-        "Spellwright.Tests.Utilities"
+        "Spellwright.Tests.Core"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "nunit.framework.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "rootNamespace": "Spellwright.Tests.EditMode",
+    "versionDefines": []
 }

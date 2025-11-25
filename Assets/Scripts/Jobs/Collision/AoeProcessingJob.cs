@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Collision;
+using Spellwright.Components.Collision;
 using Spellwright.Components.Payloads;
 using Spellwright.Utilities;
 using Unity.Burst;
@@ -26,22 +26,28 @@ namespace Spellwright.Jobs.Collision
         [ReadOnly]
         public ComponentLookup<LocalTransform> TransformLookup;
 
+        public CollisionFilter EnvironmentFilter;
+
         [BurstCompile]
         private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in AoeRequest request, in DynamicBuffer<PayloadRequest> payloadBuffer)
         {
             var hits = new NativeList<DistanceHit>(Allocator.Temp);
-            CollisionFilter filter = CollisionUtils.CreateEnvironmentFilter();
 
-            if (CollisionWorld.OverlapSphere(request.Position, request.Radius, ref hits, filter))
+            if (CollisionWorld.OverlapSphere(request.Position, request.Radius, ref hits, EnvironmentFilter))
             {
                 for (int i = 0; i < hits.Length; i++)
                 {
                     DistanceHit hit = hits[i];
 
                     if (!IsValidTarget(hit.Entity, request.SourceEntity))
+                    {
                         continue;
+                    }
+
                     if (!HasLineOfSight(hit.Entity, request.Position, request.CheckLineOfSight))
+                    {
                         continue;
+                    }
 
                     CreateCollisionEvent(sortKey, request.SourceEntity, hit.Entity, hit.Position, payloadBuffer);
                 }
@@ -54,19 +60,13 @@ namespace Spellwright.Jobs.Collision
         [BurstCompile]
         private bool IsValidTarget(Entity target, Entity sourceEntity)
         {
-            if (!HealthLookup.HasComponent(target))
-                return false;
-            if (target == sourceEntity)
-                return false;
-            return true;
+            return HealthLookup.HasComponent(target) && target != sourceEntity;
         }
 
         [BurstCompile]
-        private bool HasLineOfSight(Entity target, float3 origin, bool checkLineOfSight)
+        private readonly bool HasLineOfSight(Entity target, float3 origin, bool checkLineOfSight)
         {
-            if (!checkLineOfSight)
-                return true;
-            return CollisionUtils.HasLineOfSight(CollisionWorld, origin, target, TransformLookup);
+            return !checkLineOfSight || CollisionUtils.HasLineOfSight(CollisionWorld, origin, target, TransformLookup);
         }
 
         [BurstCompile]

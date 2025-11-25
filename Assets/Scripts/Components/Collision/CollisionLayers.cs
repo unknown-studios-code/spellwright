@@ -1,4 +1,4 @@
-﻿using Unity.Physics;
+using Unity.Physics;
 
 namespace Spellwright.Components.Collision
 {

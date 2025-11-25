@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Collision;
+using Spellwright.Components.Collision;
 using Spellwright.Components.Payloads;
 using Spellwright.Utilities;
 using Unity.Burst;
@@ -26,13 +26,14 @@ namespace Spellwright.Jobs.Collision
         [ReadOnly]
         public ComponentLookup<LocalTransform> TransformLookup;
 
+        public CollisionFilter EnvironmentFilter;
+
         [BurstCompile]
         private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in ConeRequest request, in DynamicBuffer<PayloadRequest> payloadBuffer)
         {
             var hits = new NativeList<DistanceHit>(Allocator.Temp);
-            CollisionFilter filter = CollisionUtils.CreateEnvironmentFilter();
 
-            if (CollisionWorld.OverlapSphere(request.Position, request.Radius, ref hits, filter))
+            if (CollisionWorld.OverlapSphere(request.Position, request.Radius, ref hits, EnvironmentFilter))
             {
                 float3 coneForward = math.normalize(request.Direction);
                 float cosHalfAngle = math.cos(math.radians(request.AngleDegrees * 0.5f));
@@ -42,11 +43,19 @@ namespace Spellwright.Jobs.Collision
                     DistanceHit hit = hits[i];
 
                     if (!IsValidTarget(hit.Entity, request.SourceEntity))
+                    {
                         continue;
+                    }
+
                     if (!IsInConeArea(hit.Entity, request.Position, coneForward, cosHalfAngle))
+                    {
                         continue;
+                    }
+
                     if (!HasLineOfSight(hit.Entity, request.Position, request.CheckLineOfSight))
+                    {
                         continue;
+                    }
 
                     float3 targetPosition = TransformLookup[hit.Entity].Position;
                     CreateCollisionEvent(sortKey, request.SourceEntity, hit.Entity, targetPosition, payloadBuffer);
@@ -60,13 +69,7 @@ namespace Spellwright.Jobs.Collision
         [BurstCompile]
         private bool IsValidTarget(Entity target, Entity sourceEntity)
         {
-            if (!HealthLookup.HasComponent(target))
-                return false;
-            if (target == sourceEntity)
-                return false;
-            if (!TransformLookup.HasComponent(target))
-                return false;
-            return true;
+            return HealthLookup.HasComponent(target) && target != sourceEntity && TransformLookup.HasComponent(target);
         }
 
         [BurstCompile]
@@ -77,11 +80,9 @@ namespace Spellwright.Jobs.Collision
         }
 
         [BurstCompile]
-        private bool HasLineOfSight(Entity target, float3 origin, bool checkLineOfSight)
+        private readonly bool HasLineOfSight(Entity target, float3 origin, bool checkLineOfSight)
         {
-            if (!checkLineOfSight)
-                return true;
-            return CollisionUtils.HasLineOfSight(CollisionWorld, origin, target, TransformLookup);
+            return !checkLineOfSight || CollisionUtils.HasLineOfSight(CollisionWorld, origin, target, TransformLookup);
         }
 
         [BurstCompile]

@@ -80,7 +80,9 @@ namespace Spellwright.Jobs.Payloads
         private void ApplyStatusEffect(int sortKey, Entity target, PayloadRequest payload)
         {
             if (payload.Effect == StatusEffectType.None)
+            {
                 return;
+            }
 
             ECB.AddBuffer<StatusEffectStack>(sortKey, target);
             ECB.AppendToBuffer(
