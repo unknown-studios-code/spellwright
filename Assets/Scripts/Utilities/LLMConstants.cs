@@ -4,6 +4,11 @@ namespace Spellwright.Utilities
     {
         public const string SCHEMA_RESOURCE_PATH = "Schemas/SpellSchema";
 
+        public const int MAX_RETRIES = 3;
+        public const float BASE_DELAY_SECONDS = 0.5f;
+        public const float ADDITIONAL_DELAY_SECONDS = 0.1f;
+        public const float JITTER_MAX_SECONDS = 0.1f;
+
         public const string SYSTEM_PROMPT =
             @"ROLE: Spell compiler that converts natural language to JSON.
 

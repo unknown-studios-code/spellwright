@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using LLMUnity;
 using Spellwright.Components.LLM;
 using Spellwright.Utilities;
@@ -54,37 +55,73 @@ namespace Spellwright.Systems.LLM
 
         private async void SendChatRequestAsync(string userInput, Entity entity, LLMResponseComponent response)
         {
-            try
-            {
-                string result = await _llmCharacter.Chat(
-                    userInput,
-                    (content) =>
-                    {
-                        if (EntityManager.Exists(entity))
-                        {
-                            response.Content = content;
-                        }
-                    },
-                    () =>
-                    {
-                        if (EntityManager.Exists(entity))
-                        {
-                            response.IsComplete = true;
-                            EntityManager.RemoveComponent<LLMProcessingTag>(entity);
-                        }
-                    },
-                    addToHistory: false
-                );
+            int attempt = 0;
 
-                if (result == null && EntityManager.Exists(entity) && !response.IsComplete)
+            while (attempt < LLMConstants.MAX_RETRIES)
+            {
+                attempt++;
+
+                if (!EntityManager.Exists(entity))
                 {
-                    HandleError(entity, response, "LLM returned null response.");
+                    return;
+                }
+
+                try
+                {
+                    Debug.Log($"[LLMSystem] Attempt {attempt}/{LLMConstants.MAX_RETRIES}: \"{userInput}\"");
+
+                    string result = await _llmCharacter.Chat(
+                        userInput,
+                        (content) =>
+                        {
+                            if (EntityManager.Exists(entity))
+                            {
+                                response.Content = content;
+                            }
+                        },
+                        () =>
+                        {
+                            if (EntityManager.Exists(entity))
+                            {
+                                response.IsComplete = true;
+                                EntityManager.RemoveComponent<LLMProcessingTag>(entity);
+                            }
+                        },
+                        addToHistory: false
+                    );
+
+                    if (result != null)
+                    {
+                        Debug.Log($"[LLMSystem] Success on attempt {attempt}");
+                        return;
+                    }
+
+                    if (attempt < LLMConstants.MAX_RETRIES)
+                    {
+                        await WaitForRetryAsync(attempt, "Null response");
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (attempt >= LLMConstants.MAX_RETRIES)
+                    {
+                        HandleError(entity, response, $"Failed after {attempt} attempts: {e.Message}");
+                        return;
+                    }
+
+                    await WaitForRetryAsync(attempt, $"Error: {e.Message}");
                 }
             }
-            catch (Exception e)
-            {
-                HandleError(entity, response, e.Message);
-            }
+
+            HandleError(entity, response, $"Max retries ({LLMConstants.MAX_RETRIES}) exceeded with null response");
+        }
+
+        private async Task WaitForRetryAsync(int attempt, string reason)
+        {
+            float jitter = UnityEngine.Random.Range(0f, LLMConstants.JITTER_MAX_SECONDS);
+            float delay = LLMConstants.BASE_DELAY_SECONDS + (LLMConstants.ADDITIONAL_DELAY_SECONDS * (attempt - 1)) + jitter;
+            Debug.LogWarning($"[LLMSystem] {reason}, retrying after {delay * 1000:F0}ms...");
+            await Task.Delay(TimeSpan.FromSeconds(delay));
         }
 
         private void HandleError(Entity entity, LLMResponseComponent response, string message)
