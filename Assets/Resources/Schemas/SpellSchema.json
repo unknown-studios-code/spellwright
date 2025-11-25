@@ -1,0 +1,141 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false,
+    "properties": {
+        "generator": {
+            "properties": {
+                "angle": {
+                    "maximum": 180,
+                    "minimum": 1,
+                    "type": "number"
+                },
+                "duration": {
+                    "maximum": 60,
+                    "minimum": 0.1,
+                    "type": "number"
+                },
+                "lifetime": {
+                    "maximum": 60,
+                    "minimum": 0.1,
+                    "type": "number"
+                },
+                "radius": {
+                    "maximum": 100,
+                    "minimum": 0.1,
+                    "type": "number"
+                },
+                "speed": {
+                    "maximum": 1000,
+                    "minimum": 0.1,
+                    "type": "number"
+                },
+                "type": {
+                    "enum": ["projectile", "cone", "area_of_effect"],
+                    "type": "string"
+                }
+            },
+            "required": ["type"],
+            "type": "object"
+        },
+        "modifiers": {
+            "items": {
+                "properties": {
+                    "fork_angle": {
+                        "maximum": 180,
+                        "minimum": 1,
+                        "type": "number"
+                    },
+                    "fork_count": {
+                        "maximum": 10,
+                        "minimum": 2,
+                        "type": "integer"
+                    },
+                    "max_bounces": {
+                        "maximum": 20,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "pierce_count": {
+                        "maximum": 20,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "projectile_count": {
+                        "maximum": 20,
+                        "minimum": 2,
+                        "type": "integer"
+                    },
+                    "spread_angle": {
+                        "maximum": 180,
+                        "minimum": 1,
+                        "type": "number"
+                    },
+                    "turn_speed": {
+                        "maximum": 1000,
+                        "minimum": 0.1,
+                        "type": "number"
+                    },
+                    "type": {
+                        "enum": ["homing", "chain", "pierce", "fork", "multi_shot"],
+                        "type": "string"
+                    }
+                },
+                "required": ["type"],
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "payloads": {
+            "items": {
+                "properties": {
+                    "amount": {
+                        "maximum": 10000,
+                        "minimum": 1,
+                        "type": "number"
+                    },
+                    "duration": {
+                        "maximum": 60,
+                        "minimum": 0.1,
+                        "type": "number"
+                    },
+                    "effect_name": {
+                        "enum": ["slow", "burn", "stun", "poison"],
+                        "type": "string"
+                    },
+                    "elemental_type": {
+                        "enum": ["fire", "frost", "shock", "physical", "holy"],
+                        "type": "string"
+                    },
+                    "entity_prefab": {
+                        "type": "string"
+                    },
+                    "intensity": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "number"
+                    },
+                    "spawn_count": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "type": {
+                        "enum": ["damage", "heal", "apply_status_effect", "spawn_entity"],
+                        "type": "string"
+                    }
+                },
+                "required": ["type"],
+                "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+        },
+        "spellName": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+        }
+    },
+    "required": ["spellName", "generator", "payloads"],
+    "type": "object"
+}

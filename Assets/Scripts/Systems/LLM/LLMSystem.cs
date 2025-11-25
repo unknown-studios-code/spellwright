@@ -1,7 +1,10 @@
 using System;
+using LLMUnity;
 using Spellwright.Components.LLM;
+using Spellwright.Utilities;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 
 namespace Spellwright.Systems.LLM
 {
@@ -10,6 +13,7 @@ namespace Spellwright.Systems.LLM
     {
         private EntityQuery _referenceQuery;
         private EntityQuery _requestQuery;
+        private LLMCharacter _llmCharacter;
 
         protected override void OnCreate()
         {
@@ -20,31 +24,40 @@ namespace Spellwright.Systems.LLM
             RequireForUpdate(_requestQuery);
         }
 
-        protected override void OnUpdate()
+        protected override void OnStartRunning()
         {
             Entity referenceEntity = _referenceQuery.GetSingletonEntity();
             LLMReferenceComponent llmRef = EntityManager.GetComponentObject<LLMReferenceComponent>(referenceEntity);
 
+            _llmCharacter = llmRef.LLMCharacter;
+            _llmCharacter.grammarJSONString = llmRef.JsonSchema;
+            _llmCharacter.SetPrompt(LLMConstants.SYSTEM_PROMPT, clearChat: true);
+        }
+
+        protected override void OnUpdate()
+        {
             using NativeArray<Entity> entities = _requestQuery.ToEntityArray(Allocator.Temp);
 
             foreach (Entity entity in entities)
             {
                 LLMRequestComponent request = EntityManager.GetComponentObject<LLMRequestComponent>(entity);
 
+                Debug.Log($"[LLMSystem] Processing request with System Prompt:\n{_llmCharacter.prompt}");
+
                 EntityManager.AddComponent<LLMProcessingTag>(entity);
                 var response = new LLMResponseComponent();
                 EntityManager.AddComponentObject(entity, response);
 
-                SendChatRequestAsync(llmRef.Value, request.Prompt, entity, response);
+                SendChatRequestAsync(request.Prompt, entity, response);
             }
         }
 
-        private async void SendChatRequestAsync(LLMUnity.LLMCharacter llm, string prompt, Entity entity, LLMResponseComponent response)
+        private async void SendChatRequestAsync(string userInput, Entity entity, LLMResponseComponent response)
         {
             try
             {
-                string result = await llm.Chat(
-                    prompt,
+                string result = await _llmCharacter.Chat(
+                    userInput,
                     (content) =>
                     {
                         if (EntityManager.Exists(entity))
@@ -60,7 +73,7 @@ namespace Spellwright.Systems.LLM
                             EntityManager.RemoveComponent<LLMProcessingTag>(entity);
                         }
                     },
-                    addToHistory: true
+                    addToHistory: false
                 );
 
                 if (result == null && EntityManager.Exists(entity) && !response.IsComplete)

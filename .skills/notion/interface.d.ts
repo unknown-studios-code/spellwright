@@ -40,6 +40,7 @@ export namespace Notion {
     export function getBotInfo(): Promise<ISkillResult<any>>;
     export function getDatabase(databaseId: string): Promise<ISkillResult<IDatabase>>;
     export function getPage(pageId: string): Promise<ISkillResult<IPage>>;
+    export function getPageByTaskId(taskId: string): Promise<ISkillResult<IPage | null>>;
     export function getPageContent(blockId: string): Promise<ISkillResult<IBlock[]>>;
     export function getUser(userId: string): Promise<ISkillResult<any>>;
     export function listComments(blockId: string): Promise<ISkillResult<any[]>>;

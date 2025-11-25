@@ -1,20 +1,22 @@
 import { Octokit } from "@octokit/rest";
 import * as dotenv from "dotenv";
 import { IBranch, ICommit, IFileContent, IGitHubRepository, IIssue, ILabel, INotification, IPullRequest, IPullRequestReview, ISearchResult, IUser, IWorkflowRun } from "../domain/interfaces";
+import { mapBranch, mapCommit, mapFileContent, mapIssue, mapLabel, mapNotification, mapPullRequest, mapReview, mapSearchCodeItem, mapUser, mapWorkflowRun } from "./github-utils";
 
 dotenv.config({ path: "./.env" });
 
 /**
+ * Implementation of the GitHub Repository using Octokit SDK.
  * @class GitHubAdapter
  * @implements {IGitHubRepository}
- * @description Adapter for GitHub API using Octokit
  */
 export class GitHubAdapter implements IGitHubRepository {
     private client: Octokit;
 
     /**
+     * Initializes the Octokit client.
      * @constructor
-     * @throws {Error} If GITHUB_TOKEN environment variable is not set
+     * @throws {Error} If GITHUB_TOKEN environment variable is not set.
      */
     constructor() {
         const token = process.env.GITHUB_TOKEN;
@@ -25,32 +27,26 @@ export class GitHubAdapter implements IGitHubRepository {
     }
 
     /**
-     * @param {string} query - Search query
-     * @returns {Promise<ISearchResult>} Search results
+     * Searches for code across GitHub repositories.
+     * @param {string} query - The search query.
+     * @returns {Promise<ISearchResult>} The search results.
      */
     async searchCode(query: string): Promise<ISearchResult> {
         const response = await this.client.search.code({ q: query });
         return {
-            items: response.data.items.map((item) => ({
-                name: item.name,
-                path: item.path,
-                sha: item.sha,
-                url: item.html_url,
-                repository: {
-                    full_name: item.repository.full_name,
-                },
-            })),
+            items: response.data.items.map(mapSearchCodeItem),
             total_count: response.data.total_count,
         };
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} path - File path
-     * @param {string} [ref] - Git reference
-     * @returns {Promise<IFileContent>} File content
-     * @throws {Error} If path points to a directory
+     * Gets the content of a file from a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} path - The file path.
+     * @param {string} [ref] - The git reference (branch, tag, or commit SHA).
+     * @returns {Promise<IFileContent>} The file content.
+     * @throws {Error} If path points to a directory.
      */
     async getFileContent(owner: string, repo: string, path: string, ref?: string): Promise<IFileContent> {
         const response = await this.client.repos.getContent({ owner, repo, path, ref });
@@ -59,147 +55,137 @@ export class GitHubAdapter implements IGitHubRepository {
             throw new Error("Path points to a directory, not a file");
         }
 
-        const data = response.data as any;
-        return {
-            name: data.name,
-            path: data.path,
-            sha: data.sha,
-            size: data.size,
-            url: data.url,
-            html_url: data.html_url,
-            git_url: data.git_url,
-            download_url: data.download_url,
-            type: data.type,
-            content: data.content,
-            encoding: data.encoding,
-        };
+        return mapFileContent(response.data);
     }
 
     /**
-     * @returns {Promise<IUser>} Current authenticated user
+     * Gets the currently authenticated user.
+     * @returns {Promise<IUser>} The current user.
      */
     async getCurrentUser(): Promise<IUser> {
         const response = await this.client.users.getAuthenticated();
-        return {
-            login: response.data.login,
-            name: response.data.name || undefined,
-            email: response.data.email || undefined,
-        };
+        return mapUser(response.data);
     }
 
     /**
-     * @param {string} username - GitHub username
-     * @returns {Promise<IUser>} User information
+     * Gets a user by their username.
+     * @param {string} username - The GitHub username.
+     * @returns {Promise<IUser>} The user details.
      */
     async getUser(username: string): Promise<IUser> {
         const response = await this.client.users.getByUsername({ username });
-        return {
-            login: response.data.login,
-            name: response.data.name || undefined,
-            email: response.data.email || undefined,
-        };
+        return mapUser(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} title - Issue title
-     * @param {string} [body] - Issue body
-     * @returns {Promise<IIssue>} Created issue
+     * Creates a new issue in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} title - The issue title.
+     * @param {string} [body] - The issue body.
+     * @returns {Promise<IIssue>} The created issue.
      */
     async createIssue(owner: string, repo: string, title: string, body?: string): Promise<IIssue> {
         const response = await this.client.issues.create({ owner, repo, title, body });
-        return this.mapIssue(response.data);
+        return mapIssue(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} issueNumber - Issue number
-     * @returns {Promise<IIssue>} Issue details
+     * Gets an issue by its number.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} issueNumber - The issue number.
+     * @returns {Promise<IIssue>} The issue details.
      */
     async getIssue(owner: string, repo: string, issueNumber: number): Promise<IIssue> {
         const response = await this.client.issues.get({ owner, repo, issue_number: issueNumber });
-        return this.mapIssue(response.data);
+        return mapIssue(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {"open" | "closed" | "all"} [state="open"] - Issue state filter
-     * @returns {Promise<IIssue[]>} List of issues
+     * Lists issues in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {"open" | "closed" | "all"} [state="open"] - The issue state filter.
+     * @returns {Promise<IIssue[]>} The list of issues.
      */
     async listIssues(owner: string, repo: string, state: "open" | "closed" | "all" = "open"): Promise<IIssue[]> {
         const response = await this.client.issues.listForRepo({ owner, repo, state });
-        return response.data.map(this.mapIssue);
+        return response.data.map(mapIssue);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} issueNumber - Issue number
-     * @param {Partial<IIssue>} updates - Fields to update
-     * @returns {Promise<IIssue>} Updated issue
+     * Updates an existing issue.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} issueNumber - The issue number.
+     * @param {Partial<IIssue>} updates - The fields to update.
+     * @returns {Promise<IIssue>} The updated issue.
      */
     async updateIssue(owner: string, repo: string, issueNumber: number, updates: Partial<IIssue>): Promise<IIssue> {
         const response = await this.client.issues.update({ owner, repo, issue_number: issueNumber, ...updates });
-        return this.mapIssue(response.data);
+        return mapIssue(response.data);
     }
 
     /**
-     * @param {string} query - Search query
-     * @returns {Promise<{items: IIssue[], total_count: number}>} Search results
+     * Searches for issues and pull requests.
+     * @param {string} query - The search query.
+     * @returns {Promise<{ items: IIssue[]; total_count: number }>} The search results.
      */
     async searchIssues(query: string): Promise<{ items: IIssue[]; total_count: number }> {
         const response = await this.client.search.issuesAndPullRequests({ q: query });
         return {
-            items: response.data.items.map(this.mapIssue),
+            items: response.data.items.map(mapIssue),
             total_count: response.data.total_count,
         };
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} title - Pull request title
-     * @param {string} head - Source branch
-     * @param {string} base - Target branch
-     * @param {string} [body] - Pull request body
-     * @returns {Promise<IPullRequest>} Created pull request
+     * Creates a new pull request.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} title - The pull request title.
+     * @param {string} head - The source branch.
+     * @param {string} base - The target branch.
+     * @param {string} [body] - The pull request body.
+     * @returns {Promise<IPullRequest>} The created pull request.
      */
     async createPullRequest(owner: string, repo: string, title: string, head: string, base: string, body?: string): Promise<IPullRequest> {
         const response = await this.client.pulls.create({ owner, repo, title, head, base, body });
-        return this.mapPullRequest(response.data);
+        return mapPullRequest(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} prNumber - Pull request number
-     * @returns {Promise<IPullRequest>} Pull request details
+     * Gets a pull request by its number.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} prNumber - The pull request number.
+     * @returns {Promise<IPullRequest>} The pull request details.
      */
     async getPullRequest(owner: string, repo: string, prNumber: number): Promise<IPullRequest> {
         const response = await this.client.pulls.get({ owner, repo, pull_number: prNumber });
-        return this.mapPullRequest(response.data);
+        return mapPullRequest(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {"open" | "closed" | "all"} [state="open"] - Pull request state filter
-     * @returns {Promise<IPullRequest[]>} List of pull requests
+     * Lists pull requests in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {"open" | "closed" | "all"} [state="open"] - The pull request state filter.
+     * @returns {Promise<IPullRequest[]>} The list of pull requests.
      */
     async listPullRequests(owner: string, repo: string, state: "open" | "closed" | "all" = "open"): Promise<IPullRequest[]> {
         const response = await this.client.pulls.list({ owner, repo, state });
-        return response.data.map(this.mapPullRequest);
+        return response.data.map(mapPullRequest);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} prNumber - Pull request number
-     * @param {"merge" | "squash" | "rebase"} [method="merge"] - Merge method
-     * @returns {Promise<{merged: boolean, message: string}>} Merge result
+     * Merges a pull request.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} prNumber - The pull request number.
+     * @param {"merge" | "squash" | "rebase"} [method="merge"] - The merge method.
+     * @returns {Promise<{ merged: boolean; message: string }>} The merge result.
      */
     async mergePullRequest(owner: string, repo: string, prNumber: number, method: "merge" | "squash" | "rebase" = "merge"): Promise<{ merged: boolean; message: string }> {
         const response = await this.client.pulls.merge({ owner, repo, pull_number: prNumber, merge_method: method });
@@ -210,84 +196,61 @@ export class GitHubAdapter implements IGitHubRepository {
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} prNumber - Pull request number
-     * @returns {Promise<IPullRequestReview[]>} List of reviews
+     * Lists reviews on a pull request.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} prNumber - The pull request number.
+     * @returns {Promise<IPullRequestReview[]>} The list of reviews.
      */
     async listPullRequestReviews(owner: string, repo: string, prNumber: number): Promise<IPullRequestReview[]> {
         const response = await this.client.pulls.listReviews({ owner, repo, pull_number: prNumber });
-        return response.data.map((review) => ({
-            id: review.id,
-            user: { login: review.user?.login || "unknown" },
-            body: review.body || "",
-            state: review.state as "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED",
-            submitted_at: review.submitted_at || "",
-            html_url: review.html_url,
-        }));
+        return response.data.map(mapReview);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} prNumber - Pull request number
-     * @param {"APPROVE" | "REQUEST_CHANGES" | "COMMENT"} event - Review event
-     * @param {string} [body] - Review comment
-     * @returns {Promise<IPullRequestReview>} Created review
+     * Creates a review on a pull request.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} prNumber - The pull request number.
+     * @param {"APPROVE" | "REQUEST_CHANGES" | "COMMENT"} event - The review event type.
+     * @param {string} [body] - The review comment.
+     * @returns {Promise<IPullRequestReview>} The created review.
      */
     async createPullRequestReview(owner: string, repo: string, prNumber: number, event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT", body?: string): Promise<IPullRequestReview> {
-        const response = await this.client.pulls.createReview({
-            owner,
-            repo,
-            pull_number: prNumber,
-            event,
-            body,
-        });
-        return {
-            id: response.data.id,
-            user: { login: response.data.user?.login || "unknown" },
-            body: response.data.body || "",
-            state: response.data.state as "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED",
-            submitted_at: response.data.submitted_at || "",
-            html_url: response.data.html_url,
-        };
+        const response = await this.client.pulls.createReview({ owner, repo, pull_number: prNumber, event, body });
+        return mapReview(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @returns {Promise<ILabel[]>} List of labels
+     * Lists labels in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @returns {Promise<ILabel[]>} The list of labels.
      */
     async listLabels(owner: string, repo: string): Promise<ILabel[]> {
         const response = await this.client.issues.listLabelsForRepo({ owner, repo });
-        return response.data.map((label) => ({
-            name: label.name,
-            color: label.color,
-            description: label.description || undefined,
-        }));
+        return response.data.map(mapLabel);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} issueNumber - Issue or PR number
-     * @param {string[]} labels - Label names to add
-     * @returns {Promise<ILabel[]>} Updated labels
+     * Adds labels to an issue or pull request.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} issueNumber - The issue or pull request number.
+     * @param {string[]} labels - The label names to add.
+     * @returns {Promise<ILabel[]>} The updated labels.
      */
     async addLabelsToIssue(owner: string, repo: string, issueNumber: number, labels: string[]): Promise<ILabel[]> {
         const response = await this.client.issues.addLabels({ owner, repo, issue_number: issueNumber, labels });
-        return response.data.map((label) => ({
-            name: label.name,
-            color: label.color,
-            description: label.description || undefined,
-        }));
+        return response.data.map(mapLabel);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {number} issueNumber - Issue or PR number
-     * @param {string} labelName - Label name to remove
+     * Removes a label from an issue or pull request.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {number} issueNumber - The issue or pull request number.
+     * @param {string} labelName - The label name to remove.
      * @returns {Promise<void>}
      */
     async removeLabelFromIssue(owner: string, repo: string, issueNumber: number, labelName: string): Promise<void> {
@@ -295,25 +258,23 @@ export class GitHubAdapter implements IGitHubRepository {
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @returns {Promise<IBranch[]>} List of branches
+     * Lists branches in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @returns {Promise<IBranch[]>} The list of branches.
      */
     async listBranches(owner: string, repo: string): Promise<IBranch[]> {
         const response = await this.client.repos.listBranches({ owner, repo });
-        return response.data.map((branch) => ({
-            name: branch.name,
-            commit: { sha: branch.commit.sha },
-            protected: branch.protected,
-        }));
+        return response.data.map(mapBranch);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} branchName - New branch name
-     * @param {string} sha - Commit SHA to branch from
-     * @returns {Promise<IBranch>} Created branch reference
+     * Creates a new branch.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} branchName - The new branch name.
+     * @param {string} sha - The commit SHA to branch from.
+     * @returns {Promise<IBranch>} The created branch reference.
      */
     async createBranch(owner: string, repo: string, branchName: string, sha: string): Promise<IBranch> {
         const ref = `refs/heads/${branchName}`;
@@ -326,96 +287,58 @@ export class GitHubAdapter implements IGitHubRepository {
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} [sha] - Starting SHA
-     * @param {number} [perPage=30] - Results per page
-     * @returns {Promise<ICommit[]>} List of commits
+     * Lists commits in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} [sha] - The starting commit SHA.
+     * @param {number} [perPage=30] - The number of results per page.
+     * @returns {Promise<ICommit[]>} The list of commits.
      */
     async listCommits(owner: string, repo: string, sha?: string, perPage: number = 30): Promise<ICommit[]> {
         const response = await this.client.repos.listCommits({ owner, repo, sha, per_page: perPage });
-        return response.data.map((commit) => ({
-            sha: commit.sha,
-            commit: {
-                message: commit.commit.message,
-                author: {
-                    name: commit.commit.author?.name || "unknown",
-                    email: commit.commit.author?.email || "",
-                    date: commit.commit.author?.date || "",
-                },
-            },
-            html_url: commit.html_url,
-        }));
+        return response.data.map(mapCommit);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} ref - Commit reference (SHA, branch, tag)
-     * @returns {Promise<ICommit>} Commit details
+     * Gets a commit by its reference.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} ref - The commit reference (SHA, branch, or tag).
+     * @returns {Promise<ICommit>} The commit details.
      */
     async getCommit(owner: string, repo: string, ref: string): Promise<ICommit> {
         const response = await this.client.repos.getCommit({ owner, repo, ref });
-        return {
-            sha: response.data.sha,
-            commit: {
-                message: response.data.commit.message,
-                author: {
-                    name: response.data.commit.author?.name || "unknown",
-                    email: response.data.commit.author?.email || "",
-                    date: response.data.commit.author?.date || "",
-                },
-            },
-            html_url: response.data.html_url,
-        };
+        return mapCommit(response.data);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @param {string} [workflowId] - Specific workflow ID or filename
-     * @returns {Promise<IWorkflowRun[]>} List of workflow runs
+     * Lists workflow runs in a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @param {string} [workflowId] - The specific workflow ID or filename.
+     * @returns {Promise<IWorkflowRun[]>} The list of workflow runs.
      */
     async listWorkflowRuns(owner: string, repo: string, workflowId?: string): Promise<IWorkflowRun[]> {
         const response = workflowId ? await this.client.actions.listWorkflowRuns({ owner, repo, workflow_id: workflowId }) : await this.client.actions.listWorkflowRunsForRepo({ owner, repo });
-
-        return response.data.workflow_runs.map((run) => ({
-            id: run.id,
-            name: run.name || "Unknown",
-            head_branch: run.head_branch || "",
-            head_sha: run.head_sha,
-            status: run.status as "queued" | "in_progress" | "completed",
-            conclusion: run.conclusion as "success" | "failure" | "neutral" | "cancelled" | "skipped" | "timed_out" | undefined,
-            html_url: run.html_url,
-            created_at: run.created_at,
-            updated_at: run.updated_at,
-        }));
+        return response.data.workflow_runs.map(mapWorkflowRun);
     }
 
     /**
-     * @param {boolean} [all=false] - Include read notifications
-     * @param {boolean} [participating=false] - Only show notifications user is participating in
-     * @returns {Promise<INotification[]>} List of notifications
+     * Lists notifications for the authenticated user.
+     * @param {boolean} [all=false] - Include read notifications.
+     * @param {boolean} [participating=false] - Only show notifications user is participating in.
+     * @returns {Promise<INotification[]>} The list of notifications.
      */
     async listNotifications(all: boolean = false, participating: boolean = false): Promise<INotification[]> {
         const response = await this.client.activity.listNotificationsForAuthenticatedUser({ all, participating });
-        return response.data.map((notification) => ({
-            id: notification.id,
-            repository: { full_name: notification.repository.full_name },
-            subject: {
-                title: notification.subject.title,
-                type: notification.subject.type,
-            },
-            reason: notification.reason,
-            unread: notification.unread,
-            updated_at: notification.updated_at,
-        }));
+        return response.data.map(mapNotification);
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
-     * @returns {Promise<{html_url: string}>} Forked repository URL
+     * Forks a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
+     * @returns {Promise<{ html_url: string }>} The forked repository URL.
      */
     async forkRepository(owner: string, repo: string): Promise<{ html_url: string }> {
         const response = await this.client.repos.createFork({ owner, repo });
@@ -423,49 +346,12 @@ export class GitHubAdapter implements IGitHubRepository {
     }
 
     /**
-     * @param {string} owner - Repository owner
-     * @param {string} repo - Repository name
+     * Stars a repository.
+     * @param {string} owner - The repository owner.
+     * @param {string} repo - The repository name.
      * @returns {Promise<void>}
      */
     async starRepository(owner: string, repo: string): Promise<void> {
         await this.client.activity.starRepoForAuthenticatedUser({ owner, repo });
-    }
-
-    /**
-     * @private
-     * @param {any} data - GitHub API issue data
-     * @returns {IIssue} Mapped issue entity
-     */
-    private mapIssue(data: any): IIssue {
-        return {
-            number: data.number,
-            title: data.title,
-            body: data.body,
-            state: data.state,
-            html_url: data.html_url,
-            user: { login: data.user?.login || "unknown" },
-            created_at: data.created_at,
-            updated_at: data.updated_at,
-            labels: data.labels?.map((label: any) => (typeof label === "string" ? label : label.name)),
-        };
-    }
-
-    /**
-     * @private
-     * @param {any} data - GitHub API pull request data
-     * @returns {IPullRequest} Mapped pull request entity
-     */
-    private mapPullRequest(data: any): IPullRequest {
-        return {
-            number: data.number,
-            title: data.title,
-            body: data.body,
-            state: data.state,
-            html_url: data.html_url,
-            head: { ref: data.head.ref, sha: data.head.sha },
-            base: { ref: data.base.ref },
-            merged: data.merged || false,
-            user: { login: data.user?.login || "unknown" },
-        };
     }
 }
