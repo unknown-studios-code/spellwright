@@ -1,0 +1,102 @@
+---
+description: Core protocol for using Code Execution Skills. Loads when the user asks to perform external integrations or run scripts.
+alwaysApply: false
+---
+
+# Code Execution Skills: Core Protocol
+
+This project uses a **Code Execution** pattern for interacting with external tools. Instead of calling pre-defined tools directly, the Agent must **write and execute TypeScript scripts** that import skills from the local library.
+
+## 1. Concept
+
+The Agent has access to a powerful library of skills located in `.skills/`.
+To use these skills, the Agent must:
+
+1.  **Plan**: Decide which functions are needed.
+2.  **Verify**: Read the API definitions to ensure correct usage.
+3.  **Code**: Create a temporary TypeScript script that imports these functions.
+4.  **Execute**: Run the script using `ts-node`.
+5.  **Observe**: Read the output.
+
+## 2. Execution Protocol
+
+When you need to perform an action or retrieve data from these services, follow this EXACT protocol:
+
+### Step 1: Read API Definitions
+
+Before writing any code, you MUST read the authoritative API definition for the specific skill you intend to use. This file is located within the skill's directory.
+
+For example:
+
+- GitHub: `.skills/github/interface.d.ts`
+- Notion: `.skills/notion/interface.d.ts`
+
+```bash
+cat .skills/<skill_name>/interface.d.ts
+```
+
+### Step 2: Create a Temporary Script
+
+Create a file inside `.skills/temp/` (e.g., `.skills/temp/task_123.ts`).
+**CRITICAL**: You MUST use the `.skills/temp/` directory.
+
+**Template**:
+
+```typescript
+import { listLabels } from "../github/index"; // Notice the relative path from .skills/temp/
+import { createPage } from "../notion/index";
+
+async function run() {
+    try {
+        // 1. Perform Logic (Use types from interface.d.ts)
+        const labelsResult = await listLabels("owner", "repo");
+
+        if (!labelsResult.success) {
+            console.error("Failed to list labels:", labelsResult.error);
+            return;
+        }
+
+        const labels = labelsResult.data;
+        console.log("Labels found:", labels.length);
+
+        // 2. Handle Results Programmatically
+        if (labels.length > 0) {
+            await createPage(
+                "parent_id",
+                "page",
+                "Label Report",
+                `Found label: ${labels[0].name}`
+            );
+        }
+    } catch (error) {
+        console.error("Error executing skill:", error);
+    }
+}
+
+run();
+```
+
+### Step 3: Run the Script
+
+Execute the script using `npx ts-node`.
+
+```bash
+npx ts-node .skills/temp/task_123.ts
+```
+
+### Step 4: Cleanup
+
+After successful execution and reading the output, delete the temporary file.
+
+```bash
+rm .skills/temp/task_123.ts
+```
+
+## 3. Best Practices
+
+- **Consult Definitions**: Always check `.skills/<skill>/interface.d.ts` if you are unsure about a signature.
+- **Composition**: Do NOT run multiple CLI commands in sequence if you can combine them in one script. Use the programmatic API to pass data from one skill to another (e.g., GitHub result -> Notion input).
+- **Limit Logging**: **ONLY** use `console.log` for the final output or critical information. Avoid verbose or debug logging to minimize context usage. The goal is efficient data processing, not human-readable logs.
+- **Type Safety**: The skills are typed. Rely on TypeScript to ensure you are passing correct parameters.
+- **Error Handling**: Wrap your logic in `try/catch` blocks to gracefully report errors in the terminal output.
+- **Imports**: Always import from the `index.ts` barrel file (`../<domain>/index`), NOT from internal `src/...` files.

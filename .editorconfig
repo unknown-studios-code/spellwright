@@ -1,176 +1,61 @@
-###############################################################################################
-#                                                                                             #
-#  EditorConfig for Unity Projects with DOTS/ECS                                             #
-#  https://editorconfig.org                                                                   #
-#                                                                                             #
-#  This file defines code style rules for C# in Unity projects using DOTS architecture.      #
-#  It enforces consistent formatting and naming conventions across the codebase.              #
-#                                                                                             #
-###############################################################################################
+##################################################################################################
+# EditorConfig for Unity Projects with DOTS/ECS                                                  #
+# https://editorconfig.org                                                                       #
+#                                                                                                #
+# This file defines code style rules for C# in Unity projects using DOTS architecture.           #
+# It is designed to coexist with Prettier (.prettierrc) and enforces Unity/DOTS best practices.  #
+##################################################################################################
 
 root = true
 
-###############################################################################################
-# SECTION 1: CORE SETTINGS (All Files)
-###############################################################################################
+##################################################################################################
+# SECTION 1: CORE SETTINGS (Matches .prettierrc)
+##################################################################################################
 
+# All files
 [*]
 charset = utf-8
+indent_style = space
+indent_size = 4
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-end_of_line = lf
 
-###############################################################################################
-# SECTION 2: FILE TYPE SPECIFIC SETTINGS
-###############################################################################################
-
-# C# Files
-[*.cs]
-indent_style = space
-indent_size = 4
-charset = utf-8-bom
-
-# XML, YAML Files
-[*.{xml,yaml,yml,config,props,targets,nuspec,resx,csproj,vbproj}]
-indent_style = space
-indent_size = 2
-
-# JSON Files
+# JSON files (Matches .prettierrc: tabWidth: 4)
 [*.{json,json5,webmanifest}]
-indent_style = space
 indent_size = 4
 
-# Unity Asset Files
-[*.{unity,prefab,asset,mat,anim,controller,meta}]
-indent_style = space
+# YAML files (Matches .prettierrc: tabWidth: 2)
+[*.{yml,yaml}]
 indent_size = 2
 
-# Markdown Files
-[*.md]
+# XML / Project files
+[*.{xml,csproj,sln,props,targets,nuspec,resx,vbproj}]
+indent_size = 2
+
+# Markdown (Preserve trailing whitespace for line breaks if needed, though Prettier handles wrap)
+[*.{md,mdc}]
 trim_trailing_whitespace = false
 
-###############################################################################################
-# SECTION 3: C# CODE STYLE RULES
-###############################################################################################
+# Unity Shader files
+[*.shader]
+indent_size = 4
+
+##################################################################################################
+# SECTION 2: C# FORMATTING RULES
+##################################################################################################
 
 [*.cs]
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.1 'this.' Qualifier Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_style_qualification_for_field = false:silent
-dotnet_style_qualification_for_property = false:silent
-dotnet_style_qualification_for_method = false:silent
-dotnet_style_qualification_for_event = false:silent
+# Indentation
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents_when_block = false
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.2 Language Keywords vs Framework Types
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_style_predefined_type_for_locals_parameters_members = true:warning
-dotnet_style_predefined_type_for_member_access = true:warning
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.3 Modifier Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_style_require_accessibility_modifiers = always:warning
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
-dotnet_style_readonly_field = true:warning
-csharp_prefer_static_local_function = true:warning
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.4 Parentheses Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.5 Expression-Level Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:warning
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:suggestion
-dotnet_style_prefer_conditional_expression_over_assignment = false:silent
-dotnet_style_prefer_conditional_expression_over_return = false:silent
-dotnet_style_prefer_compound_assignment = true:suggestion
-dotnet_style_prefer_simplified_interpolation = true:suggestion
-dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.6 Null-Checking Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_style_coalesce_expression = true:warning
-dotnet_style_null_propagation = true:warning
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.7 'var' Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_style_var_for_built_in_types = false:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = false:suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.8 Expression-Bodied Members
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# Unity methods (Awake, Start, Update, etc.) should use block bodies, so we keep these relaxed
-csharp_style_expression_bodied_methods = when_on_single_line:silent
-csharp_style_expression_bodied_constructors = false:silent
-csharp_style_expression_bodied_operators = when_on_single_line:silent
-csharp_style_expression_bodied_properties = true:suggestion
-csharp_style_expression_bodied_indexers = true:suggestion
-csharp_style_expression_bodied_accessors = true:suggestion
-csharp_style_expression_bodied_lambdas = true:suggestion
-csharp_style_expression_bodied_local_functions = when_on_single_line:silent
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.9 Pattern Matching Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_style_pattern_matching_over_is_with_cast_check = true:warning
-csharp_style_pattern_matching_over_as_with_null_check = true:warning
-csharp_style_prefer_switch_expression = true:suggestion
-csharp_style_prefer_pattern_matching = true:suggestion
-csharp_style_prefer_not_pattern = true:suggestion
-csharp_style_prefer_extended_property_pattern = true:suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.10 Code Block Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_prefer_braces = true:warning
-csharp_prefer_simple_using_statement = true:suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.11 'using' Directive Placement
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_using_directive_placement = outside_namespace:warning
-csharp_style_namespace_declarations = file_scoped:suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 3.12 Miscellaneous Preferences
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_style_inlined_variable_declaration = true:warning
-csharp_prefer_simple_default_expression = true:warning
-csharp_style_throw_expression = true:suggestion
-csharp_style_conditional_delegate_call = true:warning
-csharp_style_prefer_index_operator = true:suggestion
-csharp_style_prefer_range_operator = true:suggestion
-csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
-csharp_style_prefer_local_over_anonymous_function = true:suggestion
-csharp_style_prefer_tuple_swap = true:suggestion
-
-###############################################################################################
-# SECTION 4: C# FORMATTING RULES
-###############################################################################################
-
-[*.cs]
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 4.1 New Line Options
-#──────────────────────────────────────────────────────────────────────────────────────────────
+# New Lines
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
@@ -179,19 +64,7 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_between_query_expression_clauses = true
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 4.2 Indentation Options
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_indent_case_contents = true
-csharp_indent_switch_labels = true
-csharp_indent_labels = no_change
-csharp_indent_block_contents = true
-csharp_indent_braces = false
-csharp_indent_case_contents_when_block = false
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 4.3 Spacing Options
-#──────────────────────────────────────────────────────────────────────────────────────────────
+# Spacing
 csharp_space_after_cast = false
 csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_between_parentheses = false
@@ -199,11 +72,7 @@ csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_around_binary_operators = before_and_after
 csharp_space_between_method_declaration_parameter_list_parentheses = false
-csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
-csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_call_parameter_list_parentheses = false
-csharp_space_between_method_call_empty_parameter_list_parentheses = false
-csharp_space_between_method_call_name_and_opening_parenthesis = false
 csharp_space_after_comma = true
 csharp_space_before_comma = false
 csharp_space_after_dot = false
@@ -215,230 +84,205 @@ csharp_space_before_open_square_brackets = false
 csharp_space_between_empty_square_brackets = false
 csharp_space_between_square_brackets = false
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 4.4 Wrapping Options
-#──────────────────────────────────────────────────────────────────────────────────────────────
+# Wrapping
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = true
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 4.5 Namespace Declaration
-#──────────────────────────────────────────────────────────────────────────────────────────────
-csharp_style_namespace_declarations = file_scoped:suggestion
-dotnet_style_namespace_match_folder = true:suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 4.6 Using Directives
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_sort_system_directives_first = true
-dotnet_separate_import_directive_groups = false
-dotnet_diagnostic.IDE0005.severity = warning
-
-###############################################################################################
-# SECTION 5: NAMING CONVENTIONS
-###############################################################################################
+##################################################################################################
+# SECTION 3: C# CODE STYLE RULES
+##################################################################################################
 
 [*.cs]
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.1 Interfaces → IPascalCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.interfaces_should_be_prefixed_with_i.severity = warning
-dotnet_naming_rule.interfaces_should_be_prefixed_with_i.symbols = interfaces
-dotnet_naming_rule.interfaces_should_be_prefixed_with_i.style = interface_style
+# 'this.' qualification
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
 
-dotnet_naming_symbols.interfaces.applicable_kinds = interface
-dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+# Language keywords vs framework types
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
 
-dotnet_naming_style.interface_style.capitalization = pascal_case
+# Modifier preferences
+dotnet_style_require_accessibility_modifiers = always:warning
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+dotnet_style_readonly_field = true:suggestion
+
+# Parentheses
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:warning
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:warning
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:warning
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:warning
+
+# Expression-level preferences
+csharp_style_implicit_object_creation_when_type_is_apparent = true:warning
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_explicit_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:warning
+dotnet_style_prefer_conditional_expression_over_return = true:warning
+dotnet_style_prefer_compound_assignment = true:suggestion
+dotnet_style_prefer_simplified_interpolation = true:warning
+dotnet_style_prefer_simplified_boolean_expressions = true:warning
+
+# Null-checking
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+
+# 'var' preferences
+csharp_style_var_for_built_in_types = false:warning
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = false:warning
+
+# Code block preferences
+csharp_prefer_braces = true:warning
+csharp_prefer_simple_using_statement = true:suggestion
+
+# Namespace declarations (File-scoped namespaces are great for Unity 2021+)
+csharp_style_namespace_declarations = file_scoped:suggestion
+dotnet_diagnostic.IDE0130.severity = none
+
+# Using directives
+csharp_using_directive_placement = outside_namespace:suggestion
+dotnet_sort_system_directives_first = true
+dotnet_diagnostic.IDE0005.severity = warning
+
+##################################################################################################
+# SECTION 4: NAMING CONVENTIONS (DOTS ADAPTED)
+##################################################################################################
+
+[*.cs]
+
+# 4.1 Interfaces -> IPascalCase
+dotnet_naming_rule.interface_should_be_begins_with_i.severity = warning
+dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
+dotnet_naming_rule.interface_should_be_begins_with_i.style = interface_style
+
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = *
 dotnet_naming_style.interface_style.required_prefix = I
+dotnet_naming_style.interface_style.capitalization = pascal_case
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.2 Types (Classes, Structs, Enums) → PascalCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
+# 4.2 Types (Classes, Structs, Enums, Delegates) -> PascalCase
 dotnet_naming_rule.types_should_be_pascal_case.severity = warning
 dotnet_naming_rule.types_should_be_pascal_case.symbols = types
-dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
 
 dotnet_naming_symbols.types.applicable_kinds = class,struct,enum,delegate
 dotnet_naming_symbols.types.applicable_accessibilities = *
+dotnet_naming_style.pascal_case.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+# 4.3 Methods -> PascalCase
+dotnet_naming_rule.methods_should_be_pascal_case.severity = warning
+dotnet_naming_rule.methods_should_be_pascal_case.symbols = methods
+dotnet_naming_rule.methods_should_be_pascal_case.style = pascal_case
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.3 Methods, Properties, Events → PascalCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.methods_properties_events_should_be_pascal_case.severity = warning
-dotnet_naming_rule.methods_properties_events_should_be_pascal_case.symbols = methods_properties_events
-dotnet_naming_rule.methods_properties_events_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_symbols.methods.applicable_kinds = method
+dotnet_naming_symbols.methods.applicable_accessibilities = *
 
-dotnet_naming_symbols.methods_properties_events.applicable_kinds = method,property,event
-dotnet_naming_symbols.methods_properties_events.applicable_accessibilities = *
+# 4.4 Properties -> PascalCase
+dotnet_naming_rule.properties_should_be_pascal_case.severity = warning
+dotnet_naming_rule.properties_should_be_pascal_case.symbols = properties
+dotnet_naming_rule.properties_should_be_pascal_case.style = pascal_case
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.4 Public/Protected Fields → PascalCase (Unity/DOTS convention)
-#──────────────────────────────────────────────────────────────────────────────────────────────
+dotnet_naming_symbols.properties.applicable_kinds = property
+dotnet_naming_symbols.properties.applicable_accessibilities = *
+
+# 4.5 Events -> PascalCase
+dotnet_naming_rule.events_should_be_pascal_case.severity = warning
+dotnet_naming_rule.events_should_be_pascal_case.symbols = events
+dotnet_naming_rule.events_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.events.applicable_kinds = event
+dotnet_naming_symbols.events.applicable_accessibilities = *
+
+# 4.6 Public Fields -> PascalCase
+# CRITICAL FOR DOTS: IComponentData structs often use public fields.
+# Standard Unity convention for public/serialized fields is PascalCase.
 dotnet_naming_rule.public_fields_should_be_pascal_case.severity = warning
 dotnet_naming_rule.public_fields_should_be_pascal_case.symbols = public_fields
-dotnet_naming_rule.public_fields_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.public_fields_should_be_pascal_case.style = pascal_case
 
 dotnet_naming_symbols.public_fields.applicable_kinds = field
-dotnet_naming_symbols.public_fields.applicable_accessibilities = public,protected,protected_internal
+dotnet_naming_symbols.public_fields.applicable_accessibilities = public, internal, protected, protected_internal
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.5 Private/Internal Fields → _camelCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = warning
-dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
-dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_underscore_style
-
-dotnet_naming_symbols.private_fields.applicable_kinds = field
-dotnet_naming_symbols.private_fields.applicable_accessibilities = private,internal,private_protected
-
-dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
-dotnet_naming_style.camel_case_underscore_style.required_prefix = _
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.6 Constants → UPPER_CASE
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.constants_should_be_upper_case.severity = suggestion
+# 4.7 Constants -> UPPER_CASE
+dotnet_naming_rule.constants_should_be_upper_case.severity = warning
 dotnet_naming_rule.constants_should_be_upper_case.symbols = constants
-dotnet_naming_rule.constants_should_be_upper_case.style = upper_case_style
+dotnet_naming_rule.constants_should_be_upper_case.style = upper_case
 
 dotnet_naming_symbols.constants.applicable_kinds = field
 dotnet_naming_symbols.constants.applicable_accessibilities = *
 dotnet_naming_symbols.constants.required_modifiers = const
 
-dotnet_naming_style.upper_case_style.capitalization = all_upper
-dotnet_naming_style.upper_case_style.word_separator = _
+dotnet_naming_style.upper_case.capitalization = all_upper
+dotnet_naming_style.upper_case.word_separator = _
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.7 Static Readonly Fields → PascalCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = static_readonly_fields
-dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case_style
+# 4.8 Private Fields -> _camelCase
+# Standard Unity convention for private backing fields.
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.severity = warning
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.style = underscore_camel_case
 
-dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
-dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = public,protected,protected_internal
-dotnet_naming_symbols.static_readonly_fields.required_modifiers = static,readonly
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.8 Parameters and Local Variables → camelCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.parameters_and_locals_should_be_camel_case.severity = warning
-dotnet_naming_rule.parameters_and_locals_should_be_camel_case.symbols = parameters_and_locals
-dotnet_naming_rule.parameters_and_locals_should_be_camel_case.style = camel_case_style
+# 4.9 Parameters -> camelCase
+dotnet_naming_rule.parameters_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_should_be_camel_case.symbols = parameters
+dotnet_naming_rule.parameters_should_be_camel_case.style = camel_case
 
-dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter,local
+dotnet_naming_symbols.parameters.applicable_kinds = parameter
+dotnet_naming_symbols.parameters.applicable_accessibilities = *
+dotnet_naming_style.camel_case.capitalization = camel_case
 
-dotnet_naming_style.camel_case_style.capitalization = camel_case
+# 4.10 Locals -> camelCase
+dotnet_naming_rule.locals_should_be_camel_case.severity = warning
+dotnet_naming_rule.locals_should_be_camel_case.symbols = locals
+dotnet_naming_rule.locals_should_be_camel_case.style = camel_case
 
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 5.9 Type Parameters → TPascalCase
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_naming_rule.type_parameters_should_be_prefixed_with_t.severity = suggestion
-dotnet_naming_rule.type_parameters_should_be_prefixed_with_t.symbols = type_parameters
-dotnet_naming_rule.type_parameters_should_be_prefixed_with_t.style = type_parameter_style
+dotnet_naming_symbols.locals.applicable_kinds = local
+dotnet_naming_symbols.locals.applicable_accessibilities = *
 
-dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
-
-dotnet_naming_style.type_parameter_style.capitalization = pascal_case
-dotnet_naming_style.type_parameter_style.required_prefix = T
-
-###############################################################################################
-# SECTION 6: UNITY & DOTS SPECIFIC CONVENTIONS
-###############################################################################################
-
-[*.cs]
-
-# DOTS Systems should end with "System"
-# Example: MovementSystem, DamageSystem
-# Note: This is a suggestion, not enforced, as it can conflict with Unity naming
-
-# IComponentData implementations should be struct with data-only fields
-# Example: public struct Velocity : IComponentData { public float3 Value; }
-
-# Unity SerializeField convention: private fields with underscore
-# [SerializeField] private int _health; ✓
-
-# Async methods should end with "Async"
-dotnet_naming_rule.async_methods_should_end_with_async.severity = suggestion
+# 4.11 Async Methods -> End with Async
+dotnet_naming_rule.async_methods_should_end_with_async.severity = warning
 dotnet_naming_rule.async_methods_should_end_with_async.symbols = async_methods
-dotnet_naming_rule.async_methods_should_end_with_async.style = async_method_style
+dotnet_naming_rule.async_methods_should_end_with_async.style = async_suffix
 
 dotnet_naming_symbols.async_methods.applicable_kinds = method
 dotnet_naming_symbols.async_methods.required_modifiers = async
+dotnet_naming_style.async_suffix.required_suffix = Async
+dotnet_naming_style.async_suffix.capitalization = pascal_case
 
-dotnet_naming_style.async_method_style.capitalization = pascal_case
-dotnet_naming_style.async_method_style.required_suffix = Async
-
-###############################################################################################
-# SECTION 7: CODE QUALITY ANALYZERS (Essential Only)
-###############################################################################################
-
-[*.cs]
-
-# Set default severity
-dotnet_analyzer_diagnostic.severity = suggestion
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 7.1 Critical Code Quality Rules (CA - Microsoft)
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_diagnostic.CA1001.severity = warning  # Types that own disposable fields should be disposable
-dotnet_diagnostic.CA1303.severity = none     # Do not pass literals as localized parameters (N/A for Unity)
-dotnet_diagnostic.CA1305.severity = none     # Specify IFormatProvider (overkill for Unity)
-dotnet_diagnostic.CA1416.severity = warning  # Validate platform compatibility
-dotnet_diagnostic.CA1508.severity = none     # Avoid dead conditional code (false positives)
-dotnet_diagnostic.CA1710.severity = none     # Identifiers should have correct suffix (Unity naming)
-dotnet_diagnostic.CA1711.severity = none     # Identifiers should not have incorrect suffix
-dotnet_diagnostic.CA1805.severity = warning  # Do not initialize unnecessarily
-dotnet_diagnostic.CA1806.severity = warning  # Do not ignore method results
-dotnet_diagnostic.CA1825.severity = warning  # Avoid zero-length array allocations
-dotnet_diagnostic.CA1826.severity = warning  # Use property instead of Linq Enumerable method
-dotnet_diagnostic.CA1827.severity = warning  # Do not use Count/LongCount when Any can be used
-dotnet_diagnostic.CA1828.severity = warning  # Do not use CountAsync/LongCountAsync when AnyAsync can be used
-dotnet_diagnostic.CA1829.severity = warning  # Use Length/Count property instead of Enumerable.Count method
-dotnet_diagnostic.CA1830.severity = warning  # Prefer strongly-typed Append and Insert method overloads
-dotnet_diagnostic.CA2000.severity = warning  # Dispose objects before losing scope
-dotnet_diagnostic.CA2002.severity = warning  # Do not lock on objects with weak identity
-dotnet_diagnostic.CA2008.severity = warning  # Do not create tasks without passing a TaskScheduler
-dotnet_diagnostic.CA2009.severity = warning  # Do not call ToImmutableCollection on an ImmutableCollection value
-dotnet_diagnostic.CA2201.severity = warning  # Do not raise reserved exception types
-dotnet_diagnostic.CA2208.severity = warning  # Instantiate argument exceptions correctly
-dotnet_diagnostic.CA2245.severity = warning  # Do not assign a property to itself
-dotnet_diagnostic.CA2246.severity = warning  # Do not assign a symbol and its member in the same statement
-
-#──────────────────────────────────────────────────────────────────────────────────────────────
-# 7.2 IDE Diagnostics (Essential Only)
-#──────────────────────────────────────────────────────────────────────────────────────────────
-dotnet_diagnostic.IDE0001.severity = suggestion  # Simplify name
-dotnet_diagnostic.IDE0002.severity = suggestion  # Simplify member access
-dotnet_diagnostic.IDE0004.severity = suggestion  # Remove unnecessary cast
-dotnet_diagnostic.IDE0005.severity = warning     # Remove unnecessary using directives
-dotnet_diagnostic.IDE0035.severity = warning     # Remove unreachable code
-dotnet_diagnostic.IDE0051.severity = warning     # Remove unused private member
-dotnet_diagnostic.IDE0059.severity = suggestion  # Unnecessary assignment of a value
-dotnet_diagnostic.IDE0060.severity = suggestion  # Remove unused parameter
-dotnet_diagnostic.IDE1006.severity = warning     # Naming rule violation
-
-###############################################################################################
-# SECTION 8: PERFORMANCE & BEST PRACTICES
-###############################################################################################
+##################################################################################################
+# SECTION 5: ANALYZER SETTINGS
+##################################################################################################
 
 [*.cs]
 
-# Unnecessary code
-dotnet_code_quality_unused_parameters = all:warning
-dotnet_remove_unnecessary_suppression_exclusions = none:warning
+# CA1051: Do not declare visible instance fields
+# In DOTS, structs used as components MUST have public fields. We suppress this globally or lower severity.
+dotnet_diagnostic.CA1051.severity = none
 
-# Unused values
-csharp_style_unused_value_expression_statement_preference = discard_variable:suggestion
-csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+# CA1806: Do not ignore method results
+# Enforced to catch errors in fluent API use, defensive code, and value-discard scenarios.
+dotnet_diagnostic.CA1806.severity = warning
 
-# Allow multiple blank lines (helps with organization)
-dotnet_style_allow_multiple_blank_lines_experimental = true:silent
+# IDE0051: Remove unused private members
+# Unity message methods (Start, Update) are handled by Microsoft.Unity.Analyzers.
+dotnet_diagnostic.IDE0051.severity = suggestion
 
-###############################################################################################
-# END OF EDITORCONFIG
-###############################################################################################
+# IDE0044: Add readonly modifier
+# Disabled because it conflicts with Unity's serialization (Inspector assignments)
+dotnet_diagnostic.IDE0044.severity = none
+
+# IDE0251: Member can be made 'readonly'
+# Suggests making structs 'readonly' when possible (good for DOTS performance)
+dotnet_diagnostic.IDE0251.severity = warning

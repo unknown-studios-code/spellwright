@@ -221,7 +221,7 @@ When requested, use C# XML documentation with triple-slash `///` format.
 
 ## Documentation Checklist
 
-Before submitting code, verify:
+Before submitting documented code, verify:
 
 - [ ] All public types have `<summary>`
 - [ ] All parameters have `<param>`
@@ -239,13 +239,14 @@ Before submitting code, verify:
 
 **IDE Integration:**
 
-- Visual Studio: Enable CS1591 warnings
-- Rider: Enable "Missing XML comment" inspections
-- VS Code: Install C# XML Documentation extension
+- Visual Studio: Disable CS1591 warnings (or set to Info)
+- Rider: Disable "Missing XML comment" inspections (or set to Hint)
+- VS Code: Install C# XML Documentation extension (optional)
 
 **Build-Time:**
 
-- Treat documentation warnings as errors in CI/CD
+- Do NOT treat missing documentation warnings as errors in CI/CD
+- This aligns with Code Generation Standards which forbid unnecessary comments
 
 **AI-Assisted:**
 

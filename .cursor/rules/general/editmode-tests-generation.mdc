@@ -44,7 +44,7 @@ Use `[Test]` attribute (not `[UnityTest]`).
 
 - Provides: `World`, `EntityManager`, `ECB`
 - Automatic setup/teardown
-- Located in `Spellwright.Tests.Utilities`
+- Located in `Spellwright.Tests.Core`
 
 ### Naming Conventions
 
