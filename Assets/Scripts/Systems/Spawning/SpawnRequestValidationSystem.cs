@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Common;
+using Spellwright.Components.Common;
 using Spellwright.Components.Spawning;
 using Spellwright.Jobs.Spawning;
 using Unity.Burst;
@@ -17,9 +17,10 @@ namespace Spellwright.Systems.Spawning
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
-
             _query = new EntityQueryBuilder(Allocator.Temp).WithAll<SpawnRequest>().WithNone<ValidatedTag>().Build(ref state);
+
+            state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate(_query);
         }
 
         [BurstCompile]

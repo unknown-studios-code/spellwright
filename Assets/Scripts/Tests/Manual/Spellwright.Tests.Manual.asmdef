@@ -1,6 +1,13 @@
 {
+    "allowUnsafeCode": false,
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "excludePlatforms": [],
+    "includePlatforms": [],
     "name": "Spellwright.Tests.Manual",
-    "rootNamespace": "Spellwright.Tests.Manual",
+    "noEngineReferences": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
     "references": [
         "Unity.Entities",
         "Unity.Transforms",
@@ -13,13 +20,6 @@
         "Spellwright.Systems",
         "Spellwright.Jobs"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "rootNamespace": "Spellwright.Tests.Manual",
+    "versionDefines": []
 }

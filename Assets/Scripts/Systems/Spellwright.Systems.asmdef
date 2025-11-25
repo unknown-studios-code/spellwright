@@ -1,6 +1,13 @@
 {
+    "allowUnsafeCode": false,
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "excludePlatforms": [],
+    "includePlatforms": [],
     "name": "Spellwright.Systems",
-    "rootNamespace": "Spellwright.Systems",
+    "noEngineReferences": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
     "references": [
         "Unity.Entities",
         "Unity.Transforms",
@@ -9,15 +16,11 @@
         "Unity.Burst",
         "Unity.Physics",
         "Spellwright.Components",
-        "Spellwright.Jobs"
+        "Spellwright.Jobs",
+        "undream.llmunity.Runtime",
+        "Spellwright.Core",
+        "Spellwright.Utilities"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "rootNamespace": "Spellwright.Systems",
+    "versionDefines": []
 }

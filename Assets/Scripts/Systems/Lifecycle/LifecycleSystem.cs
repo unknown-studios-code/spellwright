@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Common;
+using Spellwright.Components.Common;
 using Spellwright.Jobs.Lifecycle;
 using Unity.Burst;
 using Unity.Collections;
@@ -15,9 +15,10 @@ namespace Spellwright.Systems.Lifecycle
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-
             _query = new EntityQueryBuilder(Allocator.Temp).WithAll<Lifetime>().WithNone<Prefab>().Build(ref state);
+
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate(_query);
         }
 
         [BurstCompile]
@@ -26,9 +27,9 @@ namespace Spellwright.Systems.Lifecycle
             EndSimulationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
             EntityCommandBuffer ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
-            var destroyJob = new DestroyExpiredSpellsJob { ECB = ecb.AsParallelWriter(), CurrentTime = SystemAPI.Time.ElapsedTime };
+            var job = new DestroyExpiredSpellsJob { ECB = ecb.AsParallelWriter(), CurrentTime = SystemAPI.Time.ElapsedTime };
 
-            state.Dependency = destroyJob.ScheduleParallel(_query, state.Dependency);
+            state.Dependency = job.ScheduleParallel(_query, state.Dependency);
         }
     }
 }

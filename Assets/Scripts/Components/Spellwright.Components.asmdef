@@ -1,19 +1,20 @@
 {
+    "allowUnsafeCode": false,
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "excludePlatforms": [],
+    "includePlatforms": [],
     "name": "Spellwright.Components",
-    "rootNamespace": "Spellwright.Components",
+    "noEngineReferences": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
     "references": [
         "Unity.Entities",
         "Unity.Mathematics",
         "Unity.Collections",
-        "Unity.Physics"
+        "Unity.Physics",
+        "undream.llmunity.Runtime"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "rootNamespace": "Spellwright.Components",
+    "versionDefines": []
 }

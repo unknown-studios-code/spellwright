@@ -26,14 +26,8 @@ namespace Spellwright.Jobs.StatusEffect
                         break;
 
                     case StatusEffectType.Slow:
-                        break;
-
                     case StatusEffectType.Stun:
-                        break;
-
                     case StatusEffectType.None:
-                        break;
-
                     default:
                         break;
                 }

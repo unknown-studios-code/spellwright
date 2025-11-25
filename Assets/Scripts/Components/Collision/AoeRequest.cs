@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Spellwright.Components.Collision

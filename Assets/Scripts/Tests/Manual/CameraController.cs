@@ -1,4 +1,3 @@
-﻿using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -53,7 +52,6 @@ namespace Spellwright.Tests.Manual
         private float _rotationY;
         private bool _cursorLocked;
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void Start()
         {
             Vector3 rotation = transform.eulerAngles;
@@ -66,7 +64,6 @@ namespace Spellwright.Tests.Manual
             }
         }
 
-        [SuppressMessage("Style", "IDE0051:Remove unused private members")]
         private void Update()
         {
             HandleCursorToggle();

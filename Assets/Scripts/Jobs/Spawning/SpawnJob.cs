@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Common;
+using Spellwright.Components.Common;
 using Spellwright.Components.Spawning;
 using Spellwright.Utilities;
 using Unity.Burst;
@@ -56,7 +56,7 @@ namespace Spellwright.Jobs.Spawning
         private void SetupTransform(int sortKey, Entity spell, float3 position, float3 direction, float scale)
         {
             float3 safeDirection = MathUtils.GetSafeDirection(direction);
-            quaternion rotation = quaternion.LookRotation(safeDirection, math.up());
+            var rotation = quaternion.LookRotation(safeDirection, math.up());
 
             ECB.SetComponent(
                 sortKey,

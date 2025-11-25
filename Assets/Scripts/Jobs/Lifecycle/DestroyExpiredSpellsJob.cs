@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Common;
+using Spellwright.Components.Common;
 using Unity.Burst;
 using Unity.Entities;
 

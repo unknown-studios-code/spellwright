@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Project Path="Unity.Timeline.csproj" />
   <Project Path="Unity.RenderPipelines.GPUDriven.Runtime.csproj" />
   <Project Path="Unity.PlasticSCM.Editor.csproj" />
@@ -14,6 +14,7 @@
   <Project Path="Unity.Collections.csproj" />
   <Project Path="UnityEngine.UI.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.2D.Runtime.csproj" />
+  <Project Path="Unity.Physics.Custom.csproj" />
   <Project Path="Unity.Entities.UI.Editor.csproj" />
   <Project Path="Unity.VisualScripting.Core.Editor.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Editor.csproj" />
@@ -21,12 +22,11 @@
   <Project Path="UnityEngine.TestRunner.csproj" />
   <Project Path="Unity.Burst.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
-  <Project Path="Unity.Physics.Custom.csproj" />
   <Project Path="Unity.InputSystem.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.Entities.csproj" />
-  <Project Path="PPv2URPConverters.csproj" />
   <Project Path="Unity.Scenes.csproj" />
+  <Project Path="PPv2URPConverters.csproj" />
   <Project Path="Unity.Entities.Editor.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="Unity.InternalAPIEngineBridge.002.csproj" />
@@ -35,6 +35,7 @@
   <Project Path="Unity.RenderPipelines.Universal.Runtime.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.ConversionSystem.csproj" />
   <Project Path="Unity.VisualScripting.State.Editor.csproj" />
+  <Project Path="Spellwright.Systems.csproj" />
   <Project Path="Unity.Physics.Hybrid.csproj" />
   <Project Path="Unity.Burst.CodeGen.csproj" />
   <Project Path="Unity.VisualScripting.Flow.csproj" />
@@ -42,26 +43,26 @@
   <Project Path="Unity.PerformanceTesting.csproj" />
   <Project Path="Unity.Scenes.Editor.csproj" />
   <Project Path="Unity.TextMeshPro.csproj" />
-  <Project Path="Spellwright.Systems.csproj" />
   <Project Path="Unity.TextMeshPro.Editor.csproj" />
   <Project Path="Unity.Rendering.LightTransport.Runtime.csproj" />
   <Project Path="Unity.Serialization.csproj" />
   <Project Path="Unity.Numerics.Linear.Dense.csproj" />
   <Project Path="Unity.Burst.Editor.csproj" />
-  <Project Path="Unity.Physics.Custom.Editor.csproj" />
   <Project Path="Unity.Rider.Editor.csproj" />
   <Project Path="Unity.VisualScripting.State.csproj" />
   <Project Path="Unity.InternalAPIEditorBridge.002.csproj" />
   <Project Path="Unity.AI.Navigation.Updater.csproj" />
   <Project Path="Unity.Entities.CodeGen.csproj" />
+  <Project Path="undream.llmunity.Editor.csproj" />
   <Project Path="UnityEditor.UI.csproj" />
+  <Project Path="undream.llmunity.Runtime.csproj" />
   <Project Path="Unity.Entities.Editor.Properties.csproj" />
   <Project Path="Spellwright.Components.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
   <Project Path="Unity.Multiplayer.Center.Common.csproj" />
-  <Project Path="Spellwright.Tests.Utilities.csproj" />
   <Project Path="Unity.Physics.Editor.csproj" />
   <Project Path="Unity.Numerics.Linear.Solvers.Lowlevel.csproj" />
+  <Project Path="Unity.Physics.Custom.Editor.csproj" />
   <Project Path="Spellwright.Jobs.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
@@ -79,15 +80,18 @@
   <Project Path="Spellwright.Utilities.csproj" />
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
   <Project Path="Unity.Profiling.Core.csproj" />
+  <Project Path="Spellwright.Core.csproj" />
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
   <Project Path="Unity.Numerics.Random.csproj" />
   <Project Path="Unity.Core.Editor.csproj" />
+  <Project Path="Cloud.Unum.USearch.csproj" />
   <Project Path="Unity.Mathematics.Extensions.csproj" />
   <Project Path="Unity.Numerics.Linear.Sparse.csproj" />
   <Project Path="Unity.Entities.Graphics.Editor.csproj" />
   <Project Path="Spellwright.Tests.Manual.csproj" />
   <Project Path="Unity.Transforms.Hybrid.csproj" />
   <Project Path="Unity.Serialization.Editor.csproj" />
+  <Project Path="Spellwright.Tests.Core.csproj" />
   <Project Path="Unity.Rendering.LightTransport.Editor.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Shaders.csproj" />

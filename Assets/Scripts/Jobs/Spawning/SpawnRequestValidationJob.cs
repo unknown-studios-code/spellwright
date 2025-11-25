@@ -1,4 +1,4 @@
-﻿using Spellwright.Components.Common;
+using Spellwright.Components.Common;
 using Spellwright.Components.Spawning;
 using Unity.Burst;
 using Unity.Collections;
@@ -24,6 +24,7 @@ namespace Spellwright.Jobs.Spawning
         [ReadOnly]
         public ComponentLookup<Lifetime> LifetimeLookup;
 
+        [BurstCompile]
         private void Execute([EntityIndexInQuery] int sortKey, Entity entity, in SpawnRequest request)
         {
             if (IsValidPrefab(request.PrefabEntity, entity))
@@ -39,41 +40,48 @@ namespace Spellwright.Jobs.Spawning
         [BurstCompile]
         private bool IsValidPrefab(Entity prefabEntity, Entity requestEntity)
         {
-            bool isValid = true;
+            bool hasSpellOwner = SpellOwnerLookup.HasComponent(prefabEntity);
+            bool hasTransform = TransformLookup.HasComponent(prefabEntity);
+            bool hasSpeed = SpeedLookup.HasComponent(prefabEntity);
+            bool hasLifetime = LifetimeLookup.HasComponent(prefabEntity);
 
-            if (!SpellOwnerLookup.HasComponent(prefabEntity))
+            bool isValid = hasSpellOwner && hasTransform && hasSpeed && hasLifetime;
+
+            LogValidationErrors(prefabEntity, requestEntity, hasSpellOwner, hasTransform, hasSpeed, hasLifetime);
+
+            return isValid;
+        }
+
+        [BurstDiscard]
+        private static void LogValidationErrors(Entity prefabEntity, Entity requestEntity, bool hasSpellOwner, bool hasTransform, bool hasSpeed, bool hasLifetime)
+        {
+            if (!hasSpellOwner)
             {
                 UnityEngine.Debug.LogWarning(
                     $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing SpellOwner component"
                 );
-                isValid = false;
             }
 
-            if (!TransformLookup.HasComponent(prefabEntity))
+            if (!hasTransform)
             {
                 UnityEngine.Debug.LogWarning(
                     $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing LocalTransform component"
                 );
-                isValid = false;
             }
 
-            if (!SpeedLookup.HasComponent(prefabEntity))
+            if (!hasSpeed)
             {
                 UnityEngine.Debug.LogWarning(
                     $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing Speed component"
                 );
-                isValid = false;
             }
 
-            if (!LifetimeLookup.HasComponent(prefabEntity))
+            if (!hasLifetime)
             {
                 UnityEngine.Debug.LogWarning(
                     $"[SpawnRequestValidation] SpawnRequest {requestEntity.Index}:{requestEntity.Version} rejected: Prefab {prefabEntity.Index}:{prefabEntity.Version} missing Lifetime component"
                 );
-                isValid = false;
             }
-
-            return isValid;
         }
     }
 }

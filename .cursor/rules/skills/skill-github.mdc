@@ -5,6 +5,44 @@ alwaysApply: false
 
 # GitHub Skills
 
+## Preferred Approach: GitHub CLI First
+
+Before using TypeScript skills, **always try the GitHub CLI (`gh`) first**.
+
+### Step 1: Check CLI Availability
+
+```bash
+gh --version
+```
+
+### Step 2: Decision Flow
+
+- **Use `gh` CLI** for simple, standalone operations (list, create, view, merge).
+- **Use TypeScript skills** if:
+    - The `gh` CLI is not available or not authenticated.
+    - The operation requires **composition with other skills** (e.g., GitHub data → Notion).
+    - Complex programmatic logic is needed (loops, conditionals, data transformation).
+
+### Common `gh` Commands
+
+| Operation      | Command                                         |
+| -------------- | ----------------------------------------------- |
+| List issues    | `gh issue list`                                 |
+| Create issue   | `gh issue create --title "Title" --body "Body"` |
+| View issue     | `gh issue view <number>`                        |
+| List PRs       | `gh pr list`                                    |
+| Create PR      | `gh pr create --title "Title" --body "Body"`    |
+| Merge PR       | `gh pr merge <number>`                          |
+| View repo      | `gh repo view`                                  |
+| Search code    | `gh search code "query"`                        |
+| List workflows | `gh run list`                                   |
+
+For full documentation, run `gh help` or see [GitHub CLI Manual](https://cli.github.com/manual/).
+
+---
+
+## TypeScript Skills (Fallback)
+
 These functions are available for import from `.skills/github/index`.
 
 **Import Path**: `../github/index` (relative to `.skills/temp/`)

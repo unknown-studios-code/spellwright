@@ -22,7 +22,15 @@ To use these skills, the Agent must:
 
 When you need to perform an action or retrieve data from these services, follow this EXACT protocol:
 
-### Step 1: Read API Definitions
+### Step 1: Check for CLI
+
+Some tools have native CLI alternatives that should be preferred over TypeScript scripts for simple operations.
+Before writing a script, check if the tool you need has a CLI available and if it can handle the task directly. Use CLI for simple, standalone operations (list, create, view). Skip to **Step 5** after completion.
+If the CLI is not available, not authenticated, or the operation requires **composition with other skills**, proceed to **Step 2**.
+
+See the specific skill rule file (e.g., `skill-github.mdc`) for detailed guidance on when to use CLI vs. scripts.
+
+### Step 2: Read API Definitions
 
 Before writing any code, you MUST read the authoritative API definition for the specific skill you intend to use. This file is located within the skill's directory.
 
@@ -35,7 +43,7 @@ For example:
 cat .skills/<skill_name>/interface.d.ts
 ```
 
-### Step 2: Create a Temporary Script
+### Step 3: Create a Temporary Script
 
 Create a file inside `.skills/temp/` (e.g., `.skills/temp/task_123.ts`).
 **CRITICAL**: You MUST use the `.skills/temp/` directory.
@@ -76,7 +84,7 @@ async function run() {
 run();
 ```
 
-### Step 3: Run the Script
+### Step 4: Run the Script
 
 Execute the script using `npx ts-node`.
 
@@ -84,7 +92,7 @@ Execute the script using `npx ts-node`.
 npx ts-node .skills/temp/task_123.ts
 ```
 
-### Step 4: Cleanup
+### Step 5: Cleanup
 
 After successful execution and reading the output, delete the temporary file.
 
