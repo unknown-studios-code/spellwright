@@ -5,6 +5,7 @@ namespace Spellwright.Components.LLM
 {
     public class LLMReferenceComponent : IComponentData
     {
-        public LLMCharacter Value;
+        public LLMCharacter LLMCharacter;
+        public string JsonSchema;
     }
 }
