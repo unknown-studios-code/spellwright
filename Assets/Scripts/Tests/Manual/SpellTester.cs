@@ -1,16 +1,16 @@
 using System.Collections.Generic;
-using Spellwright.Components;
 using Spellwright.Components.Collision;
 using Spellwright.Components.Common;
+using Spellwright.Components.Health;
 using Spellwright.Components.Payloads;
 using Spellwright.Components.Spawning;
+using Spellwright.Components.StatusEffect;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using StatusEffectType = Spellwright.Components.StatusEffect.StatusEffectType;
 
 namespace Spellwright.Tests.Manual
 {
@@ -120,13 +120,10 @@ namespace Spellwright.Tests.Manual
         private bool _enablePayloads = true;
 
         [SerializeField]
-        private PayloadType _payloadType = PayloadType.Damage;
+        private TestPayloadType _payloadType = TestPayloadType.Damage;
 
         [SerializeField]
         private ElementalType _elementalType = ElementalType.Fire;
-
-        [SerializeField]
-        private StatusEffectType _statusEffectType = StatusEffectType.Burn;
 
         [SerializeField]
         private float _payloadAmount = 25f;
@@ -136,7 +133,7 @@ namespace Spellwright.Tests.Manual
 
         [Header("Collision Visualization")]
         [SerializeField]
-        private bool _showCollisionEvents = true;
+        private bool _showCollisionHits = true;
 
         [SerializeField]
         private bool _showCollisionRadii = true;
@@ -170,7 +167,18 @@ namespace Spellwright.Tests.Manual
             AreaOfEffect,
         }
 
-        private struct CollisionEventData
+        private enum TestPayloadType
+        {
+            Damage,
+            Heal,
+            Slow,
+            Burn,
+            Stun,
+            Poison,
+            SpawnEntity,
+        }
+
+        private struct CollisionHitData
         {
             public float3 Position;
             public float Time;
@@ -188,9 +196,8 @@ namespace Spellwright.Tests.Manual
         private float _lastConeRadius;
         private float _lastAoeRadius;
         private bool _lastEnablePayloads;
-        private PayloadType _lastPayloadType;
+        private TestPayloadType _lastPayloadType;
         private ElementalType _lastElementalType;
-        private StatusEffectType _lastStatusEffectType;
         private float _lastPayloadAmount;
         private float _lastPayloadDuration;
         private float _lastTargetCollisionRadius;
@@ -202,7 +209,7 @@ namespace Spellwright.Tests.Manual
         private EntityQuery _spellQuery;
         private EntityQuery _targetQuery;
         private EntityQuery _collisionQuery;
-        private readonly List<CollisionEventData> _collisionEvents = new();
+        private readonly List<CollisionHitData> _collisionEvents = new();
 
         private BlobAssetReference<Unity.Physics.Collider> _projectileColliderBlob;
         private BlobAssetReference<Unity.Physics.Collider> _targetColliderBlob;
@@ -227,8 +234,8 @@ namespace Spellwright.Tests.Manual
             HandleManualSpawn();
             HandleTargetSpawning();
             TrackDestroyedEntities();
-            TrackCollisionEvents();
-            CleanupExpiredCollisionEvents();
+            TrackCollisionHits();
+            CleanupExpiredCollisionHits();
         }
 
         private void OnDrawGizmos()
@@ -240,7 +247,7 @@ namespace Spellwright.Tests.Manual
 
             DrawSpellEntities();
             DrawTargetEntities();
-            DrawCollisionEvents();
+            DrawCollisionHits();
             DrawInstantSpellPreview();
         }
 
@@ -279,7 +286,7 @@ namespace Spellwright.Tests.Manual
 
             _targetQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Unity.Transforms.LocalTransform>(), ComponentType.ReadOnly<Health>());
 
-            _collisionQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Components.Collision.CollisionEvent>());
+            _collisionQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<Components.Collision.CollisionHit>());
         }
 
         private void InitializeTestEntities()
@@ -348,7 +355,6 @@ namespace Spellwright.Tests.Manual
                 || _enablePayloads != _lastEnablePayloads
                 || _payloadType != _lastPayloadType
                 || _elementalType != _lastElementalType
-                || _statusEffectType != _lastStatusEffectType
                 || math.abs(_payloadAmount - _lastPayloadAmount) > POSITION_EPSILON
                 || math.abs(_payloadDuration - _lastPayloadDuration) > POSITION_EPSILON;
         }
@@ -389,7 +395,6 @@ namespace Spellwright.Tests.Manual
             _lastEnablePayloads = _enablePayloads;
             _lastPayloadType = _payloadType;
             _lastElementalType = _elementalType;
-            _lastStatusEffectType = _statusEffectType;
             _lastPayloadAmount = _payloadAmount;
             _lastPayloadDuration = _payloadDuration;
         }
@@ -432,7 +437,7 @@ namespace Spellwright.Tests.Manual
             }
         }
 
-        private void TrackCollisionEvents()
+        private void TrackCollisionHits()
         {
             if (_collisionQuery.IsEmpty)
             {
@@ -440,18 +445,25 @@ namespace Spellwright.Tests.Manual
             }
 
             using NativeArray<Entity> entities = _collisionQuery.ToEntityArray(Allocator.Temp);
-            using NativeArray<Components.Collision.CollisionEvent> collisionEvents = _collisionQuery.ToComponentDataArray<Components.Collision.CollisionEvent>(Allocator.Temp);
 
-            for (int i = 0; i < entities.Length; i++)
+            foreach (Entity entity in entities)
             {
-                Components.Collision.CollisionEvent collision = collisionEvents[i];
-                _collisionEvents.Add(new CollisionEventData { Position = collision.ImpactPosition, Time = Time.time });
-                _totalCollisions++;
-                LogVerbose($"Collision detected | Projectile: {collision.ProjectileEntity.Index} | Target: {collision.TargetEntity.Index}");
+                if (!_entityManager.HasBuffer<Components.Collision.CollisionHit>(entity))
+                {
+                    continue;
+                }
+
+                DynamicBuffer<Components.Collision.CollisionHit> buffer = _entityManager.GetBuffer<Components.Collision.CollisionHit>(entity);
+                foreach (Components.Collision.CollisionHit collision in buffer)
+                {
+                    _collisionEvents.Add(new CollisionHitData { Position = collision.ImpactPosition, Time = Time.time });
+                    _totalCollisions++;
+                    LogVerbose($"Collision detected | Spell: {entity.Index} | Target: {collision.TargetEntity.Index}");
+                }
             }
         }
 
-        private void CleanupExpiredCollisionEvents()
+        private void CleanupExpiredCollisionHits()
         {
             for (int i = _collisionEvents.Count - 1; i >= 0; i--)
             {
@@ -498,18 +510,7 @@ namespace Spellwright.Tests.Manual
 
             if (_enablePayloads)
             {
-                DynamicBuffer<PayloadRequest> payloadBuffer = _entityManager.AddBuffer<PayloadRequest>(entity);
-                payloadBuffer.Add(
-                    new PayloadRequest
-                    {
-                        Type = _payloadType,
-                        Element = _elementalType,
-                        Effect = _statusEffectType,
-                        Amount = _payloadAmount,
-                        Duration = _payloadDuration,
-                        SpawnPrefab = Entity.Null,
-                    }
-                );
+                AddPayloadBuffer(entity);
             }
         }
 
@@ -534,7 +535,7 @@ namespace Spellwright.Tests.Manual
             _entityManager.AddSharedComponentManaged(entity, new PhysicsWorldIndex { Value = 0 });
             _entityManager.AddComponentData(entity, new ProjectileTag());
 
-            LogVerbose("Physics components added: PhysicsVelocity ✓ | PhysicsCollider (IsTrigger) ✓ | PhysicsWorldIndex=0 ✓ | LocalToWorld ✓");
+            LogVerbose("Physics components added: PhysicsVelocity ✓ | PhysicsCollider (IsTrigger) ✓ | PhysicsWorldIndex=0 ✓");
         }
 
         private string GetGeneratorInfo()
@@ -639,18 +640,7 @@ namespace Spellwright.Tests.Manual
 
             if (_enablePayloads)
             {
-                DynamicBuffer<PayloadRequest> payloadBuffer = _entityManager.AddBuffer<PayloadRequest>(request);
-                payloadBuffer.Add(
-                    new PayloadRequest
-                    {
-                        Type = _payloadType,
-                        Element = _elementalType,
-                        Effect = _statusEffectType,
-                        Amount = _payloadAmount,
-                        Duration = _payloadDuration,
-                        SpawnPrefab = Entity.Null,
-                    }
-                );
+                AddPayloadBuffer(request);
             }
 
             LogVerbose($"Cone request created | Position: {position:F2} | Direction: {direction:F2} | Angle: {_coneAngle}° | Radius: {_coneRadius}m");
@@ -672,21 +662,56 @@ namespace Spellwright.Tests.Manual
 
             if (_enablePayloads)
             {
-                DynamicBuffer<PayloadRequest> payloadBuffer = _entityManager.AddBuffer<PayloadRequest>(request);
-                payloadBuffer.Add(
-                    new PayloadRequest
-                    {
-                        Type = _payloadType,
-                        Element = _elementalType,
-                        Effect = _statusEffectType,
-                        Amount = _payloadAmount,
-                        Duration = _payloadDuration,
-                        SpawnPrefab = Entity.Null,
-                    }
-                );
+                AddPayloadBuffer(request);
             }
 
             LogVerbose($"AoE request created | Position: {position:F2} | Radius: {_aoeRadius}m");
+        }
+
+        private void AddPayloadBuffer(Entity entity)
+        {
+            switch (_payloadType)
+            {
+                case TestPayloadType.Damage:
+                    DynamicBuffer<DamagePayloadRequest> damageBuffer = _entityManager.AddBuffer<DamagePayloadRequest>(entity);
+                    damageBuffer.Add(new DamagePayloadRequest { Element = _elementalType, Amount = _payloadAmount });
+                    break;
+
+                case TestPayloadType.Heal:
+                    DynamicBuffer<HealPayloadRequest> healBuffer = _entityManager.AddBuffer<HealPayloadRequest>(entity);
+                    healBuffer.Add(new HealPayloadRequest { Amount = _payloadAmount });
+                    break;
+
+                case TestPayloadType.Slow:
+                    DynamicBuffer<SlowPayloadRequest> slowBuffer = _entityManager.AddBuffer<SlowPayloadRequest>(entity);
+                    slowBuffer.Add(new SlowPayloadRequest { Amount = _payloadAmount, Duration = _payloadDuration });
+                    break;
+
+                case TestPayloadType.Burn:
+                    DynamicBuffer<BurnPayloadRequest> burnBuffer = _entityManager.AddBuffer<BurnPayloadRequest>(entity);
+                    burnBuffer.Add(new BurnPayloadRequest { Amount = _payloadAmount, Duration = _payloadDuration });
+                    break;
+
+                case TestPayloadType.Stun:
+                    DynamicBuffer<StunPayloadRequest> stunBuffer = _entityManager.AddBuffer<StunPayloadRequest>(entity);
+                    stunBuffer.Add(new StunPayloadRequest { Duration = _payloadDuration });
+                    break;
+
+                case TestPayloadType.Poison:
+                    DynamicBuffer<PoisonPayloadRequest> poisonBuffer = _entityManager.AddBuffer<PoisonPayloadRequest>(entity);
+                    poisonBuffer.Add(new PoisonPayloadRequest { Amount = _payloadAmount, Duration = _payloadDuration });
+                    break;
+
+                case TestPayloadType.SpawnEntity:
+                    DynamicBuffer<SpawnEntityRequest> spawnBuffer = _entityManager.AddBuffer<SpawnEntityRequest>(entity);
+                    spawnBuffer.Add(new SpawnEntityRequest { Prefab = Entity.Null });
+                    break;
+            }
+        }
+
+        private bool IsStatusEffectPayload()
+        {
+            return _payloadType == TestPayloadType.Slow || _payloadType == TestPayloadType.Burn || _payloadType == TestPayloadType.Stun || _payloadType == TestPayloadType.Poison;
         }
 
         private void SpawnTargets()
@@ -752,6 +777,8 @@ namespace Spellwright.Tests.Manual
             _entityManager.AddComponentData(target, new PhysicsCollider { Value = _targetColliderBlob });
             _entityManager.AddSharedComponentManaged(target, new PhysicsWorldIndex { Value = 0 });
             _entityManager.AddComponentData(target, new Health { Current = _targetMaxHealth, Maximum = _targetMaxHealth });
+            _entityManager.AddBuffer<HealthUpdateRequest>(target);
+            _entityManager.AddBuffer<StatusEffectStack>(target);
         }
 
         private void DrawSpellEntities()
@@ -912,15 +939,15 @@ namespace Spellwright.Tests.Manual
             return baseCenter + (((right * math.cos(prevAngleRad)) + (up * math.sin(prevAngleRad))) * baseRadius);
         }
 
-        private void DrawCollisionEvents()
+        private void DrawCollisionHits()
         {
-            if (!_showCollisionEvents)
+            if (!_showCollisionHits)
             {
                 return;
             }
 
             Gizmos.color = _collisionEventColor;
-            foreach (CollisionEventData collisionEvent in _collisionEvents)
+            foreach (CollisionHitData collisionEvent in _collisionEvents)
             {
                 float alpha = 1f - ((Time.time - collisionEvent.Time) / _collisionEventDuration);
                 Gizmos.color = new Color(_collisionEventColor.r, _collisionEventColor.g, _collisionEventColor.b, alpha);
@@ -1062,7 +1089,7 @@ namespace Spellwright.Tests.Manual
                     + $"Element: {_elementalType}\n"
                     + $"Amount: {_payloadAmount:F1}\n"
                     + $"Duration: {_payloadDuration:F1}s\n"
-                    + (_payloadType == PayloadType.ApplyStatusEffect ? $"Effect: {_statusEffectType}\n" : "")
+                    + (IsStatusEffectPayload() ? $"Effect: {_payloadType}\n" : "")
                 : "";
 
             return $"<b>Lifecycle Statistics</b>\n"

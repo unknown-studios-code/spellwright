@@ -1,4 +1,4 @@
-using Spellwright.Components;
+using Spellwright.Components.Common;
 using Unity.Entities;
 using UnityEngine;
 

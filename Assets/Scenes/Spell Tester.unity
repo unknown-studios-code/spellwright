@@ -305,10 +305,9 @@ MonoBehaviour:
   _enablePayloads: 1
   _payloadType: 0
   _elementalType: 1
-  _statusEffectType: 2
   _payloadAmount: 25
   _payloadDuration: 3
-  _showCollisionEvents: 1
+  _showCollisionHits: 1
   _showCollisionRadii: 1
   _showTargetHealth: 1
   _collisionEventColor: {r: 1, g: 0, b: 0, a: 1}

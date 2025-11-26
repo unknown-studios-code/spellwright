@@ -1,272 +1,360 @@
 ---
-description: Naming conventions for Unity DOTS/ECS components and systems in Spellwright, following official Unity DOTS patterns and industry best practices.
+description: Naming conventions for Unity DOTS/ECS projects following official Unity patterns, C# guidelines, and industry best practices.
 alwaysApply: false
 ---
 
 # Naming Conventions - DOTS/ECS
 
-Defines naming conventions for Unity DOTS/ECS components, systems, and jobs in Spellwright.
+Comprehensive naming conventions for Unity DOTS/ECS projects based on official Unity patterns, C# guidelines, and industry best practices.
 
 ## Purpose
 
-Establish consistent, self-documenting naming patterns that clarify component purpose, lifetime, and usage without requiring aliases or comments.
+Establish consistent, self-documenting naming patterns that:
 
-## Scope
+- Clarify component purpose, lifetime, and storage type
+- Avoid namespace conflicts without requiring aliases
+- Follow official Unity DOTS patterns
+- Maintain compatibility with C# conventions
 
-**Applies To:**
+## Core Principles
 
-- All ECS components (`IComponentData`, `IBufferElementData`)
-- All systems and jobs
-- Enums and related types
-- File and folder naming
+### 1. Self-Documenting Names
 
-## Component Type Suffixes
+Names should explain themselves without comments.
 
-Components use descriptive suffixes based on purpose and lifetime:
+**Bad:** `HC`, `Pos`, `Vel`
+**Good:** `Health`, `Position`, `Velocity`
 
-| Type                | Suffix                   | Storage                  | Lifetime   | Example                            |
-| ------------------- | ------------------------ | ------------------------ | ---------- | ---------------------------------- |
-| **Request/Command** | `Request`                | `IBufferElementData`     | 1 frame    | `SpawnRequest`, `ConeRequest`      |
-| **Event/Result**    | `Event`                  | `IComponentData`         | 1 frame    | `CollisionEvent`                   |
-| **State**           | None                     | `IComponentData`         | Persistent | `Health`, `Speed`, `Lifetime`      |
-| **Modifier**        | `Modifier`               | `IComponentData`         | Persistent | `PierceModifier`, `HomingModifier` |
-| **Collection**      | `Stack`, `Queue`, `List` | `IBufferElementData`     | Persistent | `StatusEffectStack`                |
-| **Tag**             | `Tag`                    | `IComponentData` (empty) | Persistent | `ProjectileTag`, `ValidatedTag`    |
-| **Config**          | `Data`                   | `IComponentData`         | Persistent | `ProjectileGeneratorData`          |
+### 2. Consistency Over Brevity
 
-## Naming Patterns
+Prefer longer, clear names over short, ambiguous ones.
 
-### Requests (Temporary Input)
+**Bad:** `ProjHit`, `SpwnReq`
+**Good:** `ProjectileHit`, `SpawnRequest`
 
-**Purpose:**
+### 3. Follow Unity's Lead
 
-- Command or action to be processed
-- Created → Processed → Removed/Cleared (same frame)
-- Typically `IBufferElementData` (allows multiple per entity)
+Unity's built-in components use simple names without "Component" suffix:
 
-**Examples:**
+- `LocalTransform` (not `LocalTransformComponent`)
+- `PhysicsVelocity` (not `PhysicsVelocityComponent`)
+- `Prefab` (not `PrefabComponent`)
 
-- `SpawnRequest` - Request to spawn entity
-- `HealthModificationRequest` - Request to modify health
-- `ConeRequest` - Request to create cone area attack
-- `AoeRequest` - Request to create AoE attack
+## Component Naming Patterns
 
-### Events (Temporary Output)
+### Core Data Components
 
-**Purpose:**
+**Purpose:** Store entity state data
+**Suffix:** None (follow Unity pattern)
+**Storage:** `IComponentData`
+**Lifetime:** Persistent
 
-- Result of an action
-- Created by one system → Consumed by another → Removed
-- Typically `IComponentData` (one per entity)
-
-**Examples:**
-
-- `CollisionEvent` - Result of collision detection
-- `DamageDealtEvent` - Result of damage application (hypothetical)
-
-### State (Persistent Core Data)
-
-**Purpose:**
-
-- Defines entity's core properties
-- Accessed frequently, rarely added/removed
-- No suffix for simple state
-
-**Examples:**
-
-- `Health` - Current and maximum health
-- `Speed` - Movement speed
-- `Lifetime` - Remaining time to live
-- `SpellOwner` - Reference to caster
-
-### Modifiers (Persistent Behavior)
-
-**Purpose:**
-
-- Alters how systems process the entity
-- Added/removed dynamically during gameplay
-- Always suffix with `Modifier`
-
-**Examples:**
-
-- `PierceModifier` - Projectile pierces targets
-- `ChainModifier` - Effect chains between targets
-- `HomingModifier` - Projectile tracks targets
-- `ForkModifier` - Projectile splits on impact
-
-### Collections (Persistent Buffers)
-
-**Purpose:**
-
-- Variable-sized collections per entity
-- Multiple items of same type
-- Use descriptive suffix: `Stack`, `Queue`, `List`
-
-**Examples:**
-
-- `StatusEffectStack` - Active status effects buffer
-- `PayloadRequest` - Payloads to apply buffer
-- `InventorySlot` - Inventory items buffer (hypothetical)
-
-### Tags (Empty Markers)
-
-**Purpose:**
-
-- Classification for query filtering
-- No data, only presence matters
-- Always suffix with `Tag`
-
-**Examples:**
-
-- `ProjectileTag` - Marks entity as projectile
-- `ValidatedTag` - Marks spell as validated
-- `EnemyTag` - Marks entity as enemy (hypothetical)
-
-### Configuration Data
-
-**Purpose:**
-
-- Static configuration/setup values
-- Rarely modified after creation
-- Suffix with `Data`
-
-**Examples:**
-
-- `ProjectileGeneratorData` - Projectile generation config
-- `ConeGeneratorData` - Cone generation config
-- `AreaOfEffectGeneratorData` - AoE generation config
-
-## Namespace Conflict Resolution
-
-When component name conflicts with namespace, use descriptive suffix instead of aliases.
-
-**BAD (requires aliases everywhere):**
+| Pattern             | Example        | Description     |
+| ------------------- | -------------- | --------------- |
+| `[Noun]`            | `Health`       | Primary state   |
+| `[Adjective][Noun]` | `MaxHealth`    | Qualified state |
+| `[Context][Noun]`   | `PlayerHealth` | Scoped state    |
 
 ```csharp
-// Component: Spellwright.Components.StatusEffect.StatusEffect
-using StatusEffectComponent = Spellwright.Components.StatusEffect.StatusEffect;
+public struct Health : IComponentData
+{
+    public float Current;
+    public float Maximum;
+}
+
+public struct Speed : IComponentData
+{
+    public float Value;
+}
 ```
 
-**GOOD (clear and self-documenting):**
+### Tag Components
+
+**Purpose:** Mark entities for query filtering (no data)
+**Suffix:** `Tag`
+**Storage:** `IComponentData` (empty struct)
+**Lifetime:** Persistent or conditional
 
 ```csharp
-// Component: Spellwright.Components.StatusEffect.StatusEffectStack
-using Spellwright.Components.StatusEffect;
-// Use StatusEffectStack directly
+public struct ProjectileTag : IComponentData { }
+public struct EnemyTag : IComponentData { }
+public struct ValidatedTag : IComponentData { }
+public struct DeadTag : IComponentData { }
 ```
 
-## System and Job Naming
+### Request Components
 
-### Systems
+**Purpose:** Command/action to be processed and consumed
+**Suffix:** `Request`
+**Storage:** `IComponentData` or `IBufferElementData`
+**Lifetime:** Transient (1 frame typical)
+
+```csharp
+// Single request per entity
+public struct SpawnRequest : IComponentData
+{
+    public Entity Prefab;
+    public float3 Position;
+}
+
+// Multiple requests per entity
+public struct DamageRequest : IBufferElementData
+{
+    public float Amount;
+    public Entity Source;
+}
+```
+
+### Event/Result Components
+
+**Purpose:** Result of processing, consumed by other systems
+**Suffix:** Descriptive noun (avoid `Event` suffix due to Unity.Physics conflict)
+**Storage:** `IComponentData` or `IBufferElementData`
+**Lifetime:** Transient (1 frame typical)
+
+| Recommended    | Avoid            | Reason                                        |
+| -------------- | ---------------- | --------------------------------------------- |
+| `CollisionHit` | `CollisionEvent` | Conflicts with `Unity.Physics.CollisionEvent` |
+| `DamageResult` | `DamageEvent`    | Clearer intent                                |
+| `SpawnResult`  | `SpawnEvent`     | Describes outcome                             |
+
+```csharp
+// Single result per entity
+public struct DeathResult : IComponentData
+{
+    public Entity Killer;
+    public float3 Position;
+}
+
+// Multiple results per entity (e.g., AoE hitting multiple targets)
+public struct CollisionHit : IBufferElementData
+{
+    public Entity Target;
+    public float3 ImpactPosition;
+}
+```
+
+### Modifier Components
+
+**Purpose:** Alter behavior of systems processing the entity
+**Suffix:** `Modifier`
+**Storage:** `IComponentData`
+**Lifetime:** Persistent (added/removed during gameplay)
+
+```csharp
+public struct PierceModifier : IComponentData
+{
+    public int MaxTargets;
+}
+
+public struct HomingModifier : IComponentData
+{
+    public float TurnSpeed;
+    public Entity Target;
+}
+
+public struct ChainModifier : IComponentData
+{
+    public int MaxChains;
+    public float ChainRadius;
+}
+```
+
+### Configuration/Data Components
+
+**Purpose:** Static configuration, rarely modified after creation
+**Suffix:** `Config` or `Data`
+**Storage:** `IComponentData`
+**Lifetime:** Persistent (set at spawn, never changed)
+
+```csharp
+public struct ProjectileConfig : IComponentData
+{
+    public float Speed;
+    public float Lifetime;
+    public float CollisionRadius;
+}
+
+public struct WeaponData : IComponentData
+{
+    public float BaseDamage;
+    public float AttackSpeed;
+}
+```
+
+### Collection/Buffer Components
+
+**Purpose:** Variable-size collections attached to entities
+**Suffix:** Descriptive plural or collection type
+**Storage:** `IBufferElementData`
+**Lifetime:** Persistent
+
+```csharp
+// Use plural or descriptive suffix
+public struct StatusEffect : IBufferElementData
+{
+    public StatusEffectType Type;
+    public float Duration;
+    public float Strength;
+}
+
+public struct InventorySlot : IBufferElementData
+{
+    public Entity Item;
+    public int Quantity;
+}
+
+public struct Waypoint : IBufferElementData
+{
+    public float3 Position;
+}
+```
+
+## System Naming
 
 **Pattern:** `[Functionality]System`
+**Suffix:** `System` (always)
 
-**Examples:**
+```csharp
+public partial struct MovementSystem : ISystem { }
+public partial struct CollisionDetectionSystem : ISystem { }
+public partial struct DamageResolutionSystem : ISystem { }
+public partial struct SpawnSystem : ISystem { }
+```
 
-- `SpellMovementSystem`
-- `CollisionDetectionSystem`
-- `PayloadResolutionSystem`
-- `HealthModificationSystem`
-- `StatusEffectProcessingSystem`
+### System Groups
 
-### Jobs
+**Pattern:** `[Category]SystemGroup`
+**Suffix:** `SystemGroup`
 
-**Pattern:** `[Action][Target]Job`
+```csharp
+public partial class CombatSystemGroup : ComponentSystemGroup { }
+public partial class PhysicsProcessingGroup : ComponentSystemGroup { }
+```
 
-**Examples:**
+## Job Naming
 
-- `ApplyVelocityJob`
-- `ProcessPayloadsJob`
-- `DestroyExpiredSpellsJob`
-- `ProjectileHitJob`
-- `ApplyHealthModificationsJob`
+**Pattern:** `[Action][Target]Job` or `[Verb][Noun]Job`
+**Suffix:** `Job` (always)
 
-## File and Folder Naming
+```csharp
+public partial struct SpawnSpellJob : IJobEntity { }
+public partial struct ValidateSpawnRequestJob : IJobEntity { }
+public partial struct UpdateHealthJob : IJobEntity { }
+public partial struct DetectAoeCollisionJob : IJobEntity { }
+public partial struct ApplyDamagePayloadJob : IJobEntity { }
+public partial struct DestroyExpiredSpellsJob : IJobEntity { }
+```
 
-**Components:**
+## Authoring/Baker Naming
 
-- File matches struct name: `Health.cs`, `StatusEffectStack.cs`
-- Folder matches category: `Components/Payloads/`, `Components/StatusEffect/`
+**Pattern:** `[EntityType]Authoring` and `[EntityType]Baker`
+**Suffix:** `Authoring` or `Baker`
 
-**Systems:**
+```csharp
+public class ProjectileAuthoring : MonoBehaviour { }
+public class ProjectileBaker : Baker<ProjectileAuthoring> { }
 
-- File matches struct name: `PayloadResolutionSystem.cs`
-- Folder matches category: `Systems/Payloads/`, `Systems/Health/`
+public class EnemyAuthoring : MonoBehaviour { }
+public class EnemyBaker : Baker<EnemyAuthoring> { }
+```
 
-**Jobs:**
+## Namespace Structure
 
-- File matches struct name: `ProcessPayloadsJob.cs`
-- Folder matches category: `Jobs/Payloads/`, `Jobs/Health/`
+**Pattern:** `Spellwright.[Layer].[Category]`
 
-## Current Project Components
+Follows the folder structure from `Assets/Scripts/`:
 
-**Requests (Temporary Input):**
+```
+Scripts/Components/Common    -> Spellwright.Components.Common
+Scripts/Components/Collision -> Spellwright.Components.Collision
+Scripts/Systems/Collision    -> Spellwright.Systems.Collision
+Scripts/Jobs/Payloads        -> Spellwright.Jobs.Payloads
+```
 
-- `ConeRequest`, `AoeRequest`, `SpawnRequest`
-- `PayloadRequest`, `HealthModificationRequest`
+## File and Folder Organization
 
-**Events (Temporary Output):**
+### Folder Structure
 
-- `CollisionEvent`
+```
+Assets/Scripts/
+├── Components/
+│   ├── Common/
+│   │   ├── Health.cs
+│   │   └── Speed.cs
+│   ├── Collision/
+│   │   ├── CollisionHit.cs
+│   │   └── ProjectileTag.cs
+│   └── Modifiers/
+│       └── PierceModifier.cs
+├── Systems/
+│   ├── Collision/
+│   │   └── AoeCollisionSystem.cs
+│   └── Payloads/
+│       └── DamagePayloadSystem.cs
+├── Jobs/
+│   ├── Collision/
+│   │   └── DetectAoeCollisionJob.cs
+│   └── Payloads/
+│       └── ApplyDamagePayloadJob.cs
+└── Authorings/
+    └── ProjectileAuthoring.cs
+```
 
-**State (Persistent Core Data):**
+### File Naming
 
-- `Health`, `Speed`, `Lifetime`, `SpellOwner`
+- File name matches type name exactly
+- One public type per file
+- `Health.cs` contains `public struct Health`
 
-**Modifiers (Persistent Behavior):**
+## Avoiding Common Conflicts
 
-- `PierceModifier`, `ChainModifier`, `HomingModifier`
-- `ForkModifier`, `MultiShotModifier`
+### Unity.Physics Namespace
 
-**Buffers (Persistent Collections):**
+| Conflicting Name | Resolution                              |
+| ---------------- | --------------------------------------- |
+| `CollisionEvent` | Use `CollisionHit` or `CollisionResult` |
+| `Velocity`       | Use `Speed` or prefix with context      |
+| `Mass`           | Use `EntityMass` or context prefix      |
 
-- `StatusEffectStack`
+### Pattern: Using Directive Alias
 
-**Tags (Empty Markers):**
+When conflicts are unavoidable (e.g., namespace shadows type name):
 
-- `ProjectileTag`, `ValidatedTag`
+```csharp
+using CollisionHit = Spellwright.Components.Collision.CollisionHit;
+using HealthComponent = Spellwright.Components.Common.Health;
+```
 
-**Configuration Data:**
+## Quick Reference Table
 
-- `ProjectileGeneratorData`, `ConeGeneratorData`
-- `AreaOfEffectGeneratorData`
+| Category  | Suffix          | Storage                               | Lifetime   | Example                 |
+| --------- | --------------- | ------------------------------------- | ---------- | ----------------------- |
+| Core Data | None            | `IComponentData`                      | Persistent | `Health`, `Speed`       |
+| Tag       | `Tag`           | `IComponentData`                      | Varies     | `ProjectileTag`         |
+| Request   | `Request`       | `IComponentData`/`IBufferElementData` | 1 frame    | `SpawnRequest`          |
+| Result    | Descriptive     | `IComponentData`/`IBufferElementData` | 1 frame    | `CollisionHit`          |
+| Modifier  | `Modifier`      | `IComponentData`                      | Persistent | `PierceModifier`        |
+| Config    | `Config`/`Data` | `IComponentData`                      | Persistent | `WeaponConfig`          |
+| Buffer    | Descriptive     | `IBufferElementData`                  | Persistent | `StatusEffect`          |
+| System    | `System`        | -                                     | -          | `DamageSystem`          |
+| Job       | `Job`           | -                                     | -          | `ApplyDamagePayloadJob` |
+| Authoring | `Authoring`     | -                                     | -          | `EnemyAuthoring`        |
 
-## Naming Checklist
+## Checklist
 
-Before creating new components:
+Before creating new types:
 
-- [ ] Suffix matches purpose (`Request`, `Event`, `Modifier`, etc.)
+- [ ] Name follows appropriate pattern for category
+- [ ] Suffix matches purpose (`Tag`, `Request`, `Modifier`, etc.)
+- [ ] No conflicts with Unity namespaces
+- [ ] File name matches type name
+- [ ] Placed in correct folder/namespace
 - [ ] Name is self-documenting (no abbreviations)
-- [ ] No namespace conflicts (use descriptive suffix if needed)
-- [ ] Consistent with existing project patterns
-- [ ] File name matches struct name
-- [ ] Folder matches category
-
-## Integration
-
-This standard works with:
-
-- **Code Generation** (`general/code-generation.mdc`)
-- **DOTS Architecture** (`concept/dots-architecture.mdc`)
-- **Spell Components** (`concept/spell-components.mdc`)
-
-## Summary
-
-**PRIMARY RULE**: Use descriptive suffixes that clarify purpose and lifetime.
-
-**Key Patterns:**
-
-1. **Request** - Temporary input commands
-2. **Event** - Temporary output results
-3. **Modifier** - Persistent behavior changes
-4. **Stack/Queue/List** - Persistent collections
-5. **Tag** - Empty classification markers
-6. **Data** - Configuration/setup values
-7. **No suffix** - Simple persistent state
-
-**Remember:** Names should be self-documenting. If a component needs a comment to explain its purpose, the name is wrong.
 
 ## References
 
 - [Unity DOTS Documentation](https://docs.unity3d.com/Packages/com.unity.entities@latest/)
+- [Unity C# Coding Guidelines](https://unity.com/how-to/naming-and-code-style-tips-c-scripting-unity)
 - [Entity Component System Samples](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
+- [C# Naming Guidelines](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)

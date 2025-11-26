@@ -29,7 +29,7 @@ namespace Spellwright.Systems.Spawning
             BeginInitializationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>();
             EntityCommandBuffer ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
-            var validationJob = new SpawnRequestValidationJob
+            var validationJob = new ValidateSpawnRequestJob
             {
                 ECB = ecb.AsParallelWriter(),
                 SpellOwnerLookup = SystemAPI.GetComponentLookup<SpellOwner>(true),
