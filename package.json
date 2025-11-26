@@ -14,13 +14,18 @@
         }
     },
     "devDependencies": {
+        "@notionhq/client": "^5.4.0",
+        "@octokit/rest": "^22.0.1",
+        "@tryfabric/martian": "^1.2.4",
         "@types/node": "^24.10.1",
         "commitizen": "^4.3.1",
         "cz-conventional-changelog": "^3.0.1",
+        "dotenv": "^17.2.3",
         "husky": "^9.1.7",
         "prettier": "^3.6.2",
         "ts-node": "^10.9.2",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "zod": "^4.1.12"
     },
     "keywords": [
         "ai",
@@ -32,26 +37,20 @@
         "spell",
         "unity"
     ],
-    "dependencies": {
-        "@notionhq/client": "^5.4.0",
-        "@octokit/rest": "^22.0.1",
-        "dotenv": "^17.2.3",
-        "zod": "^4.1.12"
-    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/unknown-studios-code/spellwright.git"
     },
     "scripts": {
-        "prepare": "husky",
         "build-skills": "tsc --project tsconfig.json",
+        "check": "npm run check:csharpier && npm run check:dotnet && npm run check:prettier",
+        "check:csharpier": "dotnet csharpier check Assets/Scripts --ignore-path .formatterignore",
+        "check:dotnet": "dotnet format spellwright.slnx --include \"Assets/Scripts/**/*.cs\" --verify-no-changes --severity info",
+        "check:prettier": "prettier --check \"**/*.{json,md,mdc,yml,yaml,ts}\" --ignore-path .formatterignore",
         "format": "npm run format:csharpier && npm run format:dotnet && npm run format:prettier",
         "format:csharpier": "dotnet csharpier format Assets/Scripts --ignore-path .formatterignore",
         "format:dotnet": "dotnet format spellwright.slnx --include \"Assets/Scripts/**/*.cs\"",
         "format:prettier": "prettier --write \"**/*.{json,md,mdc,yml,yaml,ts}\" --ignore-path .formatterignore",
-        "check": "npm run check:csharpier && npm run check:dotnet && npm run check:prettier",
-        "check:csharpier": "dotnet csharpier check Assets/Scripts --ignore-path .formatterignore",
-        "check:dotnet": "dotnet format spellwright.slnx --include \"Assets/Scripts/**/*.cs\" --verify-no-changes --severity info",
-        "check:prettier": "prettier --check \"**/*.{json,md,mdc,yml,yaml,ts}\" --ignore-path .formatterignore"
+        "prepare": "husky"
     }
 }

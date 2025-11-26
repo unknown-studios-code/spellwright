@@ -56,5 +56,3 @@ jobs:
 
             Please update your PR title to match the Conventional Commits specification.
           validateSingleCommit: false
-          ignoreLabels: |
-            skip-title-check

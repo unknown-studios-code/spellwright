@@ -13,6 +13,6 @@
             "*": ["node_modules/*"]
         }
     },
-    "include": [".skills/**/*.ts"],
+    "include": [".cursor/skills/**/*.ts"],
     "exclude": ["node_modules", "dist", "Assets", "Library", "Packages"]
 }
